@@ -90,6 +90,7 @@ for h in ydb1 ydb2 ydb3; do
   ssh $h sudo cp ydbd-storage.service /etc/systemd/system/ydbd-storage.service
   ssh $h sudo cp ydbd-testdb.service /etc/systemd/system/ydbd-testdb.service
 done
+```
 
 ## Starting the static nodes
 ```bash

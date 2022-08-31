@@ -92,6 +92,16 @@ for h in ydb1 ydb2 ydb3; do
 done
 ```
 
+or just for the main YDB config file:
+
+```bash
+for h in ydb1 ydb2 ydb3; do
+  scp ydb-config.yaml $h:.
+  ssh $h sudo cp ydb-config.yaml /opt/ydb/cfg/config.yaml
+done
+```
+
+
 ## Starting the static nodes
 ```bash
 for h in ydb1 ydb2 ydb3; do

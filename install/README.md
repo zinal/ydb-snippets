@@ -119,7 +119,7 @@ done
 LD_LIBRARY_PATH=/opt/ydb/lib /opt/ydb/bin/ydbd admin blobstorage config init --yaml-file  /opt/ydb/cfg/config.yaml ; echo $?
 
 # Create the database
-LD_LIBRARY_PATH=/opt/ydb/lib /opt/ydb/bin/ydbd admin database /Root/testdb create rot:1
+LD_LIBRARY_PATH=/opt/ydb/lib /opt/ydb/bin/ydbd admin database /Root/testdb create ROT:1
 ```
 
 ## Starting the dynamic nodes

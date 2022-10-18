@@ -111,11 +111,25 @@ make_node_cert() {
     fi
 }
 
+DEST_NAME=`date "+%Y-%m-%d_%H-%M-%S"`
+[ -d certs/"$DEST_NAME" ] || mkdir certs/"$DEST_NAME"
+cp -v certs/ca.crt certs/"$DEST_NAME"/
+
+move_node_files() {
+    mv -v nodes/"$1".crt certs/"$DEST_NAME"/
+    mv -v nodes/"$1".key certs/"$DEST_NAME"/
+    mv -v nodes/"$1".csr certs/"$DEST_NAME"/
+    mv -v nodes/*.pem certs/"$DEST_NAME"/
+}
+
 cat ../ydb-ca-nodes.txt | while read node; do
     if [ ! -z "$node" ]; then
         make_node_conf "$node"
         make_node_key "$node"
         make_node_csr "$node"
         make_node_cert "$node"
+        move_node_files "$node"
     fi
 done
+
+echo "All done. Certificates are in CA/certs/$DEST_NAME"

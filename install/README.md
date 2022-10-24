@@ -151,3 +151,15 @@ for h in ydb1 ydb2 ydb3; do
   ssh $h sudo systemctl stop ydbd-storage
 done
 ```
+
+# YDB 8-node block-4+2 cluster installation
+
+## Install the supporting packages and upgrade the operating system
+
+```bash
+for x in `seq 1 8`; do ssh ydb"$x" sudo apt-get install -y screen mc zip unzip atop; done
+for x in `seq 1 8`; do ssh ydb"$x" screen -m -d sudo apt-get update; done
+for x in `seq 1 8`; do ssh ydb"$x" screen -ls; done
+for x in `seq 1 8`; do ssh ydb"$x" screen -m -d sudo apt-get -o Dpkg::Options::='--force-confold' --force-yes -fuy upgrade; done
+for x in `seq 1 8`; do ssh ydb"$x" sudo shutdown -r now; done
+```

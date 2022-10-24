@@ -358,3 +358,6 @@ echo $?
 ```
 
 Create the database
+```bash
+/opt/ydb/bin/ydbd -f token-file admin database /Root/testdb create ssd:1
+```

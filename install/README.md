@@ -163,3 +163,26 @@ for x in `seq 1 8`; do ssh ydb"$x" screen -ls; done
 for x in `seq 1 8`; do ssh ydb"$x" screen -m -d sudo apt-get -o Dpkg::Options::='--force-confold' --force-yes -fuy upgrade; done
 for x in `seq 1 8`; do ssh ydb"$x" sudo shutdown -r now; done
 ```
+
+## User and group preparation
+
+```bash
+# Create ydb user and group
+for  x in `seq 1 8`; do h=ydb"$x"
+  ssh $h sudo groupadd ydb
+  ssh $h sudo useradd ydb -g ydb
+  ssh $h sudo usermod -aG disk ydb
+done
+# Validate ydb user identity
+for  x in `seq 1 8`; do h=ydb"$x"
+  ssh $h sudo id ydb
+done
+```
+
+## Download and install the current binary
+
+```bash
+[-d YdbInstall] || mkdir YdbInstall
+cd YdbInstall
+wget https://binaries.ydb.tech/release/22.4.30/ydbd-22.4.30-linux-amd64.tar.gz
+```

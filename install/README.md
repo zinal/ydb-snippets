@@ -182,7 +182,25 @@ done
 ## Download and install the current binary
 
 ```bash
+# Create the working dir on the bootstrap node
 [-d YdbInstall] || mkdir YdbInstall
 cd YdbInstall
-wget https://binaries.ydb.tech/release/22.4.30/ydbd-22.4.30-linux-amd64.tar.gz
+# Download the binary
+YDB_DITTO=ydbd-22.4.30-linux-amd64.tar.gz
+wget https://binaries.ydb.tech/release/22.4.30/$YDB_DITTO
+# Upload and unpack the binary to cluster nodes
+for  x in `seq 1 8`; do h=ydb"$x"
+  ssh $h rm -rf YdbWork
+  ssh $h mkdir -pv YdbWork/code
+  scp $YDB_DITTO "$h":YdbWork/
+  ssh $h tar xfz YdbWork/$YDB_DITTO --strip-component=1 -C YdbWork/code
+done
+# Create the destination directories and install the binary
+for  x in `seq 1 8`; do h=ydb"$x"
+  ssh $h sudo rm -rf /opt/ydb
+  ssh $h sudo mkdir -p /opt/ydb/bin /opt/ydb/cfg /opt/ydb/lib
+  ssh $h sudo chown -R ydb:ydb /opt/ydb
+  ssh $h sudo cp -fv YdbWork/code/bin/ydbd /opt/ydb/bin/
+  ssh $h sudo cp -fv YdbWork/code/lib/lib\* /opt/ydb/lib/
+done
 ```

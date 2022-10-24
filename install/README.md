@@ -288,4 +288,6 @@ for h in `ls *.key | while read fn; do basename $fn .key; done | xargs echo`; do
   ssh $h sudo chown -R ydb:ydb /opt/ydb/certs
   ssh $h sudo chmod 0750 /opt/ydb/certs
 done
+# Switch back to the working directory
+cd ../../..
 ```

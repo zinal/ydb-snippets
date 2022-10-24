@@ -154,7 +154,7 @@ done
 
 # YDB 8-node block-4+2 cluster installation
 
-## Install the supporting packages and upgrade the operating system
+## 0. Install the supporting packages and upgrade the operating system
 
 ```bash
 for x in `seq 1 8`; do ssh ydb"$x" sudo apt-get install -y screen mc zip unzip atop; done
@@ -164,7 +164,7 @@ for x in `seq 1 8`; do ssh ydb"$x" screen -m -d sudo apt-get -o Dpkg::Options::=
 for x in `seq 1 8`; do ssh ydb"$x" sudo shutdown -r now; done
 ```
 
-## YC-specific VM preparation
+## 0. YC-specific VM preparation
 
 ```bash
 # Configure hosts, reboot required
@@ -187,7 +187,7 @@ for x in 1 2 3 4 5 6 7 8; do for y in 1 2; do
 done; done
 ```
 
-## User and group preparation
+## 1. User and group preparation
 
 ```bash
 # Create ydb user and group
@@ -202,7 +202,7 @@ for  x in `seq 1 8`; do h=ydb"$x"
 done
 ```
 
-## Download and install the current binary
+## 2. Download and install the current binary
 
 ```bash
 # Create the working dir on the bootstrap node
@@ -228,7 +228,7 @@ for  x in `seq 1 8`; do h=ydb"$x"
 done
 ```
 
-## Disk preparation
+## 3. Disk preparation
 ```bash
 # Generating ydb-disks script
 cat >ydb-disks.sh <<EOF
@@ -264,7 +264,7 @@ for  x in `seq 1 8`; do h=ydb"$x"
 done
 ```
 
-## TLS certificate generation and distribution
+## 4. TLS certificate generation and distribution
 
 ```bash
 # Make the list of nodes
@@ -292,7 +292,9 @@ done
 cd ../../..
 ```
 
-## Distribute the service files
+## 5. Distribute the configuration files
+
+Services files:
 
 ```bash
 for  x in `seq 1 8`; do h=ydb"$x"
@@ -303,7 +305,7 @@ for  x in `seq 1 8`; do h=ydb"$x"
 done
 ```
 
-## Distribute the configuration file
+The configuration file:
 
 ```bash
 for  x in `seq 1 8`; do h=ydb"$x"
@@ -312,7 +314,7 @@ for  x in `seq 1 8`; do h=ydb"$x"
 done
 ```
 
-## Start the static nodes
+## 6. Start the static nodes
 
 ```bash
 for  x in `seq 1 8`; do h=ydb"$x"
@@ -331,3 +333,11 @@ for  x in `seq 1 8`; do h=ydb"$x"
   ssh $h sudo systemctl status ydbd-storage
 done
 ```
+
+## 7. Obtain the service token for administrative commands
+
+```bash
+ydb -e grpc://ydb1.local:2135 -d /Root \
+    --user root --no-password auth get-token --force >token-file
+```
+

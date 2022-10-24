@@ -181,6 +181,10 @@ yc iam create-token >/dev/null
 for x in 1 2 3 4 5 6 7 8; do for y in 1 2; do
   yc compute disk create --name ydb"$x"disk"$y" --zone ru-central1-b --size 93G --type network-ssd-nonreplicated --async
 done; done
+# Attaching the disks
+for x in 1 2 3 4 5 6 7 8; do for y in 1 2; do
+  yc compute instance attach-disk --name ydb"$x" --disk-name ydb"$x"disk"$y" --auto-delete --async
+done; done
 ```
 
 ## User and group preparation

@@ -88,25 +88,35 @@ actor_system_config:          # the configuration of the actor system which desc
     type: BASIC
   - name: User                # user executor of the actor system. In this executor YDB launches user workloads, like datashard activities,
                               # queries and rpc calls.
-    threads: 3                # the number of threads allocated to user executor.
+    threads: 6                # the number of threads allocated to user executor.
     type: BASIC
   - name: Batch               # user executor of the actor system. In this executor YDB launches batch operations, like scan queries, table
                               # compactions, background compactions.
     threads: 2                # the number of threads allocated to the batch executor.
     type: BASIC
   - name: IO                  # the io executor. In this executor launches sync operations and writes logs.
-    threads: 1
+    threads: 2
     time_per_mailbox_micro_secs: 100
     type: IO
   - name: IC                  # the interconnect executor which YDB uses for network communications accross different nodes of the cluster.
     spin_threshold: 10
-    threads: 1                # the number of threads allocated to the interconnect executor.
+    threads: 4                # the number of threads allocated to the interconnect executor.
     time_per_mailbox_micro_secs: 100
     type: BASIC
   scheduler:
     progress_threshold: 10000
     resolution: 256
     spin_threshold: 0
+interconnect_config:
+    start_tcp: true
+    encryption_mode: OPTIONAL
+    path_to_certificate_file: "/opt/ydb/certs/node.crt"
+    path_to_private_key_file: "/opt/ydb/certs/node.key"
+    path_to_ca_file: "/opt/ydb/certs/ca.crt"
+grpc_config:
+    cert: "/opt/ydb/certs/node.crt"
+    key: "/opt/ydb/certs/node.key"
+    ca: "/opt/ydb/certs/ca.crt"
 blob_storage_config:         # configuration of static blobstorage group.
                              # YDB uses this group to store system tablets' data, like SchemeShard
   service_set:

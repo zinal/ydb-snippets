@@ -17,8 +17,8 @@ cd YdbInstall
 
 ## Disk preparation
 ```bash
-# Generating ydb-configure-disks script
-cat >ydb-configure-disks.sh <<EOF
+# Generating ydb-disks script
+cat >ydb-disks.sh <<EOF
 sudo parted /dev/vdb mklabel gpt -s
 sudo parted -a optimal /dev/vdb mkpart primary '0%' '100%'
 sudo parted /dev/vdb name 1 ydb_disk_01
@@ -42,8 +42,8 @@ EOF
 # Running disk configuration script
 for h in ydb1 ydb2 ydb3; do
   ssh $h mkdir YdbWork
-  scp ydb-configure-disks.sh $h:YdbWork/
-  ssh $h sudo bash YdbWork/ydb-configure-disks.sh
+  scp ydb-disks.sh $h:YdbWork/
+  ssh $h sudo bash YdbWork/ydb-disks.sh
 done
 ```
 
@@ -225,5 +225,41 @@ for  x in `seq 1 8`; do h=ydb"$x"
   ssh $h sudo chown -R ydb:ydb /opt/ydb
   ssh $h sudo cp -fv YdbWork/code/bin/ydbd /opt/ydb/bin/
   ssh $h sudo cp -fv YdbWork/code/lib/lib\* /opt/ydb/lib/
+done
+```
+
+## Disk preparation
+```bash
+# Generating ydb-disks script
+cat >ydb-disks.sh <<EOF
+sudo parted /dev/vdb mklabel gpt -s
+sudo parted -a optimal /dev/vdb mkpart primary '0%' '100%'
+sudo parted /dev/vdb name 1 ydb_disk_01
+sudo partprobe /dev/vdb
+
+sudo parted /dev/vdc mklabel gpt -s
+sudo parted -a optimal /dev/vdc mkpart primary '0%' '100%'
+sudo parted /dev/vdc name 1 ydb_disk_02
+sudo partprobe /dev/vdc
+
+ls -l /dev/disk/by-partlabel/ydb_disk_*
+EOF
+```
+
+```bash
+# Running disk configuration script
+for  x in `seq 1 8`; do h=ydb"$x"
+  scp ydb-disks.sh $h:YdbWork/
+  ssh $h sudo bash YdbWork/ydb-disks.sh
+done
+```
+
+```bash
+# Disk formatting
+for  x in `seq 1 8`; do h=ydb"$x"
+  for d in 01 02; do
+    ssh $h sudo LD_LIBRARY_PATH=/opt/ydb/lib /opt/ydb/bin/ydbd admin bs disk obliterate /dev/disk/by-partlabel/ydb_disk_"$d"
+    echo "Status for $h $d: $?"
+  done
 done
 ```

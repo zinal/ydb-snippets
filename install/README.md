@@ -366,13 +366,21 @@ Create the database:
 
 ```bash
 # Starting the dynamic nodes
-for h in ydb1 ydb2 ydb3; do
+for  x in `seq 1 8`; do h=ydb"$x"
   ssh $h sudo systemctl start ydbd-testdb
 done
 ```
 
 ```bash
-for h in ydb1 ydb2 ydb3; do
+for  x in `seq 1 8`; do h=ydb"$x"
   ssh $h sudo systemctl status ydbd-testdb
 done
+```
+
+## 9. Create additional users, change root password
+
+```bash
+ydb -e grpc://ydb1:2135 -d /Root/testdb --user root --no-password yql -s 'CREATE USER stroppy PASSWORD "passw0rd"'
+ydb -e grpc://ydb1:2135 -d /Root/testdb --user root --no-password yql -s 'ALTER GROUP ADMINS ADD USER stroppy'
+ydb -e grpc://ydb1:2135 -d /Root/testdb --user root --no-password yql -s 'ALTER USER root PASSWORD "passw0rd"'
 ```

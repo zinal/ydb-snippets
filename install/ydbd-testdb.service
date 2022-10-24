@@ -18,7 +18,7 @@ SyslogLevel=err
 Environment=LD_LIBRARY_PATH=/opt/ydb/lib
 ExecStart=/opt/ydb/bin/ydbd server --grpc-port 2136 --ic-port 19002 --mon-port 8766 --yaml-config  /opt/ydb/cfg/config.yaml --tenant /Root/testdb --node-broker ydb1.local:2135 --node-broker ydb2.local:2135 --node-broker ydb3.local:2135
 LimitNOFILE=65536
-LimitCORE=0
+LimitCORE=infinity
 LimitMEMLOCK=32212254720
 
 [Install]

@@ -15,10 +15,10 @@ StandardError=syslog
 SyslogIdentifier=ydbd
 SyslogFacility=daemon
 SyslogLevel=err
-Environment=LD_LIBRARY_PATH=:/opt/ydb/lib
+Environment=LD_LIBRARY_PATH=/opt/ydb/lib
 ExecStart=/opt/ydb/bin/ydbd server --log-level 3 --syslog --tcp --yaml-config  /opt/ydb/cfg/config.yaml --grpc-port 2135 --ic-port 19001 --mon-port 8765 --node static
 LimitNOFILE=65536
-LimitCORE=0
+LimitCORE=infinity
 LimitMEMLOCK=3221225472
 
 [Install]

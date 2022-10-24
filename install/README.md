@@ -334,10 +334,19 @@ for  x in `seq 1 8`; do h=ydb"$x"
 done
 ```
 
-## 7. Obtain the service token for administrative commands
+## 7. Initialize the static cluster:
+
+Obtain the service token for administrative commands:
 
 ```bash
 ydb -e grpc://ydb1.local:2135 -d /Root \
     --user root --no-password auth get-token --force >token-file
 ```
 
+```bash
+scp token-file ydb1.local:YdbWork/
+```
+
+Initialize the storage subsystem 
+
+Create the database

@@ -164,6 +164,16 @@ for x in `seq 1 8`; do ssh ydb"$x" screen -m -d sudo apt-get -o Dpkg::Options::=
 for x in `seq 1 8`; do ssh ydb"$x" sudo shutdown -r now; done
 ```
 
+## YC-specific VM preparation
+
+```bash
+# Configure hosts, reboot required
+for  x in `seq 1 8`; do h=ydb"$x"
+  scp /etc/cloud/templates/hosts.debian.tmpl "$h":.
+  ssh "$h" sudo cp hosts.debian.tmpl /etc/cloud/templates/hosts.debian.tmpl
+done
+```
+
 ## User and group preparation
 
 ```bash

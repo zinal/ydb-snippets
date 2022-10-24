@@ -311,3 +311,23 @@ for  x in `seq 1 8`; do h=ydb"$x"
   ssh $h sudo cp YdbWork/config-8nodes.yaml /opt/ydb/cfg/config.yaml
 done
 ```
+
+## Start the static nodes
+
+```bash
+for  x in `seq 1 8`; do h=ydb"$x"
+  ssh $h sudo systemctl daemon-reload
+done
+```
+
+```bash
+for  x in `seq 1 8`; do h=ydb"$x"
+  ssh $h sudo systemctl start ydbd-storage
+done
+```
+
+```bash
+for  x in `seq 1 8`; do h=ydb"$x"
+  ssh $h sudo systemctl status ydbd-storage
+done
+```

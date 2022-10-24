@@ -334,7 +334,7 @@ for  x in `seq 1 8`; do h=ydb"$x"
 done
 ```
 
-## 7. Initialize the static cluster:
+## 7. Initialize the cluster
 
 Obtain the service token for administrative commands:
 
@@ -347,7 +347,7 @@ ydb -e grpc://ydb1.local:2135 -d /Root \
 scp token-file ydb1.local:YdbWork/
 ```
 
-Initialize the storage subsystem
+Initialize the storage subsystem:
 
 ```bash
 ssh ydb1
@@ -357,7 +357,22 @@ export LD_LIBRARY_PATH=/opt/ydb/lib
 echo $?
 ```
 
-Create the database
+Create the database:
 ```bash
 /opt/ydb/bin/ydbd -f token-file admin database /Root/testdb create ssd:1
+```
+
+## 8. Start the dynamic nodes
+
+```bash
+# Starting the dynamic nodes
+for h in ydb1 ydb2 ydb3; do
+  ssh $h sudo systemctl start ydbd-testdb
+done
+```
+
+```bash
+for h in ydb1 ydb2 ydb3; do
+  ssh $h sudo systemctl status ydbd-testdb
+done
 ```

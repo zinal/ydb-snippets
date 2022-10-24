@@ -174,6 +174,15 @@ for  x in `seq 1 8`; do h=ydb"$x"
 done
 ```
 
+```bash
+# Login to YC
+yc iam create-token >/dev/null
+# Creating the disks
+for x in 1 2 3 4 5 6 7 8; do for y in 1 2; do
+  yc compute disk create --name ydb"$x"disk"$y" --zone ru-central1-b --size 93G --type network-ssd-nonreplicated --async
+done; done
+```
+
 ## User and group preparation
 
 ```bash

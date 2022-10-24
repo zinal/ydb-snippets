@@ -295,8 +295,7 @@ cd ../../..
 ## Distribute the service files
 
 ```bash
-# Configuration files distribution
-for h in ydb1 ydb2 ydb3; do
+for  x in `seq 1 8`; do h=ydb"$x"
   scp ydbd-storage.service $h:YdbWork/
   scp ydbd-testdb.service $h:YdbWork/
   ssh $h sudo cp YdbWork/ydbd-storage.service /etc/systemd/system/ydbd-storage.service
@@ -307,8 +306,7 @@ done
 ## Distribute the configuration file
 
 ```bash
-# Configuration files distribution
-for h in ydb1 ydb2 ydb3; do
+for  x in `seq 1 8`; do h=ydb"$x"
   scp config-8nodes.yaml $h:YdbWork/
   ssh $h sudo cp YdbWork/config-8nodes.yaml /opt/ydb/cfg/config.yaml
 done

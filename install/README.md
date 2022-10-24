@@ -347,6 +347,14 @@ ydb -e grpc://ydb1.local:2135 -d /Root \
 scp token-file ydb1.local:YdbWork/
 ```
 
-Initialize the storage subsystem 
+Initialize the storage subsystem
+
+```bash
+ssh ydb1
+cd YdbWork
+export LD_LIBRARY_PATH=/opt/ydb/lib
+/opt/ydb/bin/ydbd -f token-file admin blobstorage config init --yaml-file  /opt/ydb/cfg/config.yaml
+echo $?
+```
 
 Create the database

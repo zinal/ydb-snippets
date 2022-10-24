@@ -263,3 +263,29 @@ for  x in `seq 1 8`; do h=ydb"$x"
   done
 done
 ```
+
+## TLS certificate generation and distribution
+
+```bash
+# Make the list of nodes
+for x in `seq 1 8`; do echo ydb"$x".local; done >ydb-ca-nodes.txt
+# Create the new CA and generate per-node certificates and keys
+./ydb-ca-update.sh
+```
+
+```bash
+# Switch to the new certificates directory
+cd CA/certs/`(cd CA/certs && ls -tr) | tail -n 1`
+# Distribute the keys and certificates
+for h in `ls *.key | while read fn; do basename $fn .key; done | xargs echo`; do
+  ssh $h rm -rf YdbWork/CA
+  ssh $h mkdir YdbWork/CA
+  scp "$h".key "$h":YdbWork/CA/node.key
+  scp "$h".crt "$h":YdbWork/CA/node.crt
+  scp ca.crt "$h":YdbWork/CA/ca.crt
+  ssh $h sudo mkdir -p /opt/ydb/certs
+  ssh $h sudo cp -v YdbWork/CA/\* /opt/ydb/certs/
+  ssh $h sudo chown -R ydb:ydb /opt/ydb/certs
+  ssh $h sudo chmod 0750 /opt/ydb/certs
+done
+```

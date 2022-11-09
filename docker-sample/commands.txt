@@ -1,0 +1,14 @@
+Команды для сборки контейнера:
+
+# Собрать
+podman build -t ducker1 .
+# Посмотреть в списке образов
+podman images -a
+# Настроить аутентификацию с Container Registry
+yc container registry configure-docker --skip-version-check
+# Определить Container Registry - ID пойдёт в тег
+yc container registry list
+# Проставить тег
+podman tag ducker1 cr.yandex/crp61pvqql52re3np6c6/ducker1:latest
+# Загрузить в Container Registry
+podman push cr.yandex/crp61pvqql52re3np6c6/ducker1:latest

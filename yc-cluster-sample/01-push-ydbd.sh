@@ -1,11 +1,7 @@
 #! /bin/sh
 # Установка бинарника YDB на хосты кластера
 
-host_gw=gw1
-host_base=ycydb
-
-SRCDIR=srcdir.tmp
-WORKDIR=YdbWork
+. ./options.sh
 
 # ssh builder1.sas.yp-c.yandex.net ls -l ydbd.xz
 # scp builder1.sas.yp-c.yandex.net:ydbd.xz srcdir.tmp/

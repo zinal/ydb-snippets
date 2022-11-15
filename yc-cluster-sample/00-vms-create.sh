@@ -1,11 +1,7 @@
 #! /bin/sh
 # Создание виртуальных машин Yandex Cloud для работы кластера YDB.
 
-host_gw=gw1
-host_base=ycydb
-keyfile_gw=.ssh/id_ecdsa.pub
-yc_zone=ru-central1-b
-yc_subnet=default-ru-central1-b
+. ./options.sh
 
 echo "Creating disks..."
 for i in `seq 1 8`; do

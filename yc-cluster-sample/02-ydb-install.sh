@@ -1,11 +1,7 @@
 #! /bin/sh
 # Установка бинарника YDB на хосты кластера
 
-host_gw=gw1
-host_base=ycydb
-
-SRCDIR=srcdir.tmp
-WORKDIR=YdbWork
+. ./options.sh
 
 echo "Creating YDB user and group..."
 for i in `seq 1 8`; do

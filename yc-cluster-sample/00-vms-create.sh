@@ -2,9 +2,10 @@
 # Создание виртуальных машин Yandex Cloud для работы кластера YDB.
 
 host_gw=gw1
-keyfile_gw=.ssh/id_ecdsa.pub
 host_base=ycydb
+keyfile_gw=.ssh/id_ecdsa.pub
 yc_zone=ru-central1-b
+yc_subnet=default-ru-central1-b
 
 echo "Creating disks..."
 for i in `seq 1 8`; do
@@ -37,6 +38,7 @@ for i in `seq 1 8`; do
     --create-boot-disk name=${vm_disk_boot},type=network-ssd-nonreplicated,size=93G,auto-delete=true \
     --attach-disk disk-name=${vm_disk_data1},auto-delete=true \
     --network-settings type=software-accelerated \
+    --network-interface subnet-name=${yc_subnet},dns-record-spec="{name=${vm_name}.ru-central1.internal.}" \
     --memory 32G --cores 8 --async
 done
 
@@ -50,4 +52,3 @@ while true; do
   echo "...pending: ${wcnt}..."
   sleep 5
 done
-

@@ -52,3 +52,30 @@ while true; do
   echo "...pending: ${wcnt}..."
   sleep 5
 done
+
+echo "Validating network access..."
+while true; do
+  num_fail=0
+  for i in `seq 1 8`; do
+    vm_name="${host_base}-${i}"
+    ZODAK_TEST=`ssh ${host_gw} ssh -o StrictHostKeyChecking=no yc-user@${vm_name} echo ZODAK 2>/dev/null`
+    if [ "$ZODAK_TEST" == "ZODAK" ]; then
+      echo "Host ${vm_name} is available."
+    else
+      echo "Host ${vm_name} IS NOT AVAILABLE!"
+      num_fail=`echo "$num_fail + 1" | bc`
+    fi
+  done
+  if [ $num_fail -gt 0 ]; then
+    echo "*** Cannot move forward, $num_fail hosts unavailable!"
+  else
+    echo "*** VMs are ready, moving forward..."
+  fi
+done
+
+echo "Configuring host names and timezones..."
+for i in `seq 1 8`; do
+  vm_name="${host_base}-${i}"
+  ssh ${host_gw} ssh yc-user@${vm_name} sudo hostnamectl set-hostname ${vm_name}
+  ssh ${host_gw} ssh yc-user@${vm_name} sudo timedatectl set-timezone Europe/Moscow
+done

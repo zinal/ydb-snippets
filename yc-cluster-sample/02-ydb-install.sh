@@ -7,24 +7,6 @@ host_base=ycydb
 SRCDIR=srcdir.tmp
 WORKDIR=YdbWork
 
-echo "Validating network access..."
-num_fail=0
-for i in `seq 1 8`; do
-  vm_name="${host_base}-${i}"
-  ZODAK_TEST=`ssh ${host_gw} ssh -o StrictHostKeyChecking=no yc-user@${vm_name} echo ZODAK 2>/dev/null`
-  if [ "$ZODAK_TEST" == "ZODAK" ]; then
-    echo "Host ${vm_name} is available."
-  else
-    echo "Host ${vm_name} IS NOT AVAILABLE!"
-    num_fail=`echo "$num_fail + 1" | bc`
-  fi
-done
-
-if [ $num_fail -gt 0 ]; then
-  echo "Cannot move forward, $num_fail hosts unavailable!"
-  exit 1
-fi
-
 echo "Creating YDB user and group..."
 for i in `seq 1 8`; do
   vm_name="${host_base}-${i}"
@@ -40,4 +22,23 @@ for i in `seq 1 8`; do
   vm_name="${host_base}-${i}"
   ssh ${host_gw} ssh yc-user@${vm_name} mkdir ${WORKDIR}  >/dev/null 2>&1
   ssh ${host_gw} scp ${WORKDIR}/ydbd.xz yc-user@${vm_name}:${WORKDIR}/ydbd.xz
+done
+
+cat >ydbd-unpack.sh.tmp <<EOF
+#! /bin/sh
+echo -n "Unpacking ydbd at "
+hostname -f
+xz -v -dc ${WORKDIR}/ydbd.xz >/opt/ydb/bin/ydbd
+EOF
+
+scp ydbd-unpack.sh.tmp ${host_gw}:${WORKDIR}/ydbd-unpack.sh
+
+echo "Building installation directories..."
+for i in `seq 1 8`; do
+  vm_name="${host_base}-${i}"
+  ssh ${host_gw} scp ${WORKDIR}/ydbd-unpack.sh yc-user@${vm_name}:${WORKDIR}/
+  ssh ${host_gw} ssh yc-user@${vm_name} sudo mkdir -p -v /opt/ydb/bin
+  ssh ${host_gw} ssh yc-user@${vm_name} sudo mkdir -p -v /opt/ydb/cfg
+  ssh ${host_gw} ssh yc-user@${vm_name} sudo bash ${WORKDIR}/ydbd-unpack.sh
+  ssh ${host_gw} ssh yc-user@${vm_name} sudo chmod aoug+x /opt/ydb/bin/ydbd
 done

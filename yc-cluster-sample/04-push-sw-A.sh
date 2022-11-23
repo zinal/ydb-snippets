@@ -10,7 +10,7 @@ ssh ${host_gw} mkdir -p ${WORKDIR}
 scp ${SRCDIR}/ydbd.xz ${host_gw}:${WORKDIR}/
 
 echo "Uploading ydbd compressed binary..."
-for i in `seq 1 8`; do
+for i in `seq 1 16`; do
   vm_name="${host_base}-${i}"
   ssh ${host_gw} ssh yc-user@${vm_name} mkdir ${WORKDIR}  >/dev/null 2>&1
   ssh ${host_gw} scp ${WORKDIR}/ydbd.xz yc-user@${vm_name}:${WORKDIR}/ydbd.xz
@@ -26,7 +26,7 @@ EOF
 scp ydbd-unpack.sh.tmp ${host_gw}:${WORKDIR}/ydbd-unpack.sh
 
 echo "Building installation directories..."
-for i in `seq 1 8`; do
+for i in `seq 1 16`; do
   vm_name="${host_base}-${i}"
   ssh ${host_gw} scp ${WORKDIR}/ydbd-unpack.sh yc-user@${vm_name}:${WORKDIR}/
   ssh ${host_gw} ssh yc-user@${vm_name} sudo mkdir -p -v /opt/ydb/bin

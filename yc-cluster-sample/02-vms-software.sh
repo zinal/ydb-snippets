@@ -4,7 +4,7 @@
 . ./options.sh
 
 echo "Installing extra APT packages..."
-for i in `seq 1 8`; do
+for i in `seq 1 16`; do
   vm_name="${host_base}-${i}"
   ssh ${host_gw} ssh yc-user@${vm_name} sudo apt-get update
   ssh ${host_gw} ssh yc-user@${vm_name} sudo apt-get install -y bc screen mc atop zip unzip

@@ -7,8 +7,12 @@
 static_erasure: block-4-2
 host_configs: # the list of available host configurations in the cluster.
 - drive:
-  - path: /dev/disk/by-partlabel/ydb_disk_01   # path of the first disk in the host configration.
+  - path: /dev/disk/by-partlabel/ydb_disk_1   # path of the first disk in the host configration.
     type: SSD                                      # kind of the disk: available kinds are SSD, NVME or HDD
+  - path: /dev/disk/by-partlabel/ydb_disk_2
+    type: SSD
+  - path: /dev/disk/by-partlabel/ydb_disk_3
+    type: SSD
   host_config_id: 1                            # the unique id of the host config
 hosts:
 - host: ycydb-1   # storage node DNS name
@@ -140,35 +144,35 @@ blob_storage_config:    # configuration of static blobstorage group.
         - vdisk_locations:    # fail domains of the static group describe where each vdisk of the static group should be located.
           - node_id: "ycydb-1"
             pdisk_category: SSD
-            path: /dev/disk/by-partlabel/ydb_disk_01
+            path: /dev/disk/by-partlabel/ydb_disk_1
         - vdisk_locations:
           - node_id: "ycydb-2"
             pdisk_category: SSD
-            path: /dev/disk/by-partlabel/ydb_disk_01
+            path: /dev/disk/by-partlabel/ydb_disk_1
         - vdisk_locations:
           - node_id: "ycydb-3"
             pdisk_category: SSD
-            path: /dev/disk/by-partlabel/ydb_disk_01
+            path: /dev/disk/by-partlabel/ydb_disk_1
         - vdisk_locations:
           - node_id: "ycydb-4"
             pdisk_category: SSD
-            path: /dev/disk/by-partlabel/ydb_disk_01
+            path: /dev/disk/by-partlabel/ydb_disk_1
         - vdisk_locations:
           - node_id: "ycydb-5"
             pdisk_category: SSD
-            path: /dev/disk/by-partlabel/ydb_disk_01
+            path: /dev/disk/by-partlabel/ydb_disk_1
         - vdisk_locations:
           - node_id: "ycydb-6"
             pdisk_category: SSD
-            path: /dev/disk/by-partlabel/ydb_disk_01
+            path: /dev/disk/by-partlabel/ydb_disk_1
         - vdisk_locations:
           - node_id: "ycydb-7"
             pdisk_category: SSD
-            path: /dev/disk/by-partlabel/ydb_disk_01
+            path: /dev/disk/by-partlabel/ydb_disk_1
         - vdisk_locations:
           - node_id: "ycydb-8"
             pdisk_category: SSD
-            path: /dev/disk/by-partlabel/ydb_disk_01
+            path: /dev/disk/by-partlabel/ydb_disk_1
 channel_profile_config:
   profile:
   - channel:

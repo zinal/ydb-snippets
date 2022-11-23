@@ -9,11 +9,29 @@
 ssh ${host_gw} mkdir -p ${WORKDIR}
 scp ${SRCDIR}/ydbd.xz ${host_gw}:${WORKDIR}/
 
-echo "Uploading ydbd compressed binary..."
-for i in `seq 1 16`; do
-  vm_name="${host_base}-${i}"
+upload_binary() {
+  vm_name="$1"
   ssh ${host_gw} ssh yc-user@${vm_name} mkdir ${WORKDIR}  >/dev/null 2>&1
   ssh ${host_gw} scp ${WORKDIR}/ydbd.xz yc-user@${vm_name}:${WORKDIR}/ydbd.xz
+}
+
+build_dirs() {
+  vm_name="$1"
+  ssh ${host_gw} scp ${WORKDIR}/ydbd-unpack.sh yc-user@${vm_name}:${WORKDIR}/
+  ssh ${host_gw} ssh yc-user@${vm_name} sudo mkdir -p -v /opt/ydb/bin
+  ssh ${host_gw} ssh yc-user@${vm_name} sudo mkdir -p -v /opt/ydb/cfg
+  ssh ${host_gw} ssh yc-user@${vm_name} sudo bash ${WORKDIR}/ydbd-unpack.sh
+  ssh ${host_gw} ssh yc-user@${vm_name} sudo chmod aoug+x /opt/ydb/bin/ydbd
+}
+
+echo "Uploading ydbd compressed binary..."
+for i in `seq 1 3`; do
+  vm_name="${host_base}-s${i}"
+  upload_binary ${vm_name}
+done
+for i in `seq 1 4`; do
+  vm_name="${host_base}-d${i}"
+  upload_binary ${vm_name}
 done
 
 cat >ydbd-unpack.sh.tmp <<EOF
@@ -26,11 +44,11 @@ EOF
 scp ydbd-unpack.sh.tmp ${host_gw}:${WORKDIR}/ydbd-unpack.sh
 
 echo "Building installation directories..."
-for i in `seq 1 16`; do
-  vm_name="${host_base}-${i}"
-  ssh ${host_gw} scp ${WORKDIR}/ydbd-unpack.sh yc-user@${vm_name}:${WORKDIR}/
-  ssh ${host_gw} ssh yc-user@${vm_name} sudo mkdir -p -v /opt/ydb/bin
-  ssh ${host_gw} ssh yc-user@${vm_name} sudo mkdir -p -v /opt/ydb/cfg
-  ssh ${host_gw} ssh yc-user@${vm_name} sudo bash ${WORKDIR}/ydbd-unpack.sh
-  ssh ${host_gw} ssh yc-user@${vm_name} sudo chmod aoug+x /opt/ydb/bin/ydbd
+for i in `seq 1 3`; do
+  vm_name="${host_base}-s${i}"
+  build_dirs ${vm_name}
+done
+for i in `seq 1 4`; do
+  vm_name="${host_base}-d${i}"
+  build_dirs ${vm_name}
 done

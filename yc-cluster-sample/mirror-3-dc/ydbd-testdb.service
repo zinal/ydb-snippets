@@ -16,7 +16,7 @@ SyslogIdentifier=ydbd
 SyslogFacility=daemon
 SyslogLevel=err
 Environment=LD_LIBRARY_PATH=/opt/ydb/lib
-ExecStart=/opt/ydb/bin/ydbd server --grpc-port 2136 --ic-port 19002 --mon-port 8766 --yaml-config  /opt/ydb/cfg/config.yaml --tenant /Root/testdb --node-broker ycydb-1:2135 --node-broker ycydb-2:2135 --node-broker ycydb-3:2135
+ExecStart=/opt/ydb/bin/ydbd server --grpc-port 2136 --ic-port 19002 --mon-port 8766 --yaml-config  /opt/ydb/cfg/config.yaml --tenant /Root/testdb --node-broker ycydb-s1:2135 --node-broker ycydb-s2:2135 --node-broker ycydb-s3:2135
 LimitNOFILE=65536
 LimitCORE=infinity
 LimitMEMLOCK=32212254720

@@ -15,7 +15,7 @@ host_configs: # the list of available host configurations in the cluster.
     type: SSD
   host_config_id: 1
 hosts:
-- host: ycydb-1       # storage node DNS name
+- host: ycydb-s1       # storage node DNS name
   host_config_id: 1                 # numeric host configuration template identifier
   walle_location:                   # this parameter describes where host is located.
     body: 1                         # string representing a host serial number.
@@ -25,13 +25,13 @@ hosts:
     rack: '1'                       # string representing a rack identifier where the host is located.
                                     # if cluster is deployed using block-4-2 erasure, all hosts should be distrubited
                                     # accross at least 8 racks.
-- host: ycydb-2
+- host: ycydb-s2
   host_config_id: 1
   walle_location:
     body: 2
     data_center: 'zone-b'
     rack: '2'
-- host: ycydb-3
+- host: ycydb-s3
   host_config_id: 1
   walle_location:
     body: 3
@@ -115,41 +115,41 @@ blob_storage_config:         # configuration of static blobstorage group.
       rings:          # in mirror-3-dc must have exactly 3 rings or availability zones
       - fail_domains:  # first record: fail domains of the static group describe where each vdisk of the static group should be located.
         - vdisk_locations:
-          - node_id: ycydb-1
+          - node_id: ycydb-s1
             pdisk_category: SSD
             path: /dev/disk/by-partlabel/ydb_disk_1
         - vdisk_locations:
-          - node_id: ycydb-1
+          - node_id: ycydb-s1
             pdisk_category: SSD
             path: /dev/disk/by-partlabel/ydb_disk_2
         - vdisk_locations:
-          - node_id: ycydb-1
+          - node_id: ycydb-s1
             pdisk_category: SSD
             path: /dev/disk/by-partlabel/ydb_disk_3
       - fail_domains: # second ring: fail domains of the static group describe where each vdisk of the static group should be located.
         - vdisk_locations:
-          - node_id: ycydb-2
+          - node_id: ycydb-s2
             pdisk_category: SSD
             path: /dev/disk/by-partlabel/ydb_disk_1
         - vdisk_locations:
-          - node_id: ycydb-2
+          - node_id: ycydb-s2
             pdisk_category: SSD
             path: /dev/disk/by-partlabel/ydb_disk_2
         - vdisk_locations:
-          - node_id: ycydb-2
+          - node_id: ycydb-s2
             pdisk_category: SSD
             path: /dev/disk/by-partlabel/ydb_disk_3
       - fail_domains: # third ring: fail domains of the static group describe where each vdisk of the static group should be located.
         - vdisk_locations:
-          - node_id: ycydb-3
+          - node_id: ycydb-s3
             pdisk_category: SSD
             path: /dev/disk/by-partlabel/ydb_disk_1
         - vdisk_locations:
-          - node_id: ycydb-3
+          - node_id: ycydb-s3
             pdisk_category: SSD
             path: /dev/disk/by-partlabel/ydb_disk_2
         - vdisk_locations:
-          - node_id: ycydb-3
+          - node_id: ycydb-s3
             pdisk_category: SSD
             path: /dev/disk/by-partlabel/ydb_disk_3
 channel_profile_config:

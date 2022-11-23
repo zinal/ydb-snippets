@@ -9,3 +9,4 @@ keyfile_gw=.ssh/id_ecdsa.pub
 
 yc_zone=ru-central1-b
 yc_subnet=default-ru-central1-b
+yc_platform=standard-v2

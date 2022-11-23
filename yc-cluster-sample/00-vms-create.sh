@@ -6,9 +6,12 @@
 echo "Creating disks..."
 for i in `seq 1 8`; do
   vm_name="${host_base}-${i}"
-  vm_disk_data1="${host_base}-${i}-data1"
-  yc compute disk create ${vm_disk_data1} --zone ${yc_zone} \
-    --type network-ssd-nonreplicated --size 372G --async
+  for j in `seq 1 3`; do
+    vm_disk_data="${host_base}-${i}-data${j}"
+    yc compute disk create ${vm_disk_data} --zone ${yc_zone} \
+      --type network-ssd-nonreplicated --size 93G --async
+  done
+  sleep 5
 done
 
 echo "Waiting for disks to get ready..."
@@ -29,13 +32,18 @@ for i in `seq 1 8`; do
   vm_name="${host_base}-${i}"
   vm_disk_boot="${host_base}-${i}-boot"
   vm_disk_data1="${host_base}-${i}-data1"
+  vm_disk_data2="${host_base}-${i}-data2"
+  vm_disk_data3="${host_base}-${i}-data3"
   yc compute instance create ${vm_name} --zone ${yc_zone} \
+    --platform ${yc_platform} \
     --ssh-key keyfile.tmp \
     --create-boot-disk name=${vm_disk_boot},type=network-ssd-nonreplicated,size=93G,auto-delete=true \
     --attach-disk disk-name=${vm_disk_data1},auto-delete=true \
+    --attach-disk disk-name=${vm_disk_data2},auto-delete=true \
+    --attach-disk disk-name=${vm_disk_data3},auto-delete=true \
     --network-settings type=software-accelerated \
     --network-interface subnet-name=${yc_subnet},dns-record-spec="{name=${vm_name}.ru-central1.internal.}" \
-    --memory 32G --cores 8 --async
+    --memory 24G --cores 8 --async
 done
 
 echo "Waiting for VMs to get ready..."
@@ -66,6 +74,7 @@ while true; do
     echo "*** Cannot move forward, $num_fail hosts unavailable!"
   else
     echo "*** VMs are ready, moving forward..."
+    break
   fi
 done
 

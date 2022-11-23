@@ -1,0 +1,9 @@
+Command {
+  ReadStoragePool{
+    // >>> (1 << 64) - 1  == 18446744073709551615
+    BoxId: 18446744073709551615
+    // StoragePoolId: <storage-pool-id>
+    Name: "/Root/testdb:ssd"
+  }
+}
+

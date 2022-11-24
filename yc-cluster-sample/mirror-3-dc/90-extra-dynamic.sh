@@ -3,10 +3,13 @@
 
 . ./options.sh
 
+extra_a=10
+extra_b=12
+
 echo "Retrieving public SSH keyfile ${keyfile_gw} from host ${host_gw}..."
 ssh ${host_gw} cat ${keyfile_gw} >keyfile.tmp
 
-for i in `seq 5 8`; do
+for i in `seq ${extra_a} ${extra_b}`; do
   vm_name="${host_base}-d${i}"
   vm_disk_boot="${host_base}-d${i}-boot"
   yc compute instance create ${vm_name} --zone ${yc_zone} \
@@ -32,7 +35,7 @@ done
 echo "Validating network access..."
 while true; do
   num_fail=0
-  for i in `seq 5 8`; do
+  for i in `seq ${extra_a} ${extra_b}`; do
     vm_name="${host_base}-d${i}"
     ZODAK_TEST=`ssh ${host_gw} ssh -o StrictHostKeyChecking=no yc-user@${vm_name} echo ZODAK 2>/dev/null`
     if [ "$ZODAK_TEST" == "ZODAK" ]; then
@@ -51,14 +54,14 @@ while true; do
 done
 
 echo "Configuring host names and timezones..."
-for i in `seq 5 8`; do
+for i in `seq ${extra_a} ${extra_b}`; do
   vm_name="${host_base}-d${i}"
   ssh ${host_gw} ssh yc-user@${vm_name} sudo hostnamectl set-hostname ${vm_name}
   ssh ${host_gw} ssh yc-user@${vm_name} sudo timedatectl set-timezone Europe/Moscow
 done
 
 echo "Creating YDB user and group..."
-for i in `seq 5 8`; do
+for i in `seq ${extra_a} ${extra_b}`; do
   vm_name="${host_base}-d${i}"
   ssh ${host_gw} ssh yc-user@${vm_name} sudo groupadd ydb >/dev/null 2>&1
   ssh ${host_gw} ssh yc-user@${vm_name} sudo useradd ydb -g ydb >/dev/null 2>&1
@@ -68,7 +71,7 @@ for i in `seq 5 8`; do
 done
 
 echo "Uploading ydbd compressed binary..."
-for i in `seq 5 8`; do
+for i in `seq ${extra_a} ${extra_b}`; do
   vm_name="${host_base}-d${i}"
   ssh ${host_gw} ssh yc-user@${vm_name} mkdir ${WORKDIR}  >/dev/null 2>&1
   ssh ${host_gw} scp ${WORKDIR}/ydbd.xz yc-user@${vm_name}:${WORKDIR}/ydbd.xz
@@ -85,7 +88,7 @@ scp ydbd-unpack.sh.tmp ${host_gw}:${WORKDIR}/ydbd-unpack.sh
 
 
 echo "Building installation directories..."
-for i in `seq 5 8`; do
+for i in `seq ${extra_a} ${extra_b}`; do
   vm_name="${host_base}-d${i}"
   ssh ${host_gw} scp ${WORKDIR}/ydbd-unpack.sh yc-user@${vm_name}:${WORKDIR}/
   ssh ${host_gw} ssh yc-user@${vm_name} sudo mkdir -p -v /opt/ydb/bin
@@ -97,7 +100,7 @@ done
 scp config-3nodes.yaml ydbd-storage.service ydbd-testdb.service ydb-deploy-configs.sh ${host_gw}:${WORKDIR}/
 
 echo "Deploying configuration files..."
-for i in `seq 5 8`; do
+for i in `seq ${extra_a} ${extra_b}`; do
   vm_name="${host_base}-d${i}"
   ssh ${host_gw} scp ${WORKDIR}/config-3nodes.yaml ${WORKDIR}/ydbd-storage.service \
     ${WORKDIR}/ydbd-testdb.service ${WORKDIR}/ydb-deploy-configs.sh yc-user@${vm_name}:${WORKDIR}/
@@ -105,7 +108,7 @@ for i in `seq 5 8`; do
 done
 
 echo "Starting YDB database nodes..."
-for i in `seq 5 8`; do
+for i in `seq ${extra_a} ${extra_b}`; do
   vm_name="${host_base}-d${i}"
   ssh ${host_gw} ssh yc-user@${vm_name} sudo systemctl start ydbd-testdb
 done

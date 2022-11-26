@@ -12,7 +12,7 @@
 |standard-v3|16|18841.70|
 
 
-## standard-v2 (Intel Cascade Lake), 8 ядер
+## standard-v2 (Intel Cascade Lake), 8 vCPU
 
 ```
 zinal@test-g2-8c:~$ sysbench cpu run --threads=8 --time=7200
@@ -48,7 +48,7 @@ Threads fairness:
     execution time (avg/stddev):   7198.4829/0.04
 ```
 
-## standard-v2 (Intel Cascade Lake), 16 ядер
+## standard-v2 (Intel Cascade Lake), 16 vCPU
 
 ```
 zinal@test-g2-16c:~$ sysbench cpu run --threads=8 --time=7200
@@ -84,7 +84,7 @@ Threads fairness:
     execution time (avg/stddev):   7198.3209/0.08
 ```
 
-## standard-v3 (Intel Ice Lake), 8 ядер
+## standard-v3 (Intel Ice Lake), 8 vCPU
 
 ```
 zinal@test-g3-8c:~$ sysbench cpu run --threads=8 --time=7200
@@ -120,7 +120,7 @@ Threads fairness:
     execution time (avg/stddev):   7197.7489/0.02
 ```
 
-## standard-v3 (Intel Ice Lake), 16 ядер
+## standard-v3 (Intel Ice Lake), 16 vCPU
 
 ```
 zinal@test-g3-16c:~$ sysbench cpu run --threads=8 --time=7200

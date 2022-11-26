@@ -4,12 +4,12 @@
 
 Во всех случаях запускали `sysbench cpu run --threads=8 --time=7200`.
 
-|Поколение|vCPU|EPS1|EPS2|
-|---------|----|----|----|
-|standard-v2|8|6957.97|6905.94|
-|standard-v2|16|8447.67|8442.69|
-|standard-v3|8|9830.71|9744.98|
-|standard-v3|16|18841.70|18745.04|
+|Поколение|vCPU|EPS1|EPS2|EPS3|
+|---------|----|----|----|----|
+|standard-v2|8|6957.97|6905.94|6908.92|
+|standard-v2|16|8447.67|8442.69|8496.63|
+|standard-v3|8|9830.71|9744.98|9651.86|
+|standard-v3|16|18841.70|18745.04|18924.40|
 
 
 ## standard-v2 (Intel Cascade Lake), 8 vCPU
@@ -86,6 +86,42 @@ Threads fairness:
     execution time (avg/stddev):   7198.4348/0.08
 ```
 
+run 3:
+
+```
+zinal@test-g2-8c:~$ sysbench cpu run --threads=8 --time=7200
+sysbench 1.0.20 (using system LuaJIT 2.1.0-beta3)
+
+Running the test with following options:
+Number of threads: 8
+Initializing random number generator from current time
+
+
+Prime numbers limit: 10000
+
+Initializing worker threads...
+
+Threads started!
+
+CPU speed:
+    events per second:  6908.92
+
+General statistics:
+    total time:                          7200.0010s
+    total number of events:              49744275
+
+Latency (ms):
+         min:                                    1.02
+         avg:                                    1.16
+         max:                                   14.56
+         95th percentile:                        1.27
+         sum:                             57587999.71
+
+Threads fairness:
+    events (avg/stddev):           6218034.3750/1890.06
+    execution time (avg/stddev):   7198.5000/0.08
+```
+
 ## standard-v2 (Intel Cascade Lake), 16 vCPU
 
 run 1:
@@ -158,6 +194,41 @@ Latency (ms):
 Threads fairness:
     events (avg/stddev):           7598424.0000/3308.87
     execution time (avg/stddev):   7198.3320/0.08
+```
+
+run 3:
+
+```
+sysbench 1.0.20 (using system LuaJIT 2.1.0-beta3)
+
+Running the test with following options:
+Number of threads: 8
+Initializing random number generator from current time
+
+
+Prime numbers limit: 10000
+
+Initializing worker threads...
+
+Threads started!
+
+CPU speed:
+    events per second:  8496.63
+
+General statistics:
+    total time:                          7200.0008s
+    total number of events:              61175763
+
+Latency (ms):
+         min:                                    0.83
+         avg:                                    0.94
+         max:                                    1.77
+         95th percentile:                        1.03
+         sum:                             57586703.81
+
+Threads fairness:
+    events (avg/stddev):           7646970.3750/3602.63
+    execution time (avg/stddev):   7198.3380/0.08
 ```
 
 ## standard-v3 (Intel Ice Lake), 8 vCPU
@@ -234,6 +305,42 @@ Threads fairness:
     execution time (avg/stddev):   7197.8539/0.02
 ```
 
+run 3:
+
+```
+zinal@test-g3-8c:~$ sysbench cpu run --threads=8 --time=7200
+sysbench 1.0.20 (using system LuaJIT 2.1.0-beta3)
+
+Running the test with following options:
+Number of threads: 8
+Initializing random number generator from current time
+
+
+Prime numbers limit: 10000
+
+Initializing worker threads...
+
+Threads started!
+
+CPU speed:
+    events per second:  9651.86
+
+General statistics:
+    total time:                          7200.0011s
+    total number of events:              69493415
+
+Latency (ms):
+         min:                                    0.40
+         avg:                                    0.83
+         max:                                   18.85
+         95th percentile:                        0.87
+         sum:                             57581949.46
+
+Threads fairness:
+    events (avg/stddev):           8686676.8750/123.82
+    execution time (avg/stddev):   7197.7437/0.04
+```
+
 ## standard-v3 (Intel Ice Lake), 16 vCPU
 
 run 1:
@@ -306,4 +413,40 @@ Latency (ms):
 Threads fairness:
     events (avg/stddev):           16870543.5000/3624.00
     execution time (avg/stddev):   7197.0130/0.04
+```
+
+run 3:
+
+```
+zinal@test-g3-16c:~$ sysbench cpu run --threads=8 --time=7200
+sysbench 1.0.20 (using system LuaJIT 2.1.0-beta3)
+
+Running the test with following options:
+Number of threads: 8
+Initializing random number generator from current time
+
+
+Prime numbers limit: 10000
+
+Initializing worker threads...
+
+Threads started!
+
+CPU speed:
+    events per second: 18924.40
+
+General statistics:
+    total time:                          7200.0004s
+    total number of events:              136255745
+
+Latency (ms):
+         min:                                    0.36
+         avg:                                    0.42
+         max:                                    2.41
+         95th percentile:                        0.45
+         sum:                             57576417.58
+
+Threads fairness:
+    events (avg/stddev):           17031968.1250/4309.49
+    execution time (avg/stddev):   7197.0522/0.03
 ```

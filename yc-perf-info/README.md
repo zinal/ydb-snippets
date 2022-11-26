@@ -6,13 +6,15 @@
 
 |Поколение|vCPU|EPS1|EPS2|
 |---------|----|----|----|
-|standard-v2|8|6957.97||
+|standard-v2|8|6957.97|6905.94|
 |standard-v2|16|8447.67||
-|standard-v3|8|9830.71||
+|standard-v3|8|9830.71|9744.98|
 |standard-v3|16|18841.70|18745.04|
 
 
 ## standard-v2 (Intel Cascade Lake), 8 vCPU
+
+run 1:
 
 ```
 zinal@test-g2-8c:~$ sysbench cpu run --threads=8 --time=7200
@@ -48,7 +50,45 @@ Threads fairness:
     execution time (avg/stddev):   7198.4829/0.04
 ```
 
+run 2:
+
+```
+zinal@test-g2-8c:~$ sysbench cpu run --threads=8 --time=7200
+sysbench 1.0.20 (using system LuaJIT 2.1.0-beta3)
+
+Running the test with following options:
+Number of threads: 8
+Initializing random number generator from current time
+
+
+Prime numbers limit: 10000
+
+Initializing worker threads...
+
+Threads started!
+
+CPU speed:
+    events per second:  6905.94
+
+General statistics:
+    total time:                          7200.0007s
+    total number of events:              49722795
+
+Latency (ms):
+         min:                                    0.83
+         avg:                                    1.16
+         max:                                   25.30
+         95th percentile:                        1.27
+         sum:                             57587478.73
+
+Threads fairness:
+    events (avg/stddev):           6215349.3750/876.76
+    execution time (avg/stddev):   7198.4348/0.08
+```
+
 ## standard-v2 (Intel Cascade Lake), 16 vCPU
+
+run 1:
 
 ```
 zinal@test-g2-16c:~$ sysbench cpu run --threads=8 --time=7200
@@ -82,6 +122,42 @@ Latency (ms):
 Threads fairness:
     events (avg/stddev):           7602905.3750/3881.26
     execution time (avg/stddev):   7198.3209/0.08
+```
+
+run 2:
+
+```
+zinal@test-g2-16c:~$ sysbench cpu run --threads=8 --time=7200
+sysbench 1.0.20 (using system LuaJIT 2.1.0-beta3)
+
+Running the test with following options:
+Number of threads: 8
+Initializing random number generator from current time
+
+
+Prime numbers limit: 10000
+
+Initializing worker threads...
+
+Threads started!
+
+CPU speed:
+    events per second:  8442.69
+
+General statistics:
+    total time:                          7200.0008s
+    total number of events:              60787392
+
+Latency (ms):
+         min:                                    0.83
+         avg:                                    0.95
+         max:                                    2.46
+         95th percentile:                        1.03
+         sum:                             57586656.00
+
+Threads fairness:
+    events (avg/stddev):           7598424.0000/3308.87
+    execution time (avg/stddev):   7198.3320/0.08
 ```
 
 ## standard-v3 (Intel Ice Lake), 8 vCPU

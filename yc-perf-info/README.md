@@ -6,13 +6,13 @@
 
 |Поколение|vCPU|EPS|
 |---------|----|---|
-|G2|8|6957.97|
-|G2|16|8447.67|
-|G3|8|9830.71|
-|G3|16|18841.70|
+|standard-v2|8|6957.97|
+|standard-v2|16|8447.67|
+|standard-v3|8|9830.71|
+|standard-v3|16|18841.70|
 
 
-## G2 8C
+## standard-v2 (Intel Cascade Lake), 8 ядер
 
 ```
 zinal@test-g2-8c:~$ sysbench cpu run --threads=8 --time=7200
@@ -48,7 +48,7 @@ Threads fairness:
     execution time (avg/stddev):   7198.4829/0.04
 ```
 
-## G2 16C
+## standard-v2 (Intel Cascade Lake), 16 ядер
 
 ```
 zinal@test-g2-16c:~$ sysbench cpu run --threads=8 --time=7200
@@ -84,7 +84,7 @@ Threads fairness:
     execution time (avg/stddev):   7198.3209/0.08
 ```
 
-## G3 8C
+## standard-v3 (Intel Ice Lake), 8 ядер
 
 ```
 zinal@test-g3-8c:~$ sysbench cpu run --threads=8 --time=7200
@@ -120,7 +120,7 @@ Threads fairness:
     execution time (avg/stddev):   7197.7489/0.02
 ```
 
-## G3 16C
+## standard-v3 (Intel Ice Lake), 16 ядер
 
 ```
 zinal@test-g3-16c:~$ sysbench cpu run --threads=8 --time=7200

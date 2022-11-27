@@ -4,14 +4,19 @@
 . ./options.sh
 
 echo "Creating disks..."
-for i in `seq 1 3`; do
+opcnt=0
+for i in `seq 1 ${ydb_static}`; do
   vm_name="${host_base}-s${i}"
-  for j in `seq 1 3`; do
+  for j in `seq 1 ${ydb_disk_count}`; do
     vm_disk_data="${host_base}-s${i}-data${j}"
     yc compute disk create ${vm_disk_data} --zone ${yc_zone} \
-      --type network-ssd-nonreplicated --size 186G --async
+      --type network-ssd-nonreplicated --size 372G --async
+    opcnt=`echo "$opcnt + 1" | bc`
+    if [ $opcnt -gt 5 ]; then
+      sleep 10
+      opcnt=0
+    fi
   done
-  sleep 5
 done
 
 echo "Waiting for disks to get ready..."
@@ -25,32 +30,29 @@ while true; do
   sleep 5
 done
 
-echo "Retrieving public SSH keyfile ${keyfile_gw} from host ${host_gw}..."
-ssh ${host_gw} cat ${keyfile_gw} >keyfile.tmp
-
 echo "Creating static node VMs..."
-for i in `seq 1 3`; do
+opcnt=0
+for i in `seq 1 ${ydb_static}`; do
   vm_name="${host_base}-s${i}"
   vm_disk_boot="${host_base}-s${i}-boot"
   vm_disk_data1="${host_base}-s${i}-data1"
-  vm_disk_data2="${host_base}-s${i}-data2"
-  vm_disk_data3="${host_base}-s${i}-data3"
   yc compute instance create ${vm_name} --zone ${yc_zone} \
     --platform ${yc_platform} \
     --ssh-key keyfile.tmp \
     --create-boot-disk name=${vm_disk_boot},type=network-ssd-nonreplicated,size=93G,auto-delete=true \
     --attach-disk disk-name=${vm_disk_data1},auto-delete=true \
-    --attach-disk disk-name=${vm_disk_data2},auto-delete=true \
-    --attach-disk disk-name=${vm_disk_data3},auto-delete=true \
     --network-settings type=software-accelerated \
     --network-interface subnet-name=${yc_subnet},dns-record-spec="{name=${vm_name}.ru-central1.internal.}" \
-    --memory 24G --cores 12 --async
+    --memory 48G --cores 24 --async
+  opcnt=`echo "$opcnt + 1" | bc`
+  if [ $opcnt -gt 5 ]; then
+    sleep 10
+    opcnt=0
+  fi
 done
 
-sleep 10
-
 echo "Creating dynamic node VMs..."
-for i in `seq 1 4`; do
+for i in `seq 1 ${ydb_dynamic}`; do
   vm_name="${host_base}-d${i}"
   vm_disk_boot="${host_base}-d${i}-boot"
   yc compute instance create ${vm_name} --zone ${yc_zone} \
@@ -59,7 +61,12 @@ for i in `seq 1 4`; do
     --create-boot-disk name=${vm_disk_boot},type=network-ssd-nonreplicated,size=93G,auto-delete=true \
     --network-settings type=software-accelerated \
     --network-interface subnet-name=${yc_subnet},dns-record-spec="{name=${vm_name}.ru-central1.internal.}" \
-    --memory 24G --cores 12 --async
+    --memory 48G --cores 24 --async
+  opcnt=`echo "$opcnt + 1" | bc`
+  if [ $opcnt -gt 5 ]; then
+    sleep 10
+    opcnt=0
+  fi
 done
 
 echo "Waiting for VMs to get ready..."
@@ -73,11 +80,15 @@ while true; do
   sleep 5
 done
 
+echo "Retrieving public SSH keyfile ${keyfile_gw} from host ${host_gw}..."
+ssh ${host_gw} cat ${keyfile_gw} >keyfile.tmp
+ssh ${host_gw} rm -f .ssh/known_hosts
+
 echo "Validating network access..."
 while true; do
   num_fail=0
   t=s
-  for i in `seq 1 3`; do
+  for i in `seq 1 ${ydb_static}`; do
     vm_name="${host_base}-s${i}"
     ZODAK_TEST=`ssh ${host_gw} ssh -o StrictHostKeyChecking=no yc-user@${vm_name} echo ZODAK 2>/dev/null`
     if [ "$ZODAK_TEST" == "ZODAK" ]; then
@@ -87,7 +98,7 @@ while true; do
       num_fail=`echo "$num_fail + 1" | bc`
     fi
   done
-  for i in `seq 1 4`; do
+  for i in `seq 1 ${ydb_dynamic}`; do
     vm_name="${host_base}-d${i}"
     ZODAK_TEST=`ssh ${host_gw} ssh -o StrictHostKeyChecking=no yc-user@${vm_name} echo ZODAK 2>/dev/null`
     if [ "$ZODAK_TEST" == "ZODAK" ]; then
@@ -106,12 +117,12 @@ while true; do
 done
 
 echo "Configuring host names and timezones..."
-for i in `seq 1 3`; do
+for i in `seq 1 ${ydb_static}`; do
   vm_name="${host_base}-s${i}"
   ssh ${host_gw} ssh yc-user@${vm_name} sudo hostnamectl set-hostname ${vm_name}
   ssh ${host_gw} ssh yc-user@${vm_name} sudo timedatectl set-timezone Europe/Moscow
 done
-for i in `seq 1 4`; do
+for i in `seq 1 ${ydb_dynamic}`; do
   vm_name="${host_base}-d${i}"
   ssh ${host_gw} ssh yc-user@${vm_name} sudo hostnamectl set-hostname ${vm_name}
   ssh ${host_gw} ssh yc-user@${vm_name} sudo timedatectl set-timezone Europe/Moscow

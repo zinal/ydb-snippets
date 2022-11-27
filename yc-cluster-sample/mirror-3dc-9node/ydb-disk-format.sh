@@ -1,7 +1,7 @@
 #! /bin/sh
 
 xn=0
-for xl in b c d; do
+for xl in b; do
 
 xn=`echo "$xn + 1" | bc`
 disk=/dev/vd${xl}

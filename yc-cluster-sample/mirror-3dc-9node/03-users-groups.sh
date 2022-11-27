@@ -13,11 +13,11 @@ create_ug() {
 }
 
 echo "Creating YDB user and group..."
-for i in `seq 1 3`; do
+for i in `seq 1 ${ydb_static}`; do
   vm_name="${host_base}-s${i}"
   create_ug ${vm_name}
 done
-for i in `seq 1 4`; do
+for i in `seq 1 ${ydb_dynamic}`; do
   vm_name="${host_base}-d${i}"
   create_ug ${vm_name}
 done

@@ -101,14 +101,14 @@ actor_system_config:
     type: BASIC
   - name: User
     spin_threshold: 0
-    threads: 6
+    threads: 8
     type: BASIC
   - name: Batch
     spin_threshold: 0
-    threads: 6
+    threads: 4
     type: BASIC
   - name: IO
-    threads: 6
+    threads: 4
     time_per_mailbox_micro_secs: 100
     type: IO
   - name: IC

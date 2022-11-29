@@ -4,7 +4,7 @@
 . ./options.sh
 
 extra_a=10
-extra_b=12
+extra_b=18
 
 echo "Retrieving public SSH keyfile ${keyfile_gw} from host ${host_gw}..."
 ssh ${host_gw} cat ${keyfile_gw} >keyfile.tmp
@@ -18,7 +18,8 @@ for i in `seq ${extra_a} ${extra_b}`; do
     --create-boot-disk name=${vm_disk_boot},type=network-ssd-nonreplicated,size=93G,auto-delete=true \
     --network-settings type=software-accelerated \
     --network-interface subnet-name=${yc_subnet},dns-record-spec="{name=${vm_name}.ru-central1.internal.}" \
-    --memory 24G --cores 12 --async
+    --memory 48G --cores 24 --async
+#  sleep 5
 done
 
 echo "Waiting for VMs to get ready..."
@@ -102,8 +103,9 @@ scp config-3nodes.yaml ydbd-storage.service ydbd-testdb.service ydb-deploy-confi
 echo "Deploying configuration files..."
 for i in `seq ${extra_a} ${extra_b}`; do
   vm_name="${host_base}-d${i}"
-  ssh ${host_gw} scp ${WORKDIR}/config-3nodes.yaml ${WORKDIR}/ydbd-storage.service \
-    ${WORKDIR}/ydbd-testdb.service ${WORKDIR}/ydb-deploy-configs.sh yc-user@${vm_name}:${WORKDIR}/
+  ssh ${host_gw} scp ${WORKDIR}/ydbd-config-dynamic.yaml yc-user@${vm_name}:${WORKDIR}/ydbd-config.yaml
+  ssh ${host_gw} scp ${WORKDIR}/ydbd-storage.service  ${WORKDIR}/ydbd-testdb.service \
+    ${WORKDIR}/ydb-deploy-configs.sh yc-user@${vm_name}:${WORKDIR}/
   ssh ${host_gw} ssh yc-user@${vm_name} sudo bash ${WORKDIR}/ydb-deploy-configs.sh
 done
 

@@ -101,7 +101,7 @@ actor_system_config:
     type: BASIC
   - name: User
     spin_threshold: 0
-    threads: 8
+    threads: 16
     type: BASIC
   - name: Batch
     spin_threshold: 0

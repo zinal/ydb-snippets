@@ -3,21 +3,29 @@
 
 . ./options.sh
 
+checkLimit() {
+  grep "The limit on maximum number of active operations has exceeded" mkinst.tmp | wc -l
+}
+
 echo "Creating disks..."
-opcnt=0
 for i in `seq 1 ${ydb_static}`; do
   vm_name="${host_base}-s${i}"
   for j in `seq 1 ${ydb_disk_count}`; do
     vm_disk_data="${host_base}-s${i}-data${j}"
-    yc compute disk create ${vm_disk_data} --zone ${yc_zone} \
-      --type network-ssd-nonreplicated --size 372G --async
-    opcnt=`echo "$opcnt + 1" | bc`
-    if [ $opcnt -gt 5 ]; then
-      sleep 10
-      opcnt=0
-    fi
+    while true; do
+      yc compute disk create ${vm_disk_data} --zone ${yc_zone} \
+        --type network-ssd-nonreplicated --size 372G --async
+      cnt=`checkLimit`
+      if [ "$cnt" == "0" ]; then break; else sleep 10; fi
+    done
   done
 done
+cnt=`grep "ERROR:" mkinst.tmp | wc -l`
+if [ $cnt -gt 0 ]; then
+    echo "*** ERROR: disk creation failed, ABORTING!"
+    cat mkinst.tmp
+    exit 1
+fi
 
 echo "Waiting for disks to get ready..."
 while true; do
@@ -31,43 +39,52 @@ while true; do
 done
 
 echo "Creating static node VMs..."
-opcnt=0
 for i in `seq 1 ${ydb_static}`; do
   vm_name="${host_base}-s${i}"
   vm_disk_boot="${host_base}-s${i}-boot"
   vm_disk_data1="${host_base}-s${i}-data1"
-  yc compute instance create ${vm_name} --zone ${yc_zone} \
-    --platform ${yc_platform} \
-    --ssh-key keyfile.tmp \
-    --create-boot-disk name=${vm_disk_boot},type=network-ssd-nonreplicated,size=93G,auto-delete=true \
-    --attach-disk disk-name=${vm_disk_data1},auto-delete=true \
-    --network-settings type=software-accelerated \
-    --network-interface subnet-name=${yc_subnet},dns-record-spec="{name=${vm_name}.ru-central1.internal.}" \
-    --memory 48G --cores 24 --async
-  opcnt=`echo "$opcnt + 1" | bc`
-  if [ $opcnt -gt 5 ]; then
-    sleep 10
-    opcnt=0
-  fi
+  while true; do
+    yc compute instance create ${vm_name} --zone ${yc_zone} \
+      --platform ${yc_platform} \
+      --ssh-key keyfile.tmp \
+      --create-boot-disk name=${vm_disk_boot},type=network-ssd-nonreplicated,size=93G,auto-delete=true \
+      --attach-disk disk-name=${vm_disk_data1},auto-delete=true \
+      --network-settings type=software-accelerated \
+      --network-interface subnet-name=${yc_subnet},dns-record-spec="{name=${vm_name}.ru-central1.internal.}" \
+      --memory 48G --cores 24 --async >mkinst.tmp 2>&1
+    cnt=`checkLimit`
+    if [ "$cnt" == "0" ]; then break; else sleep 10; fi
+  done
 done
+cnt=`grep "ERROR:" mkinst.tmp | wc -l`
+if [ $cnt -gt 0 ]; then
+    echo "*** ERROR: VM creation failed, ABORTING!"
+    cat mkinst.tmp
+    exit 1
+fi
 
 echo "Creating dynamic node VMs..."
 for i in `seq 1 ${ydb_dynamic}`; do
   vm_name="${host_base}-d${i}"
   vm_disk_boot="${host_base}-d${i}-boot"
-  yc compute instance create ${vm_name} --zone ${yc_zone} \
-    --platform ${yc_platform} \
-    --ssh-key keyfile.tmp \
-    --create-boot-disk name=${vm_disk_boot},type=network-ssd-nonreplicated,size=93G,auto-delete=true \
-    --network-settings type=software-accelerated \
-    --network-interface subnet-name=${yc_subnet},dns-record-spec="{name=${vm_name}.ru-central1.internal.}" \
-    --memory 48G --cores 24 --async
-  opcnt=`echo "$opcnt + 1" | bc`
-  if [ $opcnt -gt 5 ]; then
-    sleep 10
-    opcnt=0
-  fi
+  while true; do
+    yc compute instance create ${vm_name} --zone ${yc_zone} \
+      --platform ${yc_platform} \
+      --ssh-key keyfile.tmp \
+      --create-boot-disk name=${vm_disk_boot},type=network-ssd-nonreplicated,size=93G,auto-delete=true \
+      --network-settings type=software-accelerated \
+      --network-interface subnet-name=${yc_subnet},dns-record-spec="{name=${vm_name}.ru-central1.internal.}" \
+      --memory 64G --cores 32 --async
+    cnt=`checkLimit`
+    if [ "$cnt" == "0" ]; then break; else sleep 10; fi
+  done
 done
+cnt=`grep "ERROR:" mkinst.tmp | wc -l`
+if [ $cnt -gt 0 ]; then
+    echo "*** ERROR: VM creation failed, ABORTING!"
+    cat mkinst.tmp
+    exit 1
+fi
 
 echo "Waiting for VMs to get ready..."
 while true; do
@@ -127,3 +144,5 @@ for i in `seq 1 ${ydb_dynamic}`; do
   ssh ${host_gw} ssh yc-user@${vm_name} sudo hostnamectl set-hostname ${vm_name}
   ssh ${host_gw} ssh yc-user@${vm_name} sudo timedatectl set-timezone Europe/Moscow
 done
+
+# End Of File

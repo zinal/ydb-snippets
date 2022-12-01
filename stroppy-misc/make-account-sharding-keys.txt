@@ -1,0 +1,8 @@
+ydb table query exec -t scan --tx-mode online-ro -q \
+'SELECT CAST(b1 AS Utf8) AS b1 FROM
+(SELECT SUBSTRING(bic,NULL,3) AS b1 FROM`stroppy/account`) q
+GROUP BY b1 ORDER BY b1 ASC' \
+--format json-unicode > keys1.txt
+
+jq -r '.b1' <keys1.txt >keys2.txt
+while read x; do echo -n "'$x', "; done <keys2.txt >keys3.yql

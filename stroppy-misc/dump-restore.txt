@@ -1,0 +1,7 @@
+ydb tools dump -p stroppy -o dump_stroppy
+
+ydb yql -s 'drop table `stroppy/settings`'
+ydb yql -s 'drop table `stroppy/checksum`'
+ydb yql -s 'drop table `stroppy/account`'
+ydb yql -s 'drop table `stroppy/transfer`'
+ydb tools restore -p stroppy -i dump_stroppy --import-data

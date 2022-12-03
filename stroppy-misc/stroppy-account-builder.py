@@ -125,9 +125,14 @@ def readBorders(ydb_endpoint: str, ydb_database: str, num_partitions: int):
         with ydb.SessionPool(driver) as pool:
             return readBordersImpl(driver, pool, num_partitions)
 
+# export YDB_ENDPOINT=grpc://ycydb-d1:2136
+# export YDB_DATABASE=/Root/testdb
+# export YDB_ACCESS_TOKEN_CREDENTIALS=`ydb -p stroppy auth get-token -f`
+#
 # export YDB_ENDPOINT=grpcs://ydb.serverless.yandexcloud.net:2135
 # export YDB_DATABASE=/ru-central1/b1gfvslmokutuvt2g019/etnuogblap3e7dok6tf5
 # export YDB_SERVICE_ACCOUNT_KEY_FILE_CREDENTIALS=/home/zinal/key_ydb-sa1.json
+#
 # python3 stroppy-account-builder.py 500
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)

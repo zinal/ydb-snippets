@@ -97,11 +97,11 @@ actor_system_config:
   executor:
   - name: System
     spin_threshold: 0
-    threads: 6
+    threads: 4
     type: BASIC
   - name: User
     spin_threshold: 0
-    threads: 16
+    threads: 10
     type: BASIC
   - name: Batch
     spin_threshold: 0
@@ -113,7 +113,7 @@ actor_system_config:
     type: IO
   - name: IC
     spin_threshold: 10
-    threads: 6
+    threads: 4
     time_per_mailbox_micro_secs: 100
     type: BASIC
   scheduler:

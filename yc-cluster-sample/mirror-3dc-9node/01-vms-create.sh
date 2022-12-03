@@ -12,9 +12,10 @@ for i in `seq 1 ${ydb_static}`; do
   vm_name="${host_base}-s${i}"
   for j in `seq 1 ${ydb_disk_count}`; do
     vm_disk_data="${host_base}-s${i}-data${j}"
+    echo "...${vm_disk_data}"
     while true; do
       yc compute disk create ${vm_disk_data} --zone ${yc_zone} \
-        --type network-ssd-nonreplicated --size 372G --async
+        --type network-ssd-nonreplicated --size 372G --async >mkinst.tmp 2>&1
       cnt=`checkLimit`
       if [ "$cnt" == "0" ]; then break; else sleep 10; fi
     done
@@ -43,6 +44,7 @@ for i in `seq 1 ${ydb_static}`; do
   vm_name="${host_base}-s${i}"
   vm_disk_boot="${host_base}-s${i}-boot"
   vm_disk_data1="${host_base}-s${i}-data1"
+  echo "...${vm_name}"
   while true; do
     yc compute instance create ${vm_name} --zone ${yc_zone} \
       --platform ${yc_platform} \
@@ -51,7 +53,7 @@ for i in `seq 1 ${ydb_static}`; do
       --attach-disk disk-name=${vm_disk_data1},auto-delete=true \
       --network-settings type=software-accelerated \
       --network-interface subnet-name=${yc_subnet},dns-record-spec="{name=${vm_name}.ru-central1.internal.}" \
-      --memory 48G --cores 24 --async >mkinst.tmp 2>&1
+      --memory 32G --cores 16 --async >mkinst.tmp 2>&1
     cnt=`checkLimit`
     if [ "$cnt" == "0" ]; then break; else sleep 10; fi
   done
@@ -67,6 +69,7 @@ echo "Creating dynamic node VMs..."
 for i in `seq 1 ${ydb_dynamic}`; do
   vm_name="${host_base}-d${i}"
   vm_disk_boot="${host_base}-d${i}-boot"
+  echo "...${vm_name}"
   while true; do
     yc compute instance create ${vm_name} --zone ${yc_zone} \
       --platform ${yc_platform} \
@@ -74,7 +77,7 @@ for i in `seq 1 ${ydb_dynamic}`; do
       --create-boot-disk name=${vm_disk_boot},type=network-ssd-nonreplicated,size=93G,auto-delete=true \
       --network-settings type=software-accelerated \
       --network-interface subnet-name=${yc_subnet},dns-record-spec="{name=${vm_name}.ru-central1.internal.}" \
-      --memory 64G --cores 32 --async
+      --memory 32G --cores 16 --async >mkinst.tmp 2>&1
     cnt=`checkLimit`
     if [ "$cnt" == "0" ]; then break; else sleep 10; fi
   done

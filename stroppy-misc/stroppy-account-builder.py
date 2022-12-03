@@ -65,7 +65,50 @@ def traceCounts(pool: ydb.SessionPool, borders: list):
     cnt = pool.retry_operation_sync(callee)
     logging.info("  partition MAX -> {}".format(cnt))
 
-def run2(driver: ydb.Driver, pool: ydb.SessionPool, num_partitions: int):
+def makeTableYql(borders: list, yqlFile: str):
+    logging.info("Saving YQL for account2 table to {}".format(yqlFile))
+    with open(yqlFile, "wt") as fout:
+        fout.write("""
+CREATE TABLE `stroppy/account2` (
+  bic String,
+  ban String,
+  balance Int64,
+  PRIMARY KEY(bic,ban)
+) WITH (
+  AUTO_PARTITIONING_BY_LOAD = ENABLED,
+  AUTO_PARTITIONING_BY_SIZE = ENABLED,
+  AUTO_PARTITIONING_MIN_PARTITIONS_COUNT = 1000,
+  AUTO_PARTITIONING_MAX_PARTITIONS_COUNT = 1200,
+  PARTITION_AT_KEYS = 
+(\n""")
+        needComma = False
+        lineItems = 0
+        for border in borders:
+            lineItems = lineItems + 1
+            if lineItems >= 10:
+                fout.write("\n")
+                lineItems = 0
+            if needComma:
+                fout.write(", '" + border + "'")
+            else:
+                fout.write("  '" + border + "'")
+                needComma = True
+        fout.write("\n));\n")
+
+def makeShellScript(yqlFile: str, shellFile: str):
+    logging.info("Saving shell commands to {}".format(shellFile))
+    with open(shellFile, "wt") as fout:
+        fout.write("#! /bin/sh\n")
+        fout.write("set -e\n")
+        fout.write("set -u\n")
+        fout.write("# ydb config profile create stroppy\n")
+        fout.write("ydb -p stroppy yql -f {}\n".format(yqlFile))
+        fout.write("ydb -p stroppy table query exec -t scan -q 'SELECT * FROM `stroppy/account`' --format json-unicode \\\n")
+        fout.write("   | ydb -p stroppy import file json -p stroppy/account2\n")
+        fout.write("ydb -p stroppy tools rename --item src=stroppy/account,dst=stroppy/account_bak\n")
+        fout.write("ydb -p stroppy tools rename --item src=stroppy/account2,dst=stroppy/account\n")
+
+def readBordersImpl(driver: ydb.Driver, pool: ydb.SessionPool, num_partitions: int) -> list:
     accCount = countAccounts(pool)
     logging.info("Total number of accounts: {}".format(accCount))
     partitionSize = int(accCount / num_partitions) - 1
@@ -74,12 +117,13 @@ def run2(driver: ydb.Driver, pool: ydb.SessionPool, num_partitions: int):
     logging.info("Partition size is {} for {} total partitions".format(partitionSize, num_partitions))
     borders = makeBorders(pool, partitionSize)
     traceCounts(pool, borders)
+    return borders
 
-def run1(ydb_endpoint: str, ydb_database: str, num_partitions: int):
+def readBorders(ydb_endpoint: str, ydb_database: str, num_partitions: int):
     with ydb.Driver(endpoint=ydb_endpoint, database=ydb_database) as driver:
         driver.wait(timeout=5, fail_fast=True)
         with ydb.SessionPool(driver) as pool:
-            run2(driver, pool, num_partitions)
+            return readBordersImpl(driver, pool, num_partitions)
 
 # export YDB_ENDPOINT=grpcs://ydb.serverless.yandexcloud.net:2135
 # export YDB_DATABASE=/ru-central1/b1gfvslmokutuvt2g019/etnuogblap3e7dok6tf5
@@ -97,4 +141,8 @@ if __name__ == "__main__":
     ydb_database = os.getenv("YDB_DATABASE")
     if ydb_database is None or len(ydb_database)==0:
         raise Exception("missing YDB_DATABASE env")
-    run1(ydb_endpoint, ydb_database, num_partitions)
+    borders = readBorders(ydb_endpoint, ydb_database, num_partitions)
+    yqlFile = "stroppy-account.yql.tmp"
+    shellFile = "stroppy-account.sh.tmp"
+    makeTableYql(borders, yqlFile)
+    makeShellScript(yqlFile, shellFile)

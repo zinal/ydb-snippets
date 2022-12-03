@@ -1,0 +1,9 @@
+https://github.com/brendangregg/FlameGraph
+
+sudo apt-get install linux-tools-common linux-tools-generic linux-tools-`uname -r`
+ps -u ydb
+sudo perf record -F 99 -p NNN -g -- sleep 300
+sudo chown yc-user perf.data
+perf script > out.perf
+./FlameGraph/stackcollapse-perf.pl out.perf >out.folded
+./FlameGraph/flamegraph.pl out.folded >out.svg

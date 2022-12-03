@@ -28,6 +28,10 @@ if [ $cnt -gt 0 ]; then
     exit 1
 fi
 
+echo "Retrieving public SSH keyfile ${keyfile_gw} from host ${host_gw}..."
+ssh ${host_gw} cat ${keyfile_gw} >keyfile.tmp
+ssh ${host_gw} rm -f .ssh/known_hosts
+
 echo "Waiting for disks to get ready..."
 while true; do
   wcnt=`yc compute disk list --format json-rest | jq '.[].status' | grep -v READY | wc -l | (read x y && echo $x)`
@@ -99,10 +103,6 @@ while true; do
   echo "...pending: ${wcnt}..."
   sleep 5
 done
-
-echo "Retrieving public SSH keyfile ${keyfile_gw} from host ${host_gw}..."
-ssh ${host_gw} cat ${keyfile_gw} >keyfile.tmp
-ssh ${host_gw} rm -f .ssh/known_hosts
 
 echo "Validating network access..."
 while true; do

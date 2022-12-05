@@ -53,7 +53,7 @@ for i in `seq 1 ${ydb_static}`; do
     yc compute instance create ${vm_name} --zone ${yc_zone} \
       --platform ${yc_platform} \
       --ssh-key keyfile.tmp \
-      --create-boot-disk name=${vm_disk_boot},type=network-ssd-nonreplicated,size=93G,auto-delete=true \
+      --create-boot-disk ${yc_vm_image},name=${vm_disk_boot},type=network-ssd-nonreplicated,size=93G,auto-delete=true \
       --attach-disk disk-name=${vm_disk_data1},auto-delete=true \
       --network-settings type=software-accelerated \
       --network-interface subnet-name=${yc_subnet},dns-record-spec="{name=${vm_name}.ru-central1.internal.}" \
@@ -78,7 +78,7 @@ for i in `seq 1 ${ydb_dynamic}`; do
     yc compute instance create ${vm_name} --zone ${yc_zone} \
       --platform ${yc_platform} \
       --ssh-key keyfile.tmp \
-      --create-boot-disk name=${vm_disk_boot},type=network-ssd-nonreplicated,size=93G,auto-delete=true \
+      --create-boot-disk ${yc_vm_image},name=${vm_disk_boot},type=network-ssd-nonreplicated,size=93G,auto-delete=true \
       --network-settings type=software-accelerated \
       --network-interface subnet-name=${yc_subnet},dns-record-spec="{name=${vm_name}.ru-central1.internal.}" \
       --memory 32G --cores 16 --async >mkinst.tmp 2>&1

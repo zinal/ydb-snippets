@@ -4,7 +4,7 @@
 . ./options.sh
 
 checkLimit() {
-  grep "The limit on maximum number of active operations has exceeded" mkinst.tmp | wc -l
+  grep "The limit on maximum number of active operations has exceeded" mkinst.tmp | wc -l | (read x && echo $x)
 }
 
 echo "Creating disks..."

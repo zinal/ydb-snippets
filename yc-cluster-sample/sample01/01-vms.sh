@@ -3,6 +3,8 @@
 
 . ./options.sh
 
+set -u
+
 checkLimit() {
   grep "The limit on maximum number of active operations has exceeded" mkinst.tmp | wc -l | (read x && echo $x)
 }
@@ -60,7 +62,7 @@ for i in `seq 1 ${ydb_static}`; do
       --create-boot-disk ${yc_vm_image},name=${vm_disk_boot},type=network-ssd-nonreplicated,size=93G,auto-delete=true \
       ${disk_datum} --network-settings type=software-accelerated \
       --network-interface subnet-name=${yc_subnet},dns-record-spec="{name=${vm_name}.ru-central1.internal.}" \
-      --memory 64G --cores 32 --async >mkinst.tmp 2>&1
+      --memory ${yc_vm_mem} --cores ${yc_vm_cores} --async >mkinst.tmp 2>&1
     cnt=`checkLimit`
     if [ "$cnt" == "0" ]; then break; else sleep 10; fi
   done

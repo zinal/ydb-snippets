@@ -11,7 +11,9 @@ yc_zone=ru-central1-b
 yc_subnet=default-ru-central1-b
 yc_platform=standard-v3
 yc_vm_image="image-folder-id=standard-images,image-family=ubuntu-2204-lts"
+yc_vm_cores=16
+yc_vm_mem=32
 
 ydb_static=9
 ydb_disk_count=1
-ydb_config=conf-9n-32c.yaml
+ydb_config=conf-9n-16c.yaml

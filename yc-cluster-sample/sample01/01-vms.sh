@@ -47,19 +47,18 @@ echo "Creating static node VMs..."
 for i in `seq 1 ${ydb_static}`; do
   vm_name="${host_base}-s${i}"
   vm_disk_boot="${host_base}-s${i}-boot"
-  vm_disk_data1="${host_base}-s${i}-data1"
-  vm_disk_data2="${host_base}-s${i}-data2"
-  vm_disk_data3="${host_base}-s${i}-data3"
+
+  disk_datum=""
+  for j in `seq 1 ${ydb_disk_count}`; do
+    disk_datum="$disk_datum --attach-disk disk-name=${host_base}-s${i}-data${j},auto-delete=true"
+  done
   echo "...${vm_name}"
   while true; do
     yc compute instance create ${vm_name} --zone ${yc_zone} \
       --platform ${yc_platform} \
       --ssh-key keyfile.tmp \
       --create-boot-disk ${yc_vm_image},name=${vm_disk_boot},type=network-ssd-nonreplicated,size=93G,auto-delete=true \
-      --attach-disk disk-name=${vm_disk_data1},auto-delete=true \
-      --attach-disk disk-name=${vm_disk_data2},auto-delete=true \
-      --attach-disk disk-name=${vm_disk_data3},auto-delete=true \
-      --network-settings type=software-accelerated \
+      ${disk_datum} --network-settings type=software-accelerated \
       --network-interface subnet-name=${yc_subnet},dns-record-spec="{name=${vm_name}.ru-central1.internal.}" \
       --memory 64G --cores 32 --async >mkinst.tmp 2>&1
     cnt=`checkLimit`

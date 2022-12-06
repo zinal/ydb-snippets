@@ -14,4 +14,4 @@ yc_vm_image="image-folder-id=standard-images,image-family=ubuntu-2204-lts"
 
 ydb_static=9
 ydb_disk_count=1
-ydb_config=conf-3n-32c.yaml
+ydb_config=conf-9n-32c.yaml

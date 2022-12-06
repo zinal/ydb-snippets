@@ -108,4 +108,68 @@ INFO[Dec  6 18:26:23.166] Latency 95/99/99.9%: 0.331s/1.177s/1.903s
 INFO[Dec  6 18:26:23.166] dummy chaos successfully stopped             
 INFO[Dec  6 18:26:23.166] Errors: 0, Retries: 0, Recoveries: 0, Not found: 1735439, Overdraft: 42305 
 INFO[Dec  6 18:26:23.166] pay test start time: '1670350635310', end time: '1670351163166' 
+### Re-created `stroppy/transfer` table with pre-partitioning
+demo@gw1:~/stroppy-zinal/bin$ ./stroppy pay --dbtype ydb --url "$YDB_DB" -n 10000000 -w 4000 --run-type client
+INFO[Dec  6 18:36:09.171] kubernetes engine init successfully on directory '.' and ssh key file '' 
+INFO[Dec  6 18:36:09.171] Payload object constructed for database 'ydb', url 'grpc://stroppy:passw0rd@ycydb-s1:2136?database=/Root/testdb' 
+INFO[Dec  6 18:36:09.171] YDB Go SDK version 3.40.1                    
+INFO[Dec  6 18:36:09.171] Establishing connection to YDB on grpc://stroppy:passw0rd@ycydb-s1:2136?database=/Root/testdb with poolSize 4000 
+INFO[Dec  6 18:36:09.194] YDB transfer id hashing is DISABLED          
+INFO[Dec  6 18:36:09.194] YDB transfer magic is DISABLED               
+INFO[Dec  6 18:36:09.194] Using YDB maximum partition size  512        
+INFO[Dec  6 18:36:09.194] Using YDB minimal partition count  300       
+INFO[Dec  6 18:36:09.206] Initial balance: 499669827650                
+INFO[Dec  6 18:36:09.206] Making 10000000 transfers using 4000 workers on 32 cores  
+INFO[Dec  6 18:36:09.206] dummy chaos successfully execute `pg-pod-kill-first,pg-pod-kill-second` scenario 
+INFO[Dec  6 18:36:19.171]  2.27% done, RPS 22652, Latency min/99%/max/med: 0.019s/0.357s/0.899s/0.172s 
+INFO[Dec  6 18:36:29.171]  4.53% done, RPS 22635, Latency min/99%/max/med: 0.013s/0.301s/0.967s/0.176s 
+INFO[Dec  6 18:36:39.171]  6.74% done, RPS 22101, Latency min/99%/max/med: 0.017s/0.303s/1.016s/0.181s 
+INFO[Dec  6 18:36:49.171]  8.96% done, RPS 22252, Latency min/99%/max/med: 0.016s/0.308s/1.025s/0.177s 
+INFO[Dec  6 18:36:59.171] 11.21% done, RPS 22410, Latency min/99%/max/med: 0.018s/0.299s/1.029s/0.178s 
+INFO[Dec  6 18:37:09.171] 13.40% done, RPS 21957, Latency min/99%/max/med: 0.016s/0.304s/0.949s/0.182s 
+INFO[Dec  6 18:37:19.171] 15.62% done, RPS 22226, Latency min/99%/max/med: 0.020s/0.304s/0.895s/0.180s 
+INFO[Dec  6 18:37:29.171] 17.85% done, RPS 22224, Latency min/99%/max/med: 0.025s/0.305s/0.944s/0.179s 
+INFO[Dec  6 18:37:39.171] 20.05% done, RPS 22067, Latency min/99%/max/med: 0.021s/0.308s/0.914s/0.180s 
+INFO[Dec  6 18:37:49.171] 22.27% done, RPS 22146, Latency min/99%/max/med: 0.010s/0.304s/0.943s/0.180s 
+INFO[Dec  6 18:37:59.171] 24.49% done, RPS 22271, Latency min/99%/max/med: 0.020s/0.301s/0.954s/0.178s 
+INFO[Dec  6 18:38:09.171] 26.68% done, RPS 21882, Latency min/99%/max/med: 0.023s/0.308s/0.976s/0.182s 
+INFO[Dec  6 18:38:19.171] 28.89% done, RPS 22088, Latency min/99%/max/med: 0.024s/0.306s/0.957s/0.179s 
+INFO[Dec  6 18:38:29.171] 31.12% done, RPS 22238, Latency min/99%/max/med: 0.020s/0.306s/1.162s/0.178s 
+INFO[Dec  6 18:38:39.171] 33.30% done, RPS 21836, Latency min/99%/max/med: 0.020s/0.309s/0.969s/0.181s 
+INFO[Dec  6 18:38:49.171] 35.52% done, RPS 22249, Latency min/99%/max/med: 0.017s/0.303s/1.023s/0.179s 
+INFO[Dec  6 18:38:59.171] 37.74% done, RPS 22132, Latency min/99%/max/med: 0.018s/0.305s/0.922s/0.180s 
+INFO[Dec  6 18:39:09.171] 39.94% done, RPS 22020, Latency min/99%/max/med: 0.018s/0.306s/0.869s/0.180s 
+INFO[Dec  6 18:39:19.178] 42.17% done, RPS 22346, Latency min/99%/max/med: 0.014s/0.303s/0.953s/0.178s 
+INFO[Dec  6 18:39:29.174] 44.31% done, RPS 21378, Latency min/99%/max/med: 0.027s/0.318s/0.928s/0.186s 
+INFO[Dec  6 18:39:39.171] 46.52% done, RPS 22047, Latency min/99%/max/med: 0.018s/0.310s/0.986s/0.180s 
+INFO[Dec  6 18:39:49.171] 48.72% done, RPS 21991, Latency min/99%/max/med: 0.018s/0.309s/0.982s/0.181s 
+INFO[Dec  6 18:39:59.171] 50.90% done, RPS 21888, Latency min/99%/max/med: 0.025s/0.309s/0.944s/0.179s 
+INFO[Dec  6 18:40:09.171] 53.08% done, RPS 21791, Latency min/99%/max/med: 0.024s/0.308s/0.922s/0.181s 
+INFO[Dec  6 18:40:19.171] 55.30% done, RPS 22189, Latency min/99%/max/med: 0.019s/0.302s/1.000s/0.179s 
+INFO[Dec  6 18:40:29.171] 57.53% done, RPS 22277, Latency min/99%/max/med: 0.023s/0.302s/0.952s/0.179s 
+INFO[Dec  6 18:40:39.171] 59.70% done, RPS 21711, Latency min/99%/max/med: 0.015s/0.313s/0.973s/0.182s 
+INFO[Dec  6 18:40:49.178] 61.88% done, RPS 21756, Latency min/99%/max/med: 0.023s/0.315s/1.027s/0.182s 
+INFO[Dec  6 18:40:59.171] 64.08% done, RPS 22010, Latency min/99%/max/med: 0.027s/0.304s/0.993s/0.183s 
+INFO[Dec  6 18:41:09.171] 66.25% done, RPS 21735, Latency min/99%/max/med: 0.024s/0.311s/1.056s/0.183s 
+INFO[Dec  6 18:41:19.171] 68.45% done, RPS 21948, Latency min/99%/max/med: 0.018s/0.310s/0.946s/0.180s 
+INFO[Dec  6 18:41:29.171] 70.63% done, RPS 21866, Latency min/99%/max/med: 0.025s/0.308s/0.873s/0.180s 
+INFO[Dec  6 18:41:39.171] 72.82% done, RPS 21851, Latency min/99%/max/med: 0.018s/0.311s/0.991s/0.182s 
+INFO[Dec  6 18:41:49.171] 74.99% done, RPS 21749, Latency min/99%/max/med: 0.015s/0.308s/0.974s/0.182s 
+INFO[Dec  6 18:41:59.171] 77.17% done, RPS 21786, Latency min/99%/max/med: 0.023s/0.315s/0.932s/0.182s 
+INFO[Dec  6 18:42:09.171] 79.34% done, RPS 21675, Latency min/99%/max/med: 0.018s/0.318s/1.050s/0.180s 
+INFO[Dec  6 18:42:19.171] 81.53% done, RPS 21946, Latency min/99%/max/med: 0.025s/0.308s/1.099s/0.182s 
+INFO[Dec  6 18:42:29.171] 83.71% done, RPS 21728, Latency min/99%/max/med: 0.020s/0.312s/1.005s/0.182s 
+INFO[Dec  6 18:42:39.171] 85.87% done, RPS 21586, Latency min/99%/max/med: 0.020s/0.313s/0.988s/0.183s 
+INFO[Dec  6 18:42:49.171] 88.00% done, RPS 21388, Latency min/99%/max/med: 0.014s/0.314s/0.998s/0.186s 
+INFO[Dec  6 18:42:59.176] 90.20% done, RPS 21904, Latency min/99%/max/med: 0.010s/0.313s/0.934s/0.180s 
+INFO[Dec  6 18:43:09.171] 92.32% done, RPS 21224, Latency min/99%/max/med: 0.025s/0.317s/0.916s/0.187s 
+INFO[Dec  6 18:43:19.171] 94.47% done, RPS 21570, Latency min/99%/max/med: 0.020s/0.317s/1.082s/0.185s 
+INFO[Dec  6 18:43:29.171] 96.59% done, RPS 21198, Latency min/99%/max/med: 0.018s/0.332s/1.154s/0.187s 
+INFO[Dec  6 18:43:39.171] 98.72% done, RPS 21293, Latency min/99%/max/med: 0.018s/0.317s/0.922s/0.187s 
+INFO[Dec  6 18:43:46.481] Total time: 457.311s, 21866 t/sec            
+INFO[Dec  6 18:43:46.481] Latency min/max/avg: 0.005s/1.162s/0.182s    
+INFO[Dec  6 18:43:46.481] Latency 95/99/99.9%: 0.275s/0.310s/0.576s    
+INFO[Dec  6 18:43:46.481] dummy chaos successfully stopped             
+INFO[Dec  6 18:43:46.481] Errors: 0, Retries: 0, Recoveries: 0, Not found: 1737249, Overdraft: 41787 
+INFO[Dec  6 18:43:46.481] pay test start time: '1670351749206', end time: '1670352206481' 
 

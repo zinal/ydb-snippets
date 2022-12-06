@@ -54,6 +54,20 @@ domains_config:
       node: [1, 2, 3]
       nto_select: 3
     ssid: 1
+  security_config:
+    enforce_user_token_requirement: true      # User 'root' with the empty password out of box
+    monitoring_allowed_sids:
+    - "root"
+    - "ADMINS"
+    - "DATABASE-ADMINS"
+    administration_allowed_sids:
+    - "root"
+    - "ADMINS"
+    - "DATABASE-ADMINS"
+    viewer_allowed_sids:
+    - "root"
+    - "ADMINS"
+    - "DATABASE-ADMINS"
 table_service_config:
   sql_version: 1
 actor_system_config:          # the configuration of the actor system which descibes how cores of the instance are distributed

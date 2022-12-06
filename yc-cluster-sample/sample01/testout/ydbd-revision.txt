@@ -1,0 +1,25 @@
+yc-user@ycydb-s1:~$ /opt/ydb/bin/ydbd --svnrevision
+Arc info:
+    Branch: tags/releases/ydb/stable-22-4-47
+    Commit: cf40a049fc50ba382a687a5d1133b410764c749a
+    Author: shmel1k
+    Summary: [YDBOPS-6458] fix wall-e 'reject' status
+
+Other info:
+    Build by: mzinal
+    Top src dir: /home/mzinal/arcadia
+    Top build dir: /home/mzinal/.ya/build
+    Hostname: builder1.sas.yp-c.yandex.net
+    Host information: 
+        Linux builder1.sas.yp-c.yandex.net 5.4.161-26.3 #1 SMP Mon Feb 7 14:47:58 UTC 2022 x86_64
+
+    
+Build info:
+    Compiler: /home/mzinal/.ya/tools/v4/2813926943/bin/clang++
+    Compiler version: 
+        clang version 12.0.1
+        Target: x86_64-unknown-linux-gnu
+        Thread model: posix
+        InstalledDir: /home/mzinal/.ya/tools/v4/2813926943/bin
+    Compile flags: -fdebug-prefix-map=/home/mzinal/.ya/build/build_root/tp6k/0019f9=/-B -Xclang -fdebug-compilation-dir -Xclang /tmp -pipe -m64 -O3 -g -ggnu-pubnames -fexceptions -fno-common -fuse-init-array -fcolor-diagnostics -faligned-allocation -ffunction-sections -fdata-sections -Wall -Wextra -Wno-parentheses -Wno-implicit-const-int-float-conversion -Wno-unknown-warning-option -Werror -DFAKEID=9630116 -DARCADIA_ROOT=/home/mzinal/arcadia -DARCADIA_BUILD_ROOT=/home/mzinal/.ya/build/build_root/tp6k/0019f9 -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -D_YNDX_LIBUNWIND_ENABLE_EXCEPTION_BACKTRACE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -D_libunwind_ -nostdinc++ -DLIBCXX_BUILDING_LIBCXXRT -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16 -std=c++20 -Woverloaded-virtual -Wimport-preprocessor-directive-pedantic -Wno-ambiguous-reversed-operator -Wno-defaulted-function-deleted -Wno-deprecated-anon-enum-enum-conversion -Wno-deprecated-enum-enum-conversion -Wno-deprecated-enum-float-conversion -Wno-deprecated-volatile -Wno-pessimizing-move -Wno-return-std-move -Wno-undefined-var-template -nostdinc++
+

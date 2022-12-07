@@ -3,6 +3,8 @@
 set -e
 set +u
 
+NODES_FILE=ydb-ca-nodes.txt
+
 [ -d CA ] || mkdir CA
 cd CA
 
@@ -65,8 +67,9 @@ fi
 [ -f index.txt ] || touch index.txt
 [ -f serial.txt ] || (echo 01 >serial.txt)
 
-if [ ! -f ../ydb-ca-nodes.txt ]; then
-    echo "** Missing file ydb-ca-nodes.txt - EXIT"
+# The '..' part here is due to changed current directory
+if [ ! -f ../${NODES_FILE} ]; then
+    echo "** Missing file ${NODES_FILE} - EXIT"
     exit 0
 fi
 
@@ -122,7 +125,8 @@ move_node_files() {
     mv -v nodes/*.pem certs/"$DEST_NAME"/
 }
 
-cat ../ydb-ca-nodes.txt | while read node; do
+# The '..' part here is due to changed current directory
+cat ../${NODES_FILE} | while read node; do
     if [ ! -z "$node" ]; then
         make_node_conf "$node"
         make_node_key "$node"

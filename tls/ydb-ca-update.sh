@@ -4,6 +4,7 @@ set -e
 set +u
 
 NODES_FILE=ydb-ca-nodes.txt
+KEY_BITS=4096
 
 [ -d CA ] || mkdir CA
 cd CA
@@ -56,7 +57,7 @@ fi
 
 if [ ! -f secure/ca.key ]; then
     echo "** Generating CA key"
-    openssl genrsa -out secure/ca.key 2048
+    openssl genrsa -out secure/ca.key ${KEY_BITS}
 fi
 
 if [ ! -f certs/ca.crt ]; then
@@ -87,15 +88,25 @@ req_extensions = extensions
 organizationName = YDB
 
 [ extensions ]
-subjectAltName = DNS:$1
+subjectAltName = @alt_names
+
+[ alt_names ]
+DNS.1=$1
 EOF
+      if [ ! -z "$2" ]; then
+        vn=1
+        for nn in $2; do
+          vn=`echo "$vn + 1" | bc`
+          echo "DNS.$vn=$nn" >>nodes/"$1".cnf
+        done
+      fi
     fi
 }
 
 make_node_key() {
     if [ ! -f nodes/"$1".key ]; then
          echo "** Generating key for node $1..."
-         openssl genrsa -out nodes/"$1".key 2048
+         openssl genrsa -out nodes/"$1".key ${KEY_BITS}
     fi
 }
 
@@ -126,9 +137,9 @@ move_node_files() {
 }
 
 # The '..' part here is due to changed current directory
-cat ../${NODES_FILE} | while read node; do
+cat ../${NODES_FILE} | while read node node2; do
     if [ ! -z "$node" ]; then
-        make_node_conf "$node"
+        make_node_conf "$node" "$node2"
         make_node_key "$node"
         make_node_csr "$node"
         make_node_cert "$node"

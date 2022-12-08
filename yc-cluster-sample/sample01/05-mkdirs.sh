@@ -15,8 +15,12 @@ echo -n "Unpacking ydbd at "
 hostname -f
 mkdir -p -v /opt/ydb/bin
 mkdir -p -v /opt/ydb/cfg
+if [ -f ${WORKDIR}/ydbd.xz ]; then
 xz -v -dc ${WORKDIR}/ydbd.xz >/opt/ydb/bin/ydbd
 chmod aoug+x /opt/ydb/bin/ydbd
+else
+tar -x -f ${WORKDIR}/ydbd.tar.gz --strip-component=1 -C /opt/ydb
+fi
 EOF
 
 scp ydbd-unpack.sh.tmp ${host_gw}:${WORKDIR}/ydbd-unpack.sh

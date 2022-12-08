@@ -11,9 +11,23 @@ yc_zone=ru-central1-b
 yc_subnet=default-ru-central1-b
 yc_platform=standard-v3
 yc_vm_image="image-folder-id=standard-images,image-family=ubuntu-2204-lts"
-yc_vm_cores=16
-yc_vm_mem=32
+yc_vm_cores=32
+yc_vm_mem=64
+yc_data_disk_size=186G
 
 ydb_static=3
-ydb_disk_count=3
-ydb_config=conf-3n-16c.yaml
+ydb_disk_count=6
+ydb_config=conf-3n-32c.yaml
+ydb_tls=Y
+
+ydbd_mode=tar
+
+# **********************************
+
+if [ -z "$ydbd_mode" ]; then
+  ydbd_mode=tar
+fi
+YDBD_ARCHIVE=ydbd.xz
+if [ "$ydbd_mode"=="tar" ]; then
+  YDBD_ARCHIVE=ydbd.tar.gz
+fi

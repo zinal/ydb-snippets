@@ -86,6 +86,8 @@ while true; do
   sleep 5
 done
 
+ssh ${host_gw} resolvectl flush-caches
+
 echo "Validating network access..."
 while true; do
   num_fail=0

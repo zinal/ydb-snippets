@@ -6,7 +6,7 @@
 upload_binary() {
   vm_name="$1"
   ssh ${host_gw} ssh yc-user@${vm_name} mkdir ${WORKDIR}  >/dev/null 2>&1
-  ssh ${host_gw} screen -d -m scp ${WORKDIR}/ydbd.xz yc-user@${vm_name}:${WORKDIR}/ydbd.xz
+  ssh ${host_gw} screen -d -m scp ${WORKDIR}/${YDBD_ARCHIVE} yc-user@${vm_name}:${WORKDIR}/
 }
 
 echo "Uploading ydbd compressed binary to the nodes..."

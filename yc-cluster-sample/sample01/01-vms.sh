@@ -10,6 +10,7 @@ checkLimit() {
 }
 
 echo "Creating disks..."
+rm -f mkinst.tmp
 for i in `seq 1 ${ydb_static}`; do
   vm_name="${host_base}-s${i}"
   for j in `seq 1 ${ydb_disk_count}`; do

@@ -7,12 +7,6 @@ host_configs: # the list of available host configurations in the cluster.
     type: SSD
   - path: /dev/disk/by-partlabel/ydb_disk_3
     type: SSD
-  - path: /dev/disk/by-partlabel/ydb_disk_4
-    type: SSD
-  - path: /dev/disk/by-partlabel/ydb_disk_5
-    type: SSD
-  - path: /dev/disk/by-partlabel/ydb_disk_6
-    type: SSD
   host_config_id: 1
 hosts:
 - host: ycydb-s1
@@ -170,3 +164,9 @@ grpc_config:
     ca: "/opt/ydb/certs/ca.crt"
     services_enabled:
     - legacy
+    - yql
+    - scripting
+    - cms
+    - locking
+    - discovery
+    - monitoring

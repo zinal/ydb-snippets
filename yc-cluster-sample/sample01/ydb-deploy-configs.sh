@@ -11,10 +11,10 @@ cp -v YdbWork/ydbd-testdb.service /etc/systemd/system/
 systemctl daemon-reload
 
 if [ "tls"=="$tls_mode" ]; then
-  mkdir -p /opt/ydb/cert
-  cp -v YdbWork/tls/ca.crt /opt/ydb/cert/
-  cp -v YdbWork/tls/node.crt /opt/ydb/cert/
-  cp -v YdbWork/tls/node.key /opt/ydb/cert/
-  chown -R ydb:ydb /opt/ydb/cert
-  chmod 700 /opt/ydb/cert
+  mkdir -p /opt/ydb/certs
+  cp -v YdbWork/tls/ca.crt /opt/ydb/certs/
+  cp -v YdbWork/tls/node.crt /opt/ydb/certs/
+  cp -v YdbWork/tls/node.key /opt/ydb/certs/
+  chown -R ydb:ydb /opt/ydb/certs
+  chmod 700 /opt/ydb/certs
 fi

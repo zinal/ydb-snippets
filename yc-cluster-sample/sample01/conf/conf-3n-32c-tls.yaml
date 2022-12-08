@@ -168,3 +168,5 @@ grpc_config:
     cert: "/opt/ydb/certs/node.crt"
     key: "/opt/ydb/certs/node.key"
     ca: "/opt/ydb/certs/ca.crt"
+    services_enabled:
+    - legacy

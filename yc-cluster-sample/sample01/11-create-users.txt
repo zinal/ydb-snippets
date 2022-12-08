@@ -4,3 +4,4 @@ ydb -e grpc://ycydb-s1:2136 -d /Root/testdb --user root --no-password yql -s 'AL
 ydb -e grpc://ycydb-s1:2136 -d /Root/testdb --user root --no-password yql -s 'ALTER USER root PASSWORD "passw0rd"'
 
 # ssh -L8765:ycydb-s1:8765 gw1 vmstat 9 999999999999
+# openssl s_client -connect ycydb-s1:2135 -showcerts -CAfile YdbWork/tls/ca.crt

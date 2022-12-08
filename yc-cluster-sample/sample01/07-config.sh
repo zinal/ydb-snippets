@@ -3,16 +3,19 @@
 
 . ./options.sh
 
-scp ${ydb_config} ${host_gw}:${WORKDIR}/ydbd-config.yaml
-scp ydbd-storage.service ydbd-testdb.service ydb-deploy-configs.sh \
-  ${host_gw}:${WORKDIR}/
+scp conf/${ydb_config} ${host_gw}:${WORKDIR}/ydbd-config.yaml
+scp ydb-deploy-configs.sh ${host_gw}:${WORKDIR}/
 
 if [ "Y"=="$ydb_tls" ]; then
   TLSMODE=tls
+  scp conf/ydbd-storage-tls.service ${host_gw}:${WORKDIR}/ydbd-storage.service
+  scp conf/ydbd-testdb-tls.service  ${host_gw}:${WORKDIR}/ydbd-testdb.service
   ssh ${host_gw} mkdir -p ${WORKDIR}/tls
   (cd tls.tmp && scp *.crt *.key ${host_gw}:${WORKDIR}/tls/)
 else
   TLSMODE=notls
+  scp conf/ydbd-storage.service ${host_gw}:${WORKDIR}/
+  scp conf/ydbd-testdb.service  ${host_gw}:${WORKDIR}/
 fi
 
 deploy_config() {

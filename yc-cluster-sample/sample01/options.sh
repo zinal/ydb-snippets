@@ -17,7 +17,7 @@ yc_data_disk_size=186G
 
 ydb_static=3
 ydb_disk_count=6
-ydb_config=conf-3n-32c.yaml
+ydb_config=conf-3n-32c-tls.yaml
 ydb_tls=Y
 
 ydbd_mode=tar

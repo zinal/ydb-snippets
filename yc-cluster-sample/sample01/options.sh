@@ -15,11 +15,11 @@ yc_vm_cores=32
 yc_vm_mem=64
 yc_data_disk_size=186G
 
-ydb_static=3
-ydb_disk_count=6
-ydb_config=conf-3n-32c-tls.yaml
+ydb_static=9
+ydb_disk_count=3
+ydb_config=conf-9n-32c-tls.yaml
 ydb_tls=Y
-ydb_disk_groups=9
+ydb_disk_groups=27
 
 ydbd_mode=tar
 

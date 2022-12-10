@@ -21,6 +21,7 @@ fi
 deploy_config() {
   vm_name="$1"
   conf_name="$2"
+  echo "**** $vm_name"
   if [ "Y"=="$ydb_tls" ]; then
      ssh ${host_gw} ssh yc-user@${vm_name} mkdir -p ${WORKDIR}/tls
      ssh ${host_gw} scp ${WORKDIR}/tls/ca.crt yc-user@${vm_name}:${WORKDIR}/tls/ca.crt

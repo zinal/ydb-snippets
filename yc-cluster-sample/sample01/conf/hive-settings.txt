@@ -1,0 +1,4 @@
+MinScatterToBalance 0,5
+MinNodeUsageToBalance 0,5
+MaxNodeUsageToKick 0,7
+TabletKickCooldownPeriod 300

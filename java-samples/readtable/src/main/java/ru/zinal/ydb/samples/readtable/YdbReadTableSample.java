@@ -2,6 +2,7 @@ package ru.zinal.ydb.samples.readtable;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -16,12 +17,15 @@ import tech.ydb.table.SessionRetryContext;
 import tech.ydb.table.TableClient;
 import tech.ydb.table.settings.BulkUpsertSettings;
 import tech.ydb.table.values.ListType;
-import tech.ydb.table.values.PrimitiveType;
 import tech.ydb.table.values.PrimitiveValue;
-import tech.ydb.table.values.StructType;
 import tech.ydb.table.values.Value;
 import tech.ydb.auth.iam.CloudAuthHelper;
+import tech.ydb.table.Session;
+import tech.ydb.table.settings.ReadTableSettings;
 import tech.ydb.table.values.ListValue;
+import tech.ydb.table.values.PrimitiveType;
+import tech.ydb.table.values.StructType;
+import tech.ydb.table.values.TupleValue;
 
 /**
  *
@@ -61,9 +65,11 @@ public class YdbReadTableSample implements AutoCloseable {
         this.database = transport.getDatabase();
         try {
             this.tableClient = TableClient.newClient(transport)
+                    .sessionMaxIdleTime(Duration.ofSeconds(60))
                     .sessionPoolSize(0, 10)
                     .build();
-            this.retryCtx = SessionRetryContext.create(tableClient).build();
+            this.retryCtx = SessionRetryContext.create(tableClient)
+                    .sessionCreationTimeout(Duration.ofSeconds(10)).build();
             this.transport = transport;
             transport = null; // to avoid closing below
         } finally {
@@ -118,9 +124,9 @@ public class YdbReadTableSample implements AutoCloseable {
     public void createTable() throws Exception {
         LOG.info("createTable() started");
         final String tableYql = "CREATE TABLE readtable_demo("
-                + "A Int32,"
-                + "B Int32,"
-                + "C Int32,"
+                + "A Int32 NOT NULL,"
+                + "B Int32 NOT NULL,"
+                + "C Int32 NOT NULL,"
                 + "D Utf8,"
                 + "E Utf8,"
                 + "PRIMARY KEY(A,B,C))";
@@ -154,9 +160,9 @@ public class YdbReadTableSample implements AutoCloseable {
         List<Value<?>> batch = new ArrayList<>(maxRows);
         final UpsertHelper helper = new UpsertHelper(retryCtx, new BulkUpsertSettings());
         
-        for (int c=0; c<100; ++c) {
-            for (int b=0; b<100; ++b) {
-                for (int a=0; a<100; ++a) {
+        for (int c=0; c<10000; ++c) {
+            for (int b=0; b<10; ++b) {
+                for (int a=0; a<10; ++a) {
                     String d = String.valueOf(a)
                             + "/" + String.valueOf(b)
                             + "/" + String.valueOf(c);
@@ -173,7 +179,6 @@ public class YdbReadTableSample implements AutoCloseable {
                     }
                 }
             }
-            LOG.info("...{} of {}", (c+1), 100);
         }
 
         if (! batch.isEmpty()) {
@@ -186,9 +191,44 @@ public class YdbReadTableSample implements AutoCloseable {
 
     public void grabRecords() throws Exception {
         LOG.info("grabRecords() started");
+
+        final Value A_VAL = PrimitiveValue.newInt32(5).makeOptional();
+        final Value B_VAL = PrimitiveValue.newInt32(3).makeOptional();
+
+        final String tablePath = database + "/" + "readtable_demo";
+        final ReadTableSettings settings = ReadTableSettings.newBuilder()
+                .columns("A", "B", "C", "D", "E")
+                .fromKeyInclusive(TupleValue.of(A_VAL, B_VAL))
+                .toKeyInclusive(TupleValue.of(A_VAL, B_VAL))
+                .timeout(Duration.ofHours(8))
+                .build();
+
+        try (Session session = tableClient.createSession(Duration.ofSeconds(10)).join().getValue()) {
+            session.readTable(tablePath, settings, rs -> {
+                LOG.info("*** next portion, size={}", rs.getRowCount());
+                int ca = rs.getColumnIndex("A");
+                int cb = rs.getColumnIndex("B");
+                int cc = rs.getColumnIndex("C");
+                int cd = rs.getColumnIndex("D");
+                int ce = rs.getColumnIndex("E");
+                while (rs.next()) {
+                    LOG.info("\tA={}, B={}, C={}, D={}, E={}",
+                            rs.getColumn(ca).getInt32(),
+                            rs.getColumn(cb).getInt32(),
+                            rs.getColumn(cc).getInt32(),
+                            rs.getColumn(cd).getText(),
+                            rs.getColumn(ce).getText());
+                }
+            }).join().expectSuccess();
+        }
+
         LOG.info("grabRecords() completed");
     }
 
+    /**
+     * Application entry point
+     * @param args
+     */
     public static void main(String[] args) {
         if (args.length != 1) {
             System.out.println("USAGE: YdbReadTableSample CONNECTION");
@@ -202,6 +242,12 @@ public class YdbReadTableSample implements AutoCloseable {
         }
     }
 
+    /**
+     * Helper function to read username and password from the file.
+     * @param f File name
+     * @return StaticCredentials object containing the username and password
+     * @throws Exception
+     */
     public static AuthProvider readStaticCreds(String f) throws Exception {
         String data = FileUtils.readFileToString(new File(f), StandardCharsets.UTF_8);
         int pos = data.indexOf(':');
@@ -210,7 +256,9 @@ public class YdbReadTableSample implements AutoCloseable {
         return new StaticCredentials(data.substring(0, pos), data.substring(pos+1));
     }
 
-
+    /**
+     * Helper class to simplify the asynchronous records upsertion.
+     */
     private static class UpsertHelper {
         private final SessionRetryContext retryCtx;
         private final BulkUpsertSettings upsertSettings;
@@ -221,6 +269,9 @@ public class YdbReadTableSample implements AutoCloseable {
             this.upsertSettings = upsertSettings;
         }
 
+        /**
+         * Complete the current async operaion, if one is present.
+         */
         public void finish() {
             if (status == null)
                 return;
@@ -228,6 +279,12 @@ public class YdbReadTableSample implements AutoCloseable {
             status = null;
         }
 
+        /**
+         * Start the new async operation to upsert the additional list of rows to the table.
+         * The previously running async operation will be finished and checked for errors.
+         * @param tablePath Full path to table
+         * @param newValue List of records to be upserted
+         */
         public void add(String tablePath, ListValue newValue) {
             if (newValue==null || newValue.isEmpty())
                 return;
@@ -237,6 +294,13 @@ public class YdbReadTableSample implements AutoCloseable {
             );
         }
 
+        /**
+         * Start the new async operation to upsert the additional list of rows to the table.
+         * The previously running async operation will be finished and checked for errors.
+         * @param tablePath Full path to table
+         * @param batch List of records to be upserted
+         * @param listType YDB list type
+         */
         public void addList(String tablePath, List<Value<?>> batch, ListType listType) {
             if (batch==null || batch.isEmpty())
                 return;

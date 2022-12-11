@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<actions>
+        <action>
+            <actionName>run</actionName>
+            <packagings>
+                <packaging>jar</packaging>
+            </packagings>
+            <goals>
+                <goal>process-classes</goal>
+                <goal>org.codehaus.mojo:exec-maven-plugin:3.0.0:exec</goal>
+            </goals>
+            <properties>
+                <exec.vmArgs></exec.vmArgs>
+                <exec.args>${exec.vmArgs} -classpath %classpath ${exec.mainClass} ${exec.appArgs}</exec.args>
+                <exec.appArgs>grpcs://ydb.serverless.yandexcloud.net:2135?database=/ru-central1/b1gfvslmokutuvt2g019/etnuogblap3e7dok6tf5</exec.appArgs>
+                <exec.mainClass>ru.zinal.ydb.samples.readtable.YdbReadTableSample</exec.mainClass>
+                <exec.executable>java</exec.executable>
+                <Env.YDB_SERVICE_ACCOUNT_KEY_FILE_CREDENTIALS>/home/zinal/key-ydb-sa1.json</Env.YDB_SERVICE_ACCOUNT_KEY_FILE_CREDENTIALS>
+            </properties>
+        </action>
+        <action>
+            <actionName>debug</actionName>
+            <packagings>
+                <packaging>jar</packaging>
+            </packagings>
+            <goals>
+                <goal>process-classes</goal>
+                <goal>org.codehaus.mojo:exec-maven-plugin:3.0.0:exec</goal>
+            </goals>
+            <properties>
+                <exec.vmArgs>-agentlib:jdwp=transport=dt_socket,server=n,address=${jpda.address}</exec.vmArgs>
+                <exec.args>${exec.vmArgs} -classpath %classpath ${exec.mainClass} ${exec.appArgs}</exec.args>
+                <exec.appArgs>grpcs://ydb.serverless.yandexcloud.net:2135?database=/ru-central1/b1gfvslmokutuvt2g019/etnuogblap3e7dok6tf5</exec.appArgs>
+                <exec.mainClass>ru.zinal.ydb.samples.readtable.YdbReadTableSample</exec.mainClass>
+                <exec.executable>java</exec.executable>
+                <jpda.listen>true</jpda.listen>
+                <Env.YDB_SERVICE_ACCOUNT_KEY_FILE_CREDENTIALS>/home/zinal/key-ydb-sa1.json</Env.YDB_SERVICE_ACCOUNT_KEY_FILE_CREDENTIALS>
+            </properties>
+        </action>
+        <action>
+            <actionName>profile</actionName>
+            <packagings>
+                <packaging>jar</packaging>
+            </packagings>
+            <goals>
+                <goal>process-classes</goal>
+                <goal>org.codehaus.mojo:exec-maven-plugin:3.0.0:exec</goal>
+            </goals>
+            <properties>
+                <exec.vmArgs></exec.vmArgs>
+                <exec.args>${exec.vmArgs} -classpath %classpath ${exec.mainClass} ${exec.appArgs}</exec.args>
+                <exec.mainClass>ru.zinal.ydb.samples.readtable.YdbReadTableSample</exec.mainClass>
+                <exec.executable>java</exec.executable>
+                <exec.appArgs>grpcs://ydb.serverless.yandexcloud.net:2135?database=/ru-central1/b1gfvslmokutuvt2g019/etnuogblap3e7dok6tf5</exec.appArgs>
+            </properties>
+        </action>
+    </actions>

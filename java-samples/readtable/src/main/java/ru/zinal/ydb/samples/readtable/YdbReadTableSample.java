@@ -6,21 +6,22 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import tech.ydb.auth.iam.CloudAuthHelper;
+import org.apache.commons.io.FileUtils;
+import tech.ydb.core.Status;
 import tech.ydb.core.auth.AuthProvider;
 import tech.ydb.core.auth.StaticCredentials;
 import tech.ydb.core.grpc.GrpcTransport;
 import tech.ydb.core.grpc.GrpcTransportBuilder;
 import tech.ydb.table.SessionRetryContext;
 import tech.ydb.table.TableClient;
-import org.apache.commons.io.FileUtils;
-import tech.ydb.core.Status;
 import tech.ydb.table.settings.BulkUpsertSettings;
 import tech.ydb.table.values.ListType;
 import tech.ydb.table.values.PrimitiveType;
 import tech.ydb.table.values.PrimitiveValue;
 import tech.ydb.table.values.StructType;
 import tech.ydb.table.values.Value;
+import tech.ydb.auth.iam.CloudAuthHelper;
+import tech.ydb.table.values.ListValue;
 
 /**
  *
@@ -99,12 +100,21 @@ public class YdbReadTableSample implements AutoCloseable {
         return database;
     }
 
+    /**
+     * Top-level logic of the sample, which creates the table, pushes some data into it,
+     * and performs a table scan with the filter on PK values after that.
+     * @throws Exception
+     */
     public void run() throws Exception {
         createTable();
         upsertData();
         grabRecords();
     }
 
+    /**
+     * Creating the table with compound key using YQL statement.
+     * @throws Exception
+     */
     public void createTable() throws Exception {
         LOG.info("createTable() started");
         final String tableYql = "CREATE TABLE readtable_demo("
@@ -120,21 +130,29 @@ public class YdbReadTableSample implements AutoCloseable {
         LOG.info("createTable() completed");
     }
 
+    /**
+     * Generating and upserting the data to the table.
+     * Async operations are used, so the data continues to be generated
+     * while the previous portion is being upserted.
+     * In this simple implementation, only one async operation can be running.
+     * @throws Exception
+     */
     public void upsertData() throws Exception {
         LOG.info("upsertData() started");
 
-        StructType rowType = StructType
-                .of("A", PrimitiveType.Int32)
-                .of("B", PrimitiveType.Int32)
-                .of("C", PrimitiveType.Int32)
-                .of("D", PrimitiveType.Text)
-                .of("E", PrimitiveType.Text);
-        ListType listType = ListType.of(rowType);
+        final String tablePath = database + "/" + "readtable_demo";
 
-        final int maxRows = 1000;
-        final List<Value<?>> batch = new ArrayList<>(maxRows);
-        final BulkUpsertSettings bus = new BulkUpsertSettings();
-        CompletableFuture<Status> status = null;
+        final StructType rowType = StructType.of(
+                "A", PrimitiveType.Int32,
+                "B", PrimitiveType.Int32,
+                "C", PrimitiveType.Int32,
+                "D", PrimitiveType.Text,
+                "E", PrimitiveType.Text);
+        final ListType listType = ListType.of(rowType);
+
+        final int maxRows = 10000;
+        List<Value<?>> batch = new ArrayList<>(maxRows);
+        final UpsertHelper helper = new UpsertHelper(retryCtx, new BulkUpsertSettings());
         
         for (int c=0; c<100; ++c) {
             for (int b=0; b<100; ++b) {
@@ -150,13 +168,18 @@ public class YdbReadTableSample implements AutoCloseable {
                             "D", PrimitiveValue.newText(d),
                             "E", PrimitiveValue.newText(e)));
                     if (batch.size() >= maxRows) {
-                        if (status != null) {
-                            status.join().expectSuccess();
-                        }
+                        helper.addList(tablePath, batch, listType);
+                        batch.clear();
                     }
                 }
             }
+            LOG.info("...{} of {}", (c+1), 100);
         }
+
+        if (! batch.isEmpty()) {
+            helper.addList(tablePath, batch, listType);
+        }
+        helper.finish();
 
         LOG.info("upsertData() completed");
     }
@@ -185,6 +208,40 @@ public class YdbReadTableSample implements AutoCloseable {
         if (pos < 0)
             return new StaticCredentials(data, "");
         return new StaticCredentials(data.substring(0, pos), data.substring(pos+1));
+    }
+
+
+    private static class UpsertHelper {
+        private final SessionRetryContext retryCtx;
+        private final BulkUpsertSettings upsertSettings;
+        private CompletableFuture<Status> status = null;
+
+        public UpsertHelper(SessionRetryContext retryCtx, BulkUpsertSettings upsertSettings) {
+            this.retryCtx = retryCtx;
+            this.upsertSettings = upsertSettings;
+        }
+
+        public void finish() {
+            if (status == null)
+                return;
+            status.join().expectSuccess();
+            status = null;
+        }
+
+        public void add(String tablePath, ListValue newValue) {
+            if (newValue==null || newValue.isEmpty())
+                return;
+            finish();
+            status = retryCtx.supplyStatus(
+                    session -> session.executeBulkUpsert(tablePath, newValue, upsertSettings)
+            );
+        }
+
+        public void addList(String tablePath, List<Value<?>> batch, ListType listType) {
+            if (batch==null || batch.isEmpty())
+                return;
+            add(tablePath, listType.newValue(batch));
+        }
     }
 
 }

@@ -3,10 +3,6 @@ host_configs:
 - drive:
   - path: /dev/disk/by-partlabel/ydb_disk_1
     type: SSD
-  - path: /dev/disk/by-partlabel/ydb_disk_2
-    type: SSD
-  - path: /dev/disk/by-partlabel/ydb_disk_3
-    type: SSD
   host_config_id: 1
 hosts:
 - host: ycydb-s1

@@ -15,7 +15,7 @@ if [ "tls"=="$tls_mode" ]; then
   cp -v YdbWork/tls/ca.crt /opt/ydb/certs/
   cp -v YdbWork/tls/node.crt /opt/ydb/certs/
   cp -v YdbWork/tls/node.key /opt/ydb/certs/
-  cat YdbWork/tls/node.key YdbWork/tls/node.crt YdbWork/tls/ca.crt >/opt/ydb/certs/web.pem
+  cp -v YdbWork/tls/web.pem /opt/ydb/certs/
   chown -R ydb:ydb /opt/ydb/certs
   chmod 700 /opt/ydb/certs
 fi

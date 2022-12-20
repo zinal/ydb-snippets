@@ -75,9 +75,11 @@ if [ ! -f ../${NODES_FILE} ]; then
 fi
 
 make_node_conf() {
-    if [ ! -f nodes/"$1".cnf ]; then
+    mkdir -p nodes/"$1"
+    cfile=nodes/"$1"/options.cnf
+    if [ ! -f ${cfile} ]; then
         echo "** Creating node configuration file for $1..."
-cat > nodes/"$1".cnf <<EOF
+cat > ${cfile} <<EOF
 # OpenSSL node configuration file
 [ req ]
 prompt=no
@@ -97,31 +99,35 @@ EOF
         vn=1
         for nn in $2; do
           vn=`echo "$vn + 1" | bc`
-          echo "DNS.$vn=$nn" >>nodes/"$1".cnf
+          echo "DNS.$vn=$nn" >>${cfile}
         done
       fi
     fi
 }
 
 make_node_key() {
-    if [ ! -f nodes/"$1".key ]; then
+    if [ ! -f nodes/"$1"/node.key ]; then
+         mkdir -p nodes/"$1"
          echo "** Generating key for node $1..."
-         openssl genrsa -out nodes/"$1".key ${KEY_BITS}
+         openssl genrsa -out nodes/"$1"/node.key ${KEY_BITS}
     fi
 }
 
 make_node_csr() {
-    if [ ! -f nodes/"$1".csr ]; then
+    if [ ! -f nodes/"$1"/node.csr ]; then
         echo "** Generating CSR for node $1..."
-        openssl req -new -sha256 -config nodes/"$1".cnf -key nodes/"$1".key -out nodes/"$1".csr -batch
+        openssl req -new -sha256 -config nodes/"$1"/options.cnf -key nodes/"$1"/node.key -out nodes/"$1"/node.csr -batch
     fi
 }
 
 make_node_cert() {
-    if [ ! -f nodes/"$1".crt ]; then
+    if [ ! -f nodes/"$1"/node.crt ]; then
         echo "** Generating certificate for node $1..."
         openssl ca -config ca.cnf -keyfile secure/ca.key -cert certs/ca.crt -policy signing_policy \
-            -extensions signing_node_req -out nodes/"$1".crt -outdir nodes/ -in nodes/"$1".csr -batch
+            -extensions signing_node_req -out nodes/"$1"/node.crt -outdir nodes/"$1"/ -in nodes/"$1"/node.csr -batch
+    fi
+    if [ ! -f nodes/"$1"/web.pem ]; then
+        cat nodes/"$1"/node.key nodes/"$1"/node.crt certs/ca.crt >nodes/"$1"/web.pem
     fi
 }
 
@@ -130,10 +136,7 @@ DEST_NAME=`date "+%Y-%m-%d_%H-%M-%S"`
 cp -v certs/ca.crt certs/"$DEST_NAME"/
 
 move_node_files() {
-    mv -v nodes/"$1".crt certs/"$DEST_NAME"/
-    mv -v nodes/"$1".key certs/"$DEST_NAME"/
-    mv -v nodes/"$1".csr certs/"$DEST_NAME"/
-    mv -v nodes/*.pem certs/"$DEST_NAME"/
+    mv -v nodes/"$1" certs/"$DEST_NAME"/
 }
 
 # The '..' part here is due to changed current directory

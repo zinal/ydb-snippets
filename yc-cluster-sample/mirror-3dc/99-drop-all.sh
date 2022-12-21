@@ -4,27 +4,18 @@
 . ./options.sh
 
 set -u
+set +u
 
-checkLimit() {
-  grep "The limit on maximum number of active operations has exceeded" mkinst.tmp | wc -l | (read x && echo $x)
-}
+ydb_nodes_begin=1
+ydb_nodes_end=${ydb_nodes}
 
-echo "Dropping VMs..."
-for i in `seq 1 ${ydb_nodes}`; do
-  vm_name="${host_base}-s${i}"
+echo ${ydb_nodes_begin}" -> "${ydb_nodes_end}
+. ./supp/drop-all.sh
 
-  echo "...${vm_name}"
-  while true; do
-    yc compute instance delete --name ${vm_name} --async >mkinst.tmp 2>&1
-    cnt=`checkLimit`
-    if [ "$cnt" == "0" ]; then break; else sleep 10; fi
-  done
-done
-cnt=`grep "ERROR:" mkinst.tmp | wc -l`
-if [ $cnt -gt 0 ]; then
-    echo "*** ERROR: VM removal failed!"
-    cat mkinst.tmp
-    exit 1
-fi
+ydb_nodes_begin=`echo "${ydb_nodes} + 1" | bc`
+ydb_nodes_end=`echo "${ydb_nodes} + ${ydb_nodes_extra}" | bc`
+
+echo ${ydb_nodes_begin}" -> "${ydb_nodes_end}
+. ./supp/drop-all.sh
 
 # End Of File

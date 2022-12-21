@@ -21,7 +21,7 @@ ydb_disk_count=1
 ydb_config=conf-9n-32c-tls.yaml
 ydb_tls=Y
 ydb_disk_groups=9
-ydb_nodes_extra=3
+ydb_nodes_extra=9
 
 ydbd_mode=tar
 

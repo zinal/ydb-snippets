@@ -9,8 +9,8 @@ checkLimit() {
   grep "The limit on maximum number of active operations has exceeded" mkinst.tmp | wc -l | (read x && echo $x)
 }
 
-echo "Dropping static node VMs..."
-for i in `seq 1 ${ydb_static}`; do
+echo "Dropping VMs..."
+for i in `seq 1 ${ydb_nodes}`; do
   vm_name="${host_base}-s${i}"
 
   echo "...${vm_name}"

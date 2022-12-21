@@ -1,6 +1,7 @@
 
 host_gw=gw1
 host_base=ycydb
+host_user=yc-user
 
 SRCDIR=srcdir.tmp
 WORKDIR=YdbWork
@@ -15,11 +16,12 @@ yc_vm_cores=32
 yc_vm_mem=64
 yc_data_disk_size=279G
 
-ydb_static=9
+ydb_nodes=9
 ydb_disk_count=1
 ydb_config=conf-9n-32c-tls.yaml
 ydb_tls=Y
 ydb_disk_groups=9
+ydb_nodes_extra=3
 
 ydbd_mode=tar
 

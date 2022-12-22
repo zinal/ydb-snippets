@@ -1,5 +1,5 @@
 #! /bin/sh
-# Запуск статических нод YDB
+# Перезапуск статических нод YDB
 
 echo "Re-starting YDB storage nodes..."
 for i in `seq ${ydb_nodes_begin} ${ydb_nodes_end}`; do

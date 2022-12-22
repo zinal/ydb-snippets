@@ -1,0 +1,74 @@
+Command {
+  DefineHostConfig {
+    ItemConfigGeneration: 2
+    HostConfigId: 1
+    Drive {
+      Path: "/dev/disk/by-partlabel/kikimr_ssd_01"
+      Type: SSD
+      PDiskConfig {
+        ExpectedSlotCount: 9
+      }
+    }
+    Drive {
+      Path: "/dev/disk/by-partlabel/kikimr_ssd_02"
+      Type: SSD
+      PDiskConfig {
+        ExpectedSlotCount: 9
+      }
+    }
+  }
+}
+Command {
+  DefineHostConfig {
+    ItemConfigGeneration: 1
+    HostConfigId: 2
+    Drive {
+      Path: "/dev/disk/by-partlabel/kikimr_ssd_01"
+      Type: SSD
+      PDiskConfig {
+        ExpectedSlotCount: 9
+      }
+    }
+    Drive {
+      Path: "/dev/disk/by-partlabel/kikimr_ssd_02"
+      Type: SSD
+      PDiskConfig {
+        ExpectedSlotCount: 9
+      }
+    }
+    Drive {
+      Path: "/dev/disk/by-partlabel/kikimr_ssd_03"
+      Type: SSD
+      PDiskConfig {
+        ExpectedSlotCount: 9
+      }
+    }
+  }
+}
+Command {
+  DefineBox {
+    ItemConfigGeneration: 2
+    BoxId: 1
+    Host {
+      Key {
+        Fqdn: "ydb-deploy-man-001.search.yandex.net"
+        IcPort: 19001
+      }
+      HostConfigId: 1
+    }
+    Host {
+      Key {
+        Fqdn: "ydb-deploy-man-002.search.yandex.net"
+        IcPort: 19001
+      }
+      HostConfigId: 1
+    }
+    Host {
+      Key {
+        Fqdn: "ydb-deploy-man-003.search.yandex.net"
+        IcPort: 19001
+      }
+      HostConfigId: 2
+    }
+  }
+}

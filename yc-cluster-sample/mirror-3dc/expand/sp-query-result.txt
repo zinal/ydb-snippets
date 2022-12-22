@@ -1,0 +1,25 @@
+Status {
+  Success: true
+  StoragePool {
+    BoxId: 1
+    StoragePoolId: 1
+    Name: "/Root/testdb:ssd"
+    ErasureSpecies: "block-4-2"
+    Geometry {
+    }
+    VDiskKind: "Default"
+    Kind: "ssd"
+    NumGroups: 1
+    PDiskFilter {
+      Property {
+        Type: SSD
+      }
+    }
+    ScopeId {
+      X1: 72057594046678944
+      X2: 2
+    }
+    ItemConfigGeneration: 2
+  }
+}
+Success: true

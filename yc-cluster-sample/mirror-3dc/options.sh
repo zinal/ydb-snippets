@@ -18,11 +18,14 @@ yc_data_disk_size=279G
 
 ydb_nodes=9
 ydb_disk_count=1
-ydb_config=conf-9n-32c-tls.yaml
-#ydb_config=conf-18n-32c-tls.yaml
+#ydb_config=conf-9n-32c-tls.yaml
+ydb_config=conf-18n-32c-tls.yaml
 ydb_tls=Y
 ydb_disk_groups=9
 ydb_nodes_extra=9
+
+#ydb_root_password=
+ydb_root_password="passw0rd"
 
 ydbd_mode=tar
 

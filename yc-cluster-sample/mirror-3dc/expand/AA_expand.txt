@@ -1,0 +1,14 @@
+# https://ydb.tech/ru/docs/maintenance/manual/adding_storage_groups
+
+ssh yc-user@ycydb-s1
+
+export LD_LIBRARY_PATH=/opt/ydb/lib
+/opt/ydb/bin/ydbd -f ydbd-token-file --ca-file YdbWork/tls/ca.crt -s grpcs://`hostname -s`:2135 admin bs config invoke --proto-file sp-attach-pdisks.txt
+
+vi sp-query.txt
+/opt/ydb/bin/ydbd -f ydbd-token-file --ca-file YdbWork/tls/ca.crt -s grpcs://`hostname -s`:2135 admin bs config invoke --proto-file sp-query.txt >sp-query-result.txt
+
+# Сделать на основе sp-query-result.txt файл sp-modify.txt, увеличив количество групп
+cp sp-query-result.txt sp-modify.txt
+vi sp-modify.txt
+/opt/ydb/bin/ydbd -f ydbd-token-file --ca-file YdbWork/tls/ca.crt -s grpcs://`hostname -s`:2135 admin bs config invoke --proto-file sp-modify.txt

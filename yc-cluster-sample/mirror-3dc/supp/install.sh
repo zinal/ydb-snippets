@@ -13,6 +13,8 @@ echo -n "Unpacking ydbd at "
 hostname -f
 mkdir -p -v /opt/ydb/bin
 mkdir -p -v /opt/ydb/cfg
+mkdir -p -v /opt/ydb/audit
+chmod 700 /opt/ydb/audit
 if [ -f ${WORKDIR}/ydbd.xz ]; then
 xz -v -dc ${WORKDIR}/ydbd.xz >/opt/ydb/bin/ydbd
 chmod aoug+x /opt/ydb/bin/ydbd

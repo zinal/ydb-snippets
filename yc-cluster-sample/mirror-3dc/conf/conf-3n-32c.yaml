@@ -152,6 +152,6 @@ channel_profile_config:
       pdisk_category: 0
       storage_pool_kind: ssd
     profile_id: 0
-audit:
+audit_config:
   audit_file_path: "/opt/ydb/audit/audit.log"
   format: TXT

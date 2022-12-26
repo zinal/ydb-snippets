@@ -1,0 +1,1 @@
+/opt/ydb/bin/ydbd -f ydbd-token-file --ca-file YdbWork/tls/ca.crt -s grpcs://`hostname -s`:2135 admin console exec table-profiles.txt

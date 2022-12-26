@@ -51,19 +51,8 @@ ydb_nodes_extra=9
 ydb_root_password="passw0rd"
 
 # Вид поставки дистрибутива - tar[.gz] или xz
-ydbd_mode=tar
-
-# **********************************
-# Настройки ниже - автоматика, вычисляемая на основе настроек выше
-
-if [ -z "$ydbd_mode" ]; then
-  ydbd_mode=tar
-fi
-# Файл дистрибутива.
 # Должен лежать в каталоге ${WORKDIR} на "хосте подскока"
 YDBD_ARCHIVE=ydbd.xz
-if [ "$ydbd_mode"=="tar" ]; then
-  YDBD_ARCHIVE=ydbd.tar.gz
-fi
+#YDBD_ARCHIVE=ydbd.tar.gz
 
 # End Of File

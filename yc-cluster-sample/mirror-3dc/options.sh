@@ -52,7 +52,7 @@ ydb_root_password="passw0rd"
 
 # Вид поставки дистрибутива - tar[.gz] или xz
 # Должен лежать в каталоге ${WORKDIR} на "хосте подскока"
-YDBD_ARCHIVE=ydbd.xz
-#YDBD_ARCHIVE=ydbd.tar.gz
+#YDBD_ARCHIVE=ydbd.xz
+YDBD_ARCHIVE=ydbd.tar.gz
 
 # End Of File

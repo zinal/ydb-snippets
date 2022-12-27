@@ -186,6 +186,3 @@ grpc_config:
     ca: "/opt/ydb/certs/ca.crt"
     services_enabled:
     - legacy
-audit_config:
-  audit_file_path: "/opt/ydb/audit/audit.log"
-  format: TXT

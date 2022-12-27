@@ -164,9 +164,3 @@ grpc_config:
     ca: "/opt/ydb/certs/ca.crt"
     services_enabled:
     - legacy
-    - yql
-    - scripting
-    - cms
-    - locking
-    - discovery
-    - monitoring

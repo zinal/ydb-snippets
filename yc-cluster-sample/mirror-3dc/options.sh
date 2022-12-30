@@ -32,16 +32,16 @@ yc_vm_mem=64
 yc_data_disk_size=279G
 
 # Количество узлов в кластере
-ydb_nodes=9
+ydb_nodes=3
 # Количество дисков для данных YDB в каждом узле кластера
-ydb_disk_count=1
+ydb_disk_count=6
 # Имя файла конфигурации кластера из подкаталога conf
-ydb_config=conf-9n-32c-tls.yaml
+ydb_config=conf-3n-32c-tls.yaml
 #ydb_config=conf-18n-32c-tls.yaml
 # Использовать ли TLS-защиту трафика
 ydb_tls=Y
 # Количество создаваемых дисковых групп
-ydb_disk_groups=9
+ydb_disk_groups=3
 # Количество добавляемых узлов в скриптах расширения кластера
 ydb_nodes_extra=9
 
@@ -52,7 +52,7 @@ ydb_root_password="passw0rd"
 
 # Вид поставки дистрибутива - tar[.gz] или xz
 # Должен лежать в каталоге ${WORKDIR} на "хосте подскока"
-#YDBD_ARCHIVE=ydbd.xz
-YDBD_ARCHIVE=ydbd.tar.gz
+YDBD_ARCHIVE=ydbd.xz
+#YDBD_ARCHIVE=ydbd.tar.gz
 
 # End Of File

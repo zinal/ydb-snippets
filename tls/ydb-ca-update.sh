@@ -140,7 +140,7 @@ move_node_files() {
 }
 
 # The '..' part here is due to changed current directory
-cat ../${NODES_FILE} | while read node node2; do
+(cat ../${NODES_FILE}; echo "") | while read node node2; do
     if [ ! -z "$node" ]; then
         make_node_conf "$node" "$node2"
         make_node_key "$node"

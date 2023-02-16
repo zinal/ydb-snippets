@@ -78,7 +78,7 @@ make_node_conf() {
     mkdir -p nodes/"$1"
     cfile=nodes/"$1"/options.cnf
     if [ ! -f ${cfile} ]; then
-        echo "** Creating node configuration file for $1..."
+        echo "** Creating node configuration file for $2..."
 cat > ${cfile} <<EOF
 # OpenSSL node configuration file
 [ req ]
@@ -93,11 +93,11 @@ organizationName = YDB
 subjectAltName = @alt_names
 
 [ alt_names ]
-DNS.1=$1
+DNS.1=$2
 EOF
-      if [ ! -z "$2" ]; then
+      if [ ! -z "$3" ]; then
         vn=1
-        for nn in $2; do
+        for nn in $3; do
           vn=`echo "$vn + 1" | bc`
           echo "DNS.$vn=$nn" >>${cfile}
         done
@@ -108,21 +108,21 @@ EOF
 make_node_key() {
     if [ ! -f nodes/"$1"/node.key ]; then
          mkdir -p nodes/"$1"
-         echo "** Generating key for node $1..."
+         echo "** Generating key for node $2..."
          openssl genrsa -out nodes/"$1"/node.key ${KEY_BITS}
     fi
 }
 
 make_node_csr() {
     if [ ! -f nodes/"$1"/node.csr ]; then
-        echo "** Generating CSR for node $1..."
+        echo "** Generating CSR for node $2..."
         openssl req -new -sha256 -config nodes/"$1"/options.cnf -key nodes/"$1"/node.key -out nodes/"$1"/node.csr -batch
     fi
 }
 
 make_node_cert() {
     if [ ! -f nodes/"$1"/node.crt ]; then
-        echo "** Generating certificate for node $1..."
+        echo "** Generating certificate for node $2..."
         openssl ca -config ca.cnf -keyfile secure/ca.key -cert certs/ca.crt -policy signing_policy \
             -extensions signing_node_req -out nodes/"$1"/node.crt -outdir nodes/"$1"/ -in nodes/"$1"/node.csr -batch
     fi
@@ -142,11 +142,12 @@ move_node_files() {
 # The '..' part here is due to changed current directory
 (cat ../${NODES_FILE}; echo "") | while read node node2; do
     if [ ! -z "$node" ]; then
-        make_node_conf "$node" "$node2"
-        make_node_key "$node"
-        make_node_csr "$node"
-        make_node_cert "$node"
-        move_node_files "$node"
+        safe_node=`echo $node | tr '*$/' '___'`
+        make_node_conf "$safe_node" "$node" "$node2"
+        make_node_key "$safe_node" "$node"
+        make_node_csr "$safe_node" "$node"
+        make_node_cert "$safe_node" "$node"
+        move_node_files "$safe_node" "$node"
     fi
 done
 

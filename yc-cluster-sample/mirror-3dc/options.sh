@@ -25,25 +25,25 @@ yc_platform=standard-v2
 # Выбранный образ операционной системы виртуалок
 yc_vm_image="image-folder-id=standard-images,image-family=ubuntu-2204-lts"
 # Количество vCPU каждой виртуалки
-yc_vm_cores=32
+yc_vm_cores=16
 # Объем оперативной памяти на одну виртуалку, Гбайт
-yc_vm_mem=64
+yc_vm_mem=32
 # Размер диска для данных YDB на одну виртуалку, Гбайт
-yc_data_disk_size=279G
+yc_data_disk_size=186G
 
 # Количество узлов в кластере
-ydb_nodes=9
+ydb_nodes=3
 # Количество дисков для данных YDB в каждом узле кластера
-ydb_disk_count=1
+ydb_disk_count=3
 # Имя файла конфигурации кластера из подкаталога conf
-ydb_config=conf-9n-32c-tls.yaml
+ydb_config=conf-3n-16c-tls.yaml
 #ydb_config=conf-18n-32c-tls.yaml
 # Использовать ли TLS-защиту трафика
 ydb_tls=Y
 # Количество создаваемых дисковых групп
-ydb_disk_groups=9
+ydb_disk_groups=3
 # Количество добавляемых узлов в скриптах расширения кластера
-ydb_nodes_extra=9
+ydb_nodes_extra=0
 
 # Пароль для пользователя root в сервисе YDB.
 # Используется (недоделанным пока) скриптом расширения конфигурации дисков.

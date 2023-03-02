@@ -1,0 +1,1 @@
+ansible -b -i hosts -m shell -a 'rm -rf /opt/ydb' all

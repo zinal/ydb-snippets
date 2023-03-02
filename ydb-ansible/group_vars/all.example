@@ -1,0 +1,5 @@
+# Configuration settings for all YDB cluster nodes
+
+ydbd_dir: /opt/ydb
+
+ydbd_archive: ydbd-22.5.10-linux-amd64.tar.gz

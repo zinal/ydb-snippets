@@ -1,0 +1,53 @@
+domains_config:
+  security_config:
+    enforce_user_token_requirement: true      # User 'root' with the empty password out of box
+    monitoring_allowed_sids:
+    - "root"
+    - "ADMINS"
+    - "DATABASE-ADMINS"
+    administration_allowed_sids:
+    - "root"
+    - "ADMINS"
+    - "DATABASE-ADMINS"
+    viewer_allowed_sids:
+    - "root"
+    - "ADMINS"
+    - "DATABASE-ADMINS"
+table_service_config:
+  sql_version: 1
+actor_system_config:          # the configuration of the actor system which descibes how cores of the instance are distributed
+  executor:                   # accross different types of workloads in the instance.
+  - name: System              # system executor of the actor system. in this executor YDB launches system type of workloads, like system tablets
+    threads: 2                # the number of threads allocated to system executor.
+    type: BASIC
+  - name: User                # user executor of the actor system. In this executor YDB launches user workloads, like datashard activities,
+    threads: 8                # the number of threads allocated to user executor.
+    type: BASIC
+  - name: Batch               # user executor of the actor system. In this executor YDB launches batch operations, like scan queries, table
+    threads: 2                # the number of threads allocated to the batch executor.
+    type: BASIC
+  - name: IO                  # the io executor. In this executor launches sync operations and writes logs.
+    threads: 2
+    time_per_mailbox_micro_secs: 100
+    type: IO
+  - name: IC                  # the interconnect executor which YDB uses for network communications accross different nodes of the cluster.
+    spin_threshold: 10
+    threads: 4                # the number of threads allocated to the interconnect executor.
+    time_per_mailbox_micro_secs: 100
+    type: BASIC
+  scheduler:
+    progress_threshold: 10000
+    resolution: 256
+    spin_threshold: 0
+interconnect_config:
+    start_tcp: true
+    encryption_mode: OPTIONAL
+    path_to_certificate_file: "/opt/ydb/certs/node.crt"
+    path_to_private_key_file: "/opt/ydb/certs/node.key"
+    path_to_ca_file: "/opt/ydb/certs/ca.crt"
+grpc_config:
+    cert: "/opt/ydb/certs/node.crt"
+    key: "/opt/ydb/certs/node.key"
+    ca: "/opt/ydb/certs/ca.crt"
+    services_enabled:
+    - legacy

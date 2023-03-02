@@ -1,0 +1,6 @@
+---
+# ydbd static node configuration
+
+- name: Copy dynamic node configuration
+  copy: src={{ ydbd_config_dynamic }} dest={{ ydbd_dir }}/cfg/ydbd-{{ ydbd_dbname }}.yaml
+

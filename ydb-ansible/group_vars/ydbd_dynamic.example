@@ -1,0 +1,5 @@
+# Configuration settings for dynamic YDB cluster nodes
+
+ydbd_config_dynamic: config_dynamic.yaml
+
+ydbd_dbname: test1

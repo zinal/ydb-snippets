@@ -32,11 +32,11 @@ yc_vm_mem=32
 yc_data_disk_size=186G
 
 # Количество узлов в кластере
-ydb_nodes=3
+ydb_nodes=9
 # Количество дисков для данных YDB в каждом узле кластера
-ydb_disk_count=3
+ydb_disk_count=1
 # Имя файла конфигурации кластера из подкаталога conf
-ydb_config=conf-3n-16c-tls.yaml
+ydb_config=conf-9n-16c-tls.yaml
 #ydb_config=conf-18n-32c-tls.yaml
 # Использовать ли TLS-защиту трафика
 ydb_tls=Y

@@ -1,0 +1,8 @@
+---
+# ydbd installation
+
+- name: Create the ydb group
+  group: name=ydb system=true
+
+- name: Create the ydb user
+  user: name=ydb group=ydb groups=disk system=true create_home=true home=/opt/ydb comment="YDB Service Account"

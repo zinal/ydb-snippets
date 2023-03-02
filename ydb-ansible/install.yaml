@@ -1,0 +1,11 @@
+- hosts: all
+  roles:
+  - role: ydbd
+
+- hosts: ydbd_static
+  roles:
+  - role: ydbd_static
+
+- hosts: ydbd_dynamic
+  roles:
+  - role: ydbd_dynamic

@@ -1,4 +1,4 @@
-[ydb_static]
+[ydbd_static]
 ycydb-s1 ansible_ssh_host=ycydb-s1 ansible_ssh_user=yc-user
 ycydb-s2 ansible_ssh_host=ycydb-s2 ansible_ssh_user=yc-user
 ycydb-s3 ansible_ssh_host=ycydb-s3 ansible_ssh_user=yc-user

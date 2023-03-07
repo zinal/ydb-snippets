@@ -8,5 +8,5 @@
   template: src=safe_format.j2 dest={{ ydbd_dir }}/bin/safe_format.sh mode=755
 
 - name: Execute disk formatting
-  command: "{{ ydbd_dir }}/bin/safe_format.sh {{ item['name'] }} {{ item['label'] }}"
+  command: "{{ ydbd_dir }}/bin/safe_format.sh {{ item['name'] }} {{ item['label'] }} >>/tmp/safe_format.log 2>&1"
   with_items: "{{ ydbd_disks }}"

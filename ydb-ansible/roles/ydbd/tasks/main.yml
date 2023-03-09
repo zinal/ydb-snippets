@@ -26,7 +26,7 @@
   template: src={{ ydbd_tls_dir }}/{{ inventory_hostname_short }}/node.crt dest={{ ydbd_dir }}/certs/node.crt
 
 - name: Copy the TLS node.key
-  template: src={{ ydbd_tls_dir }}/{{ inventory_hostname_short }}/node.key dest={{ ydbd_dir }}/certs/node.crt
+  template: src={{ ydbd_tls_dir }}/{{ inventory_hostname_short }}/node.key dest={{ ydbd_dir }}/certs/node.key
 
 - name: Copy the TLS web.pem
   template: src={{ ydbd_tls_dir }}/{{ inventory_hostname_short }}/web.pem dest={{ ydbd_dir }}/certs/web.pem

@@ -16,6 +16,9 @@
 - name: Create the YDB audit directory
   file: state=directory path={{ ydbd_dir }}/audit group=ydb owner=ydb mode=700
 
+- name: Create the YDB certs directory
+  file: state=directory path={{ ydbd_dir }}/certs group=ydb owner=ydb mode=700
+
 - name: Copy the TLS ca.crt
   template: src={{ ydbd_tls_dir }}/ca.crt dest={{ ydbd_dir }}/certs/ca.crt
 

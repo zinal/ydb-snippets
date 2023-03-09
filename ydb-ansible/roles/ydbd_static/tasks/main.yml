@@ -4,9 +4,21 @@
 - name: Copy static node configuration
   copy: src={{ ydbd_config_static }} dest={{ ydbd_dir }}/cfg/ydbd-static.yaml
 
+- name: Copy the static node systemd service file
+  copy: src=ydbd-storage.service dest=/etc/systemd/system/ydbd-storage.service
+
 - name: Create the disk formatting script
   template: src=safe_format.j2 dest={{ ydbd_dir }}/bin/safe_format.sh mode=755
 
 - name: Execute disk formatting
   command: "{{ ydbd_dir }}/bin/safe_format.sh {{ item['name'] }} {{ item['label'] }}"
   with_items: "{{ ydbd_disks }}"
+
+- name: Refresh systemd services configuration
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Start the storage nodes
+  ansible.builtin.systemd:
+    state: started
+    name: ydbd-storage

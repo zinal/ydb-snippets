@@ -1,3 +1,4 @@
+storage_config_generation: 0
 static_erasure: mirror-3-dc
 host_configs:
 - drive:

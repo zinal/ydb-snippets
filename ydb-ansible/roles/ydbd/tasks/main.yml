@@ -31,3 +31,7 @@
 - name: Copy the TLS web.pem
   template: src={{ ydbd_tls_dir }}/{{ inventory_hostname_short }}/web.pem dest={{ ydbd_dir }}/certs/web.pem
 
+- name: Disable YDB CLI version checks
+  command: "LD_LIBRARY_PATH={{ ydbd_dir }}/lib {{ ydbd_dir }}/bin/ydb version --disable-checks"
+  become: true
+  become_user: ydb

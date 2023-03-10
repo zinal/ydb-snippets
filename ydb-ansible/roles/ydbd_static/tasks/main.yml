@@ -34,4 +34,4 @@
 
 - name: Initialize the YDB storage
   command: "sudo -u ydb {{ ydbd_dir }}/home/init_storage.sh {{ inventory_hostname }}"
-  host: ydbd_static[0]
+  hosts: ydbd_static[0]

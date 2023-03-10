@@ -30,3 +30,4 @@
 
 - name: Copy the TLS web.pem
   template: src={{ ydbd_tls_dir }}/{{ inventory_hostname_short }}/web.pem dest={{ ydbd_dir }}/certs/web.pem
+

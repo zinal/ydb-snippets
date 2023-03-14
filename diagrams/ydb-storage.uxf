@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.0.0">
+  <zoom_level>12</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>312</x>
+      <y>780</y>
+      <w>120</w>
+      <h>36</h>
+    </coordinates>
+    <panel_attributes>HostDrive</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>312</x>
+      <y>936</y>
+      <w>120</w>
+      <h>36</h>
+    </coordinates>
+    <panel_attributes>StaticNode</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>360</x>
+      <y>804</y>
+      <w>108</w>
+      <h>156</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.
+n
+
+&lt;&lt;include&gt;&gt;
+
+1</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;110.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>312</x>
+      <y>420</y>
+      <w>120</w>
+      <h>36</h>
+    </coordinates>
+    <panel_attributes>StoragePool</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>360</x>
+      <y>444</y>
+      <w>108</w>
+      <h>360</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.
+1
+
+
+&lt;&lt;include&gt;&gt;
+
+
+n</panel_attributes>
+    <additional_attributes>10.0;280.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>672</x>
+      <y>420</y>
+      <w>120</w>
+      <h>36</h>
+    </coordinates>
+    <panel_attributes>StorageGroup</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>420</x>
+      <y>408</y>
+      <w>276</w>
+      <h>48</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.
+1   &lt;&lt;include&gt;&gt;  n</panel_attributes>
+    <additional_attributes>210.0;20.0;10.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>672</x>
+      <y>600</y>
+      <w>120</w>
+      <h>36</h>
+    </coordinates>
+    <panel_attributes>VDisk</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>672</x>
+      <y>780</y>
+      <w>120</w>
+      <h>36</h>
+    </coordinates>
+    <panel_attributes>PDisk</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>420</x>
+      <y>768</y>
+      <w>276</w>
+      <h>48</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.
+1   &lt;&lt;wrap&gt;&gt;   1</panel_attributes>
+    <additional_attributes>10.0;20.0;210.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>720</x>
+      <y>624</y>
+      <w>96</w>
+      <h>180</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.
+n
+
+
+&lt;&lt;store&gt;&gt;
+
+
+1</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;130.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>672</x>
+      <y>252</y>
+      <w>120</w>
+      <h>36</h>
+    </coordinates>
+    <panel_attributes>Database</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>672</x>
+      <y>84</y>
+      <w>120</w>
+      <h>36</h>
+    </coordinates>
+    <panel_attributes>Table</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>312</x>
+      <y>84</y>
+      <w>132</w>
+      <h>36</h>
+    </coordinates>
+    <panel_attributes>ColumnFamily</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>720</x>
+      <y>276</y>
+      <w>108</w>
+      <h>168</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.
+1
+
+&lt;&lt;include&gt;&gt;
+
+n</panel_attributes>
+    <additional_attributes>10.0;120.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>720</x>
+      <y>444</y>
+      <w>108</w>
+      <h>180</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.
+1
+
+&lt;&lt;include&gt;&gt;
+
+n</panel_attributes>
+    <additional_attributes>10.0;130.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>720</x>
+      <y>108</y>
+      <w>108</w>
+      <h>168</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.
+n
+
+&lt;&lt;include&gt;&gt;
+
+1</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;120.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>432</x>
+      <y>72</y>
+      <w>264</w>
+      <h>48</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.
+n   &lt;&lt;include&gt;&gt;   1</panel_attributes>
+    <additional_attributes>10.0;20.0;200.0;20.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>360</x>
+      <y>108</y>
+      <w>96</w>
+      <h>336</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;.
+n
+
+
+&lt;&lt;store&gt;&gt;
+
+
+1</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;260.0</additional_attributes>
+  </element>
+</diagram>

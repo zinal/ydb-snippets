@@ -15,13 +15,14 @@ export PATH
 
 COUNTER=0
 while true; do
+    sleep 10
     ydb --ca-file ${CAFILE} -e ${DB_ENDPOINT} -d ${DB_DOMAIN} --user root --no-password discovery list  >/dev/null 2>&1
     RESULT=$?
     if [ $RESULT -eq 0 ]; then
         exit 0
     fi
     COUNTER=$((COUNTER + 1))
-    if [ $COUNTER -gt 60 ]; then
+    if [ $COUNTER -gt 18 ]; then
         ydb --ca-file ${CAFILE} -e ${DB_ENDPOINT} -d ${DB_DOMAIN} --user root --no-password discovery list >&2
         RESULT=$?
         if [ $RESULT -eq 0 ]; then
@@ -30,7 +31,6 @@ while true; do
         echo "ERROR: storage node did not appear in the defined interval" >&2
         exit 1
     fi
-    sleep 3
 done
 
 # End Of File

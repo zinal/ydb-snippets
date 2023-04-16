@@ -2,3 +2,6 @@ ansible -b -i hosts-static -m shell -a 'rm -rf /opt/ydb' all
 ansible -b -i hosts-static -m shell -a 'DEBIAN_FRONTEND=noninteractive apt-get update -y' all
 ansible -b -i hosts-static -m shell -a 'DEBIAN_FRONTEND=noninteractive apt-get dist-upgrade -y' all
 ansible -b -i hosts-static -m shell -a 'shutdown -r now' all
+ansible -b -i hosts-static -m shell -a 'systemctl start ydbd-storage.service' all
+ansible -b -i hosts-static -m shell -a 'astra-ptrace-lock disable' all
+ansible -b -i hosts-static -m shell -a '/opt/ydb/bin/ydbd admin blobstorage disk obliterate /dev/disk/by-partlabel/ydb_disk_1' all

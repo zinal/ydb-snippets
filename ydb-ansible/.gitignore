@@ -3,8 +3,7 @@ hosts-dynamic
 group_vars/all
 group_vars/ydbd_static
 group_vars/ydbd_dynamic
-files/config_static.yaml
-files/config_dynamic.yaml
+files/config*.yaml
 *.bak
 *.tmp
 *.tar.gz

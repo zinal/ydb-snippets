@@ -1,6 +1,11 @@
 ---
 # ydbd installation
 
+- name: Ensure libaio1 is installed
+  ansible.builtin.package:
+    name: libaio1
+    state: present
+
 - name: Create the ydb group
   group: name=ydb system=true
 

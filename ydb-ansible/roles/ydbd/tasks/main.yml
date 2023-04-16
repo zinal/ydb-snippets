@@ -6,6 +6,11 @@
     name: libaio1
     state: present
 
+- name: Ensure chrony is installed
+  ansible.builtin.package:
+    name: chrony
+    state: present
+
 - name: Create the ydb group
   group: name=ydb system=true
 

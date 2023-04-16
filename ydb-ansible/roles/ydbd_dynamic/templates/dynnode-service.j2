@@ -20,7 +20,7 @@ ExecStart=/opt/ydb/bin/ydbd server \
     --grpcs-port 2136 --grpc-ca /opt/ydb/certs/ca.crt \
     --ic-port 19002 --ca /opt/ydb/certs/ca.crt \
     --mon-port 8766 --mon-cert /opt/ydb/certs/web.pem \
-    --yaml-config  /opt/ydb/cfg/config.yaml --tenant /Root/{{ item.dbname }} \
+    --yaml-config  /opt/ydb/cfg/ydbd-config.yaml --tenant /Root/{{ item.dbname }} \
     --node-broker grpcs://{{ ydbd_brokers[0] }}:2135 \
     --node-broker grpcs://{{ ydbd_brokers[1] }}:2135 \
     --node-broker grpcs://{{ ydbd_brokers[2] }}:2135

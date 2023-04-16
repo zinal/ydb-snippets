@@ -1,0 +1,10 @@
+sudo su - ydb
+
+PATH=/opt/ydb/bin:$PATH
+export PATH
+
+ydb -e grpcs://`hostname -f`:2135 -d /Root --ca-file ../certs/ca.crt \
+     --user root --no-password auth get-token --force >ydbd-token-file
+
+ydbd -f ydbd-token-file --ca-file ../certs/ca.crt -s grpcs://`hostname -f`:2135 \
+    admin database /Root/testdb create ssd:3

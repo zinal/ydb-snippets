@@ -28,16 +28,12 @@ hosts:
     data_center: 'zone-c'
     rack: '3'
 domains_config:
-  # There can be only one root domain in a cluster. Domain name prefixes all scheme objects names, e.g. full name of a table table1 in database db1.
-  # in a cluster with domains_config.domain.name parameter set to Root would be equal to /Root/db1/table1
   domain:
   - name: Root
     storage_pool_types:
     - kind: ssd
       pool_config:
         box_id: 1
-        # fault tolerance mode name - none, block-4-2, or mirror-3-dc..
-        # See docs for more details https://ydb.tech/en/docs/deploy/configuration/config#domains-blob
         erasure_species: mirror-3-dc
         kind: ssd
         geometry:
@@ -143,13 +139,13 @@ channel_profile_config:
   profile:
   - channel:
     - erasure_species: mirror-3-dc
-      pdisk_category: 0
+      pdisk_category: 1   # 0=ROT, 1=SSD, 2=NVME
       storage_pool_kind: ssd
     - erasure_species: mirror-3-dc
-      pdisk_category: 0
+      pdisk_category: 1
       storage_pool_kind: ssd
     - erasure_species: mirror-3-dc
-      pdisk_category: 0
+      pdisk_category: 1
       storage_pool_kind: ssd
     profile_id: 0
 interconnect_config:

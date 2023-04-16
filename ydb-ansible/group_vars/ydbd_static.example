@@ -1,7 +1,5 @@
 # Configuration settings for static YDB cluster nodes
 
-ydbd_config_static: config_static.yaml
-
 ydbd_disks:
     - name: /dev/vdb
       label: ydb_disk_1

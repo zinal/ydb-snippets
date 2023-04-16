@@ -38,3 +38,9 @@
 
 - name: Disable YDB CLI version checks
   command: "sudo -u ydb LD_LIBRARY_PATH={{ ydbd_dir }}/lib {{ ydbd_dir }}/bin/ydb version --disable-checks"
+
+- name: Copy cluster configuration file
+  copy: src={{ ydbd_config }} dest={{ ydbd_dir }}/cfg/ydbd-config.yaml
+
+- name: Public copy of ca.crt
+  template: src={{ ydbd_tls_dir }}/ca.crt dest={{ ydbd_dir }}/cfg/ca.crt

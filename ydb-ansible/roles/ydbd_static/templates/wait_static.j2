@@ -21,7 +21,7 @@ while true; do
         exit 0
     fi
     COUNTER=$((COUNTER + 1))
-    if [ $COUNTER -gt 30 ]; then
+    if [ $COUNTER -gt 60 ]; then
         ydb --ca-file ${CAFILE} -e ${DB_ENDPOINT} -d ${DB_DOMAIN} --user root --no-password discovery list >&2
         RESULT=$?
         if [ $RESULT -eq 0 ]; then
@@ -30,7 +30,7 @@ while true; do
         echo "ERROR: storage node did not appear in the defined interval" >&2
         exit 1
     fi
-    sleep 2
+    sleep 3
 done
 
 # End Of File

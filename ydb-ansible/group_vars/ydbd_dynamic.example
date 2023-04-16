@@ -8,6 +8,6 @@ ydbd_brokers:
 
 # The list of dynnodes to run on each host
 ydbd_dynnodes:
-  - { dbname: 'db1', instance: 'alfa' }
-  - { dbname: 'db1', instance: 'bravo' }
-  - { dbname: 'db2', instance: 'alfa' }
+  - { dbname: 'db1', instance: 'alfa', offset: 0 }
+  - { dbname: 'db1', instance: 'bravo', offset: 1 }
+  - { dbname: 'db2', instance: 'alfa', offset: 2 }

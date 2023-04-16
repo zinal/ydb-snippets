@@ -1,5 +1,13 @@
 # Configuration settings for dynamic YDB cluster nodes
 
-ydbd_databases:
-  - name: test1
-    perhost: 1
+# The list of exactly three node brokers (static nodes)
+ydbd_brokers:
+  - ycydb-s1
+  - ycydb-s2
+  - ycydb-s3
+
+# The list of dynnodes to run on each host
+ydbd_dynnodes:
+  - { dbname: 'db1', instance: 'alfa' }
+  - { dbname: 'db1', instance: 'bravo' }
+  - { dbname: 'db2', instance: 'alfa' }

@@ -1,6 +1,8 @@
 ---
 # ydbd dynamic node deployment
 
-- name: Copy dynamic node configuration
-  copy: src={{ ydbd_config_dynamic }} dest={{ ydbd_dir }}/cfg/ydbd-{{ ydbd_dbname }}.yaml
-
+- name: Generate the dynamic node services files
+  template:
+    src: dynnode-service.j2
+    dest: "/etc/systemd/system/ydbd-{{ item.dbname }}-{{ item.instance }}.service"
+  loop: {{ ydbd_dynnodes }}

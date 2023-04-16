@@ -144,13 +144,13 @@ channel_profile_config:
   profile:
   - channel:
     - erasure_species: mirror-3-dc
-      pdisk_category: 0
+      pdisk_category: 1   # 0=ROT, 1=SSD, 2=NVME
       storage_pool_kind: ssd
     - erasure_species: mirror-3-dc
-      pdisk_category: 0
+      pdisk_category: 1
       storage_pool_kind: ssd
     - erasure_species: mirror-3-dc
-      pdisk_category: 0
+      pdisk_category: 1
       storage_pool_kind: ssd
     profile_id: 0
 interconnect_config:

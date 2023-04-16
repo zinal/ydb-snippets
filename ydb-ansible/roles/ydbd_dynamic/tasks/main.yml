@@ -6,3 +6,13 @@
     src: dynnode-service.j2
     dest: "/etc/systemd/system/ydbd-{{ item.dbname }}-{{ item.instance }}.service"
   loop: "{{ ydbd_dynnodes }}"
+
+- name: Refresh systemd services configuration
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Start the dynamic nodes
+  ansible.builtin.systemd:
+    state: started
+    name: "ydbd-{{ item.dbname }}-{{ item.instance }}"
+  loop: "{{ ydbd_dynnodes }}"

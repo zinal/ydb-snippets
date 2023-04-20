@@ -13,3 +13,12 @@ The following scenarious are yet to be implemented:
 * removing YDB dynamic nodes from the existing cluster.
 
 One important limitation of the current playbooks is that the cluster configuration file has to be manually created.
+
+Playbooks were tested on the following Linux flavours:
+* Ubuntu 22.04 LTS
+* AlmaLinux 9
+* AstraLinux Special Edition 1.7
+
+Yet to be checked:
+* AlmaLinux 8
+* REDOS 7.3

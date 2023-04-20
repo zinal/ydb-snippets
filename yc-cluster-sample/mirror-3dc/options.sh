@@ -27,6 +27,7 @@ yc_platform=standard-v2
 #yc_vm_image="image-folder-id=standard-images,image-name=astralinux-alse-v20230215"
 #yc_vm_image="image-folder-id=standard-images,image-name=redsoft-red-os-standart-server-7-3-v20220810"
 yc_vm_image="image-folder-id=standard-images,image-name=almalinux-9-v20230417"
+#yc_vm_image="image-folder-id=standard-images,image-family=almalinux-v20230417"
 # Количество vCPU каждой виртуалки
 yc_vm_cores=32
 # Объем оперативной памяти на одну виртуалку, Гбайт

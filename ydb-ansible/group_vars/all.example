@@ -1,5 +1,7 @@
 # Configuration settings for all YDB cluster nodes
 
+ansible_python_interpreter: /usr/bin/python3
+
 ydbd_dir: /opt/ydb
 
 ydbd_tls_dir: ../tls/CA/certs/2023-03-09_16-49-39

@@ -24,7 +24,8 @@ yc_subnet=default-ru-central1-b
 yc_platform=standard-v2
 # Выбранный образ операционной системы виртуалок
 #yc_vm_image="image-folder-id=standard-images,image-family=ubuntu-2204-lts"
-yc_vm_image="image-folder-id=standard-images,image-name=astralinux-alse-v20230215"
+#yc_vm_image="image-folder-id=standard-images,image-name=astralinux-alse-v20230215"
+yc_vm_image="image-folder-id=standard-images,image-name=redsoft-red-os-standart-server-7-3-v20220810"
 # Количество vCPU каждой виртуалки
 yc_vm_cores=16
 # Объем оперативной памяти на одну виртуалку, Гбайт

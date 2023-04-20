@@ -18,7 +18,7 @@
   user: name=ydb group=ydb groups=disk system=true create_home=true home={{ ydbd_dir }}/home comment="YDB Service Account"
 
 - name: Install the YDB server binary package
-  unarchive: creates={{ ydbd_dir }}/bin/ydbd dest=/opt/ydb group=bin owner=root src={{ ydbd_archive }} extra_opts="--strip-component=1"
+  unarchive: creates={{ ydbd_dir }}/bin/ydbd dest={{ ydbd_dir }} group=bin owner=root src={{ ydbd_archive }} extra_opts="--strip-component=1"
 
 - name: Create the YDB configuration directory
   file: state=directory path={{ ydbd_dir }}/cfg group=bin owner=root mode=755

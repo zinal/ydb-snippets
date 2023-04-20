@@ -22,6 +22,19 @@
     name: chrony
     state: present
 
+- name: Deploy custom libidn
+  block:
+    - name: Unpacking custom libidn
+      unarchive: creates=/usr/local/lib/libidn.so.11 dest=/usr/local/lib group=bin owner=root src={{ libidn_archive }}
+    - name: Symlinking libidn.so.11
+      ansible.builtin.file:
+        src: /usr/local/lib/libidn.so.11
+        dest: /lib64/libidn.so.11
+        owner: root
+        group: bin
+        state: link
+  when: libidn_archive is defined
+
 - name: Create the ydb group
   group: name=ydb system=true
 

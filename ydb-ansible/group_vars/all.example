@@ -2,6 +2,9 @@
 
 ansible_python_interpreter: /usr/bin/python3
 
+# Required for RHEL 9, AlmaLinux 9, etc
+# libidn_archive: libidn.tar.gz
+
 ydbd_dir: /opt/ydb
 
 ydbd_tls_dir: ../tls/CA/certs/2023-03-09_16-49-39

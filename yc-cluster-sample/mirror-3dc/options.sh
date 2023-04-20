@@ -25,11 +25,12 @@ yc_platform=standard-v2
 # Выбранный образ операционной системы виртуалок
 #yc_vm_image="image-folder-id=standard-images,image-family=ubuntu-2204-lts"
 #yc_vm_image="image-folder-id=standard-images,image-name=astralinux-alse-v20230215"
-yc_vm_image="image-folder-id=standard-images,image-name=redsoft-red-os-standart-server-7-3-v20220810"
+#yc_vm_image="image-folder-id=standard-images,image-name=redsoft-red-os-standart-server-7-3-v20220810"
+yc_vm_image="image-folder-id=standard-images,image-name=almalinux-9-v20230417"
 # Количество vCPU каждой виртуалки
-yc_vm_cores=16
+yc_vm_cores=32
 # Объем оперативной памяти на одну виртуалку, Гбайт
-yc_vm_mem=32
+yc_vm_mem=64
 # Размер диска для данных YDB на одну виртуалку, Гбайт
 yc_data_disk_size=186G
 

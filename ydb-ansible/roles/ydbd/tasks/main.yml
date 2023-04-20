@@ -1,10 +1,21 @@
 ---
 # ydbd installation
 
+- name: Display the distribution type
+  ansible.builtin.debug:
+    var: ansible_distribution
+
 - name: Ensure libaio1 is installed
   ansible.builtin.package:
     name: libaio1
     state: present
+  when: ansible_distribution == 'Ubuntu' or ansible_distribution == 'Debian'
+
+- name: Ensure libaio is installed
+  ansible.builtin.package:
+    name: libaio
+    state: present
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'AlmaLinux'
 
 - name: Ensure chrony is installed
   ansible.builtin.package:

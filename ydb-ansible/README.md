@@ -46,7 +46,24 @@ Overall installation is performed according to the [official instruction](https:
    *  `name` pointing to the physical device name (like `/dev/sdb` or `/dev/vdb`);
    *  `label` configured as the desired YDB data partition label, as used in the cluster configuration file (like `ydb_disk_1`).
 9.  Deploy the static nodes and initialize the cluster by running the `run-install-static.sh` script. Ensure that the playbook has completed successfully, diagnose and fix execution errors if they happen.
-10. Create at least one database [according to the documentation](https://ydb.tech/en/docs/deploy/manual/deploy-ydb-on-premises#create-db). Multiple databases may run on the single cluster, each requiring the YDB dynamic node services to handle the requests.
+10. Create at least one database [according to the documentation](https://ydb.tech/en/docs/deploy/manual/deploy-ydb-on-premises#create-db). Multiple databases may run on the single cluster, each requiring the YDB dynamic node services to handle the requests. Sample commands to create the database:
+    ```bash
+    PATH=/opt/ydb/bin:$PATH
+    export PATH
+
+    CACERT=/opt/ydb/cfg/ca.crt
+    DBNAME=testdb
+    POOLNAME=ssd
+    NUMGROUPS=3
+
+    # Create the authentication token file
+    ydb -e grpcs://`hostname -f`:2135 -d /Root --ca-file ${CACERT} \
+      --user root --no-password auth get-token --force >ydbd-token-file
+
+    # Create the database
+    ydbd -f ydbd-token-file --ca-file ${CACERT} -s grpcs://`hostname -f`:2135 \
+        admin database /Root/${DBNAME} create ${POOLNAME}:${NUMGROUPS}
+    ```
 11. Prepare the list of hosts to deploy the YDB dynamic nodes, as a `hosts-dynamic` file. An example file is provided.
 12. Copy the `group_vars/ydbd_dynamic.example` file into `group_vars/ydbd_dynamic`, and specify the desired list of dynamic nodes to be ran on each host:
     * `ydbd_dynnodes` parameter is the list of structures, each having the following fields:

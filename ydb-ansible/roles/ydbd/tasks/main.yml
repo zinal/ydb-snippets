@@ -15,7 +15,7 @@
   ansible.builtin.package:
     name: libaio
     state: present
-  when: ansible_distribution == 'CentOS' or ansible_distribution == 'AlmaLinux'
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'AlmaLinux' or ansible_distribution == 'RED'
 
 - name: Ensure chrony is installed
   ansible.builtin.package:

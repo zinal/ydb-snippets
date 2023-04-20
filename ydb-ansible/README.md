@@ -14,13 +14,11 @@ The following scenarious are yet to be implemented:
 
 One important limitation of the current playbooks is that the cluster configuration file has to be manually created.
 
-Playbooks were tested on the following Linux flavours:
+Playbooks were specifically tested on the following Linux flavours:
 * Ubuntu 22.04 LTS
+* AlmaLinux 8
 * AlmaLinux 9
 * AstraLinux Special Edition 1.7
-
-Yet to be checked:
-* AlmaLinux 8
 * REDOS 7.3
 
 ## Installing the YDB cluster using the Ansible playbooks

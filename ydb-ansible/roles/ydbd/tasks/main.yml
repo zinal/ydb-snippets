@@ -26,10 +26,17 @@
   block:
     - name: Unpacking custom libidn
       unarchive: creates=/usr/local/lib/libidn.so.11 dest=/usr/local/lib group=bin owner=root src={{ libidn_archive }}
-    - name: Symlinking libidn.so.11
+    - name: Symlinking libidn.so.11 to /lib64
       ansible.builtin.file:
         src: /usr/local/lib/libidn.so.11
         dest: /lib64/libidn.so.11
+        owner: root
+        group: bin
+        state: link
+    - name: Symlinking libidn.so.11 to /usr/lib
+      ansible.builtin.file:
+        src: /usr/local/lib/libidn.so.11
+        dest: /usr/lib/libidn.so.11
         owner: root
         group: bin
         state: link

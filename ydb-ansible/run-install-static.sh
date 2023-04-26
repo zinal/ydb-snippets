@@ -1,3 +1,3 @@
 #! /bin/sh
 
-ansible-playbook -b -i hosts-static install-static.yaml
+ansible-playbook -b -i hosts-static -f 20 install-static.yaml

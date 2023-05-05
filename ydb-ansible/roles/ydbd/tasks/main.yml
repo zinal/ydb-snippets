@@ -80,3 +80,20 @@
 
 - name: Public copy of ca.crt
   template: src={{ ydbd_tls_dir }}/ca.crt dest={{ ydbd_dir }}/cfg/ca.crt
+
+- name: Copy the thp-config.sh script
+  template: src=thp-config.sh dest={{ ydbd_dir }}/bin/thp-config.sh
+
+- name: Generate the THP service files
+  template:
+    src: thp-service.j2
+    dest: "/etc/systemd/system/ydb-hugepages.service"
+
+- name: Refresh systemd services configuration
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Activate THP
+  ansible.builtin.systemd:
+    state: started
+    name: ydb-hugepages

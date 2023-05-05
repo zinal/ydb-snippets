@@ -1,7 +1,7 @@
 ---
 # ydbd dynamic node deployment
 
-- name: Generate the dynamic node services files
+- name: Generate the dynamic node service files
   template:
     src: dynnode-service.j2
     dest: "/etc/systemd/system/ydbd-{{ item.dbname }}-{{ item.instance }}.service"

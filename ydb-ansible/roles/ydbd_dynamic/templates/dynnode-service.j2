@@ -15,12 +15,12 @@ StandardError=syslog
 SyslogIdentifier=ydbd
 SyslogFacility=daemon
 SyslogLevel=err
-Environment=LD_LIBRARY_PATH=/opt/ydb/lib
-ExecStart=/opt/ydb/bin/ydbd server \
-    --grpcs-port {{ 2136 + item.offset }} --grpc-ca /opt/ydb/certs/ca.crt \
-    --ic-port {{ 19002 + item.offset }} --ca /opt/ydb/certs/ca.crt \
-    --mon-port {{ 8766 + item.offset }} --mon-cert /opt/ydb/certs/web.pem \
-    --yaml-config  /opt/ydb/cfg/ydbd-config.yaml --tenant /Root/{{ item.dbname }} \
+Environment=LD_LIBRARY_PATH={{ ydbd_dir }}/lib
+ExecStart={{ ydbd_dir }}/bin/ydbd server \
+    --grpcs-port {{ 2136 + item.offset }} --grpc-ca {{ ydbd_dir }}/certs/ca.crt \
+    --ic-port {{ 19002 + item.offset }} --ca {{ ydbd_dir }}/certs/ca.crt \
+    --mon-port {{ 8766 + item.offset }} --mon-cert {{ ydbd_dir }}/certs/web.pem \
+    --yaml-config  {{ ydbd_dir }}/cfg/ydbd-config.yaml --tenant /Root/{{ item.dbname }} \
     --node-broker grpcs://{{ ydbd_brokers[0] }}:2135 \
     --node-broker grpcs://{{ ydbd_brokers[1] }}:2135 \
     --node-broker grpcs://{{ ydbd_brokers[2] }}:2135

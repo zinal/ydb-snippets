@@ -40,6 +40,13 @@
         owner: root
         group: bin
         state: link
+    - name: Symlinking libidn.so.12 to /usr/lib
+      ansible.builtin.file:
+        src: /usr/local/lib/libidn.so.12
+        dest: /usr/lib/libidn.so.12
+        owner: root
+        group: bin
+        state: link
   when: libidn_archive is defined
 
 - name: Create the ydb group

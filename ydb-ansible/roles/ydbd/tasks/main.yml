@@ -82,7 +82,7 @@
   template: src={{ ydbd_tls_dir }}/ca.crt dest={{ ydbd_dir }}/cfg/ca.crt
 
 - name: Copy the thp-config.sh script
-  template: src=thp-config.sh dest={{ ydbd_dir }}/bin/thp-config.sh
+  copy: src=thp-config.sh dest={{ ydbd_dir }}/bin/thp-config.sh
 
 - name: Generate the THP service files
   template:

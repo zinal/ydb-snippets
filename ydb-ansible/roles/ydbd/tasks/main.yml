@@ -93,6 +93,11 @@
   ansible.builtin.systemd:
     daemon_reload: true
 
+- name: Enable THP
+  ansible.builtin.systemd:
+    state: enabled
+    name: ydb-hugepages
+
 - name: Activate THP
   ansible.builtin.systemd:
     state: started

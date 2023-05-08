@@ -1,0 +1,9 @@
+- hosts: ydbd_static
+  roles:
+  - role: ydbd_config
+  - role: ydbd_rolling
+
+- hosts: ydbd_dynamic
+  roles:
+  - role: ydbd_config
+  - role: ydbd_rolling

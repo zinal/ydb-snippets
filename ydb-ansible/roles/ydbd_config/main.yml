@@ -1,0 +1,20 @@
+---
+# ydbd configuration
+
+- name: Copy the TLS ca.crt
+  copy: src={{ ydbd_tls_dir }}/ca.crt dest={{ ydbd_dir }}/certs/ca.crt
+
+- name: Copy the TLS node.crt
+  copy: src={{ ydbd_tls_dir }}/{{ inventory_hostname_short }}/node.crt dest={{ ydbd_dir }}/certs/node.crt
+
+- name: Copy the TLS node.key
+  copy: src={{ ydbd_tls_dir }}/{{ inventory_hostname_short }}/node.key dest={{ ydbd_dir }}/certs/node.key
+
+- name: Copy the TLS web.pem
+  copy: src={{ ydbd_tls_dir }}/{{ inventory_hostname_short }}/web.pem dest={{ ydbd_dir }}/certs/web.pem
+
+- name: Public copy of ca.crt
+  copy: src={{ ydbd_tls_dir }}/ca.crt dest={{ ydbd_dir }}/cfg/ca.crt
+
+- name: Copy cluster configuration file
+  copy: src={{ ydbd_config }} dest={{ ydbd_dir }}/cfg/ydbd-config.yaml

@@ -1,5 +1,5 @@
-hosts-static
-hosts-dynamic
+hosts
+hosts-*
 group_vars/all
 group_vars/ydbd_static
 group_vars/ydbd_dynamic
@@ -8,3 +8,5 @@ files/config*.yaml
 *.tmp
 *.tar.gz
 *~
+ydb-token-file
+ydbd-token-file

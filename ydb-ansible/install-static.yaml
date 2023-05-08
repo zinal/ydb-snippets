@@ -1,7 +1,4 @@
-- hosts: all
-  roles:
-  - role: ydbd
-
 - hosts: ydbd_static
   roles:
+  - role: ydbd
   - role: ydbd_static

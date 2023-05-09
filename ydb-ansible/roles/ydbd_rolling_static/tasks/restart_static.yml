@@ -6,15 +6,22 @@
     state: restarted
     name: ydbd-storage
   delegate_to: "{{ snode_name }}"
+  delegate_facts: true
+  any_errors_fatal: true
 
 - name: Transfer the password value to {{ snode_name }}
   copy: src=secret dest={{ ydbd_dir }}/certs/secret
   delegate_to: "{{ snode_name }}"
+  delegate_facts: true
+  any_errors_fatal: true
 
 - name: Wait for storage state recovery on {{ snode_name }}
   command: "sudo -u ydb {{ ydbd_dir }}/home/wait_normal.sh {{ inventory_hostname }}"
   delegate_to: "{{ snode_name }}"
+  delegate_facts: true
+  any_errors_fatal: true
 
 - name: Cleanup the transferred password on {{ snode_name }}
   file: state=absent path={{ ydbd_dir }}/certs/secret
   delegate_to: "{{ snode_name }}"
+  delegate_facts: true

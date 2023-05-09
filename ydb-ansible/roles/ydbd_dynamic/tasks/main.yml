@@ -21,5 +21,5 @@
   loop: "{{ ydbd_dynnodes }}"
 
 - name: Wait for the dynamic nodes availability
-  command: "sudo -u ydb {{ ydbd_dir }}/home/wait_initial.sh {{ inventory_hostname }} {{ 2136 + item.offset }} {{ item.dbname }}"
+  command: "sudo -u ydb {{ ydbd_dir }}/home/wait_dynamic.sh {{ inventory_hostname }} {{ 2136 + item.offset }} {{ item.dbname }}"
   loop: "{{ ydbd_dynnodes }}"

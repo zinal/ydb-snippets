@@ -1,15 +1,20 @@
 ---
 # YDB single static node restart tasks
-- name: Restart the storage node
+
+- name: Restart the storage node at {{ snode_name }}
   ansible.builtin.systemd:
     state: restarted
     name: ydbd-storage
+  delegate_to: "{{ snode_name }}"
 
-- name: Transfer the password value
+- name: Transfer the password value to {{ snode_name }}
   copy: src=secret dest={{ ydbd_dir }}/certs/secret
+  delegate_to: "{{ snode_name }}"
 
-- name: Wait for storage state recovery on {{ inventory_hostname }}
+- name: Wait for storage state recovery on {{ snode_name }}
   command: "sudo -u ydb {{ ydbd_dir }}/home/wait_normal.sh {{ inventory_hostname }}"
+  delegate_to: "{{ snode_name }}"
 
-- name: Cleanup the transferred password
+- name: Cleanup the transferred password on {{ snode_name }}
   file: state=absent path={{ ydbd_dir }}/certs/secret
+  delegate_to: "{{ snode_name }}"

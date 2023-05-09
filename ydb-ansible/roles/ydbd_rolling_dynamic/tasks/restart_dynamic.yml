@@ -1,12 +1,13 @@
 ---
 # YDB restart dynamic nodes on a single hosts
 
-- name: Restart the dynamic nodes
+- name: Restart the dynamic nodes on {{ dynnode_name }}
   ansible.builtin.systemd:
     state: restarted
     name: "ydbd-{{ item.dbname }}-{{ item.instance }}"
-  loop: "{{ ydbd_dynnodes }}"
   throttle: 1
+  delegate_to: "{{ dynnode_name }}"
+  loop: "{{ ydbd_dynnodes }}"
 
 - name: Allow the dynamic nodes to settle
   ansible.builtin.pause:

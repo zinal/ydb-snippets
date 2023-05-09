@@ -3,6 +3,7 @@
 
 - name: YDB database nodes rolling restart
   include_tasks: "restart_dynamic.yml"
-  delegate_to: "{{ item }}"
-  with_items: "{{ groups['ydbd_dynamic'] }}"
+  loop: "{{ groups['ydbd_dynamic']|flatten(levels=1) }}"
+  loop_control:
+    loop_var: dynnode_name
   run_once: true

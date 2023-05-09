@@ -3,6 +3,7 @@
 
 - name: YDB storage rolling restart
   include_tasks: "restart_static.yml"
-  delegate_to: "{{ item }}"
-  with_items: "{{ groups['ydbd_static'] }}"
+  loop: "{{ groups['ydbd_static']|flatten(levels=1) }}"
+  loop_control:
+    loop_var: snode_name
   run_once: true

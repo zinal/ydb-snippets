@@ -11,7 +11,7 @@
   loop: "{{ ydbd_dynnodes }}"
   any_errors_fatal: true
 
-- name: Transfer the secrets
+- name: Transfer the secrets to {{ dynnode_name }}
   copy: src=secret dest={{ ydbd_dir }}/certs/secret
   delegate_to: "{{ dynnode_name }}"
   delegate_facts: true
@@ -23,7 +23,10 @@
   delegate_facts: true
   loop: "{{ ydbd_dynnodes }}"
 
-- name: Cleanup the transferred secrets
+- name: Cleanup the transferred secrets at {{ dynnode_name }}
   file: state=absent path={{ ydbd_dir }}/certs/secret
   delegate_to: "{{ dynnode_name }}"
   delegate_facts: true
+
+- name: Additional delay to settle the dynamic nodes
+  ansible.builtin.sleep: seconds={{ dynnode_restart_sleep_seconds }}

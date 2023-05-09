@@ -1,6 +1,9 @@
 ---
 # ydbd dynamic node deployment
 
+- name: Create the dynamic node startup script
+  template: src=wait_dynamic.j2 dest={{ ydbd_dir }}/home/wait_dynamic.sh mode=755
+
 - name: Generate the dynamic node service files
   template:
     src: dynnode-service.j2
@@ -15,4 +18,8 @@
   ansible.builtin.systemd:
     state: started
     name: "ydbd-{{ item.dbname }}-{{ item.instance }}"
+  loop: "{{ ydbd_dynnodes }}"
+
+- name: Wait for the dynamic nodes availability
+  command: "sudo -u ydb {{ ydbd_dir }}/home/wait_initial.sh {{ inventory_hostname }} {{ 2136 + item.offset }} {{ item.dbname }}"
   loop: "{{ ydbd_dynnodes }}"

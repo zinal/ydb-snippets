@@ -18,14 +18,14 @@ export PATH
 set +e
 set -u
 
-HEALTH_AUTH=0
+USE_ENV_AUTH=0
 if [ -f ${PASSFILE} ]; then
-    HEALTH_AUTH=1
+    USE_ENV_AUTH=1
     source ${PASSFILE}
 fi
 
 run_health() {
-    if [ ${HEALTH_AUTH} -eq 1 ]; then
+    if [ ${USE_ENV_AUTH} -eq 1 ]; then
         ydb --ca-file ${CAFILE} -e ${DB_ENDPOINT} -d ${DB_DOMAIN} \
             monitoring healthcheck --format json 2>/dev/null
     else

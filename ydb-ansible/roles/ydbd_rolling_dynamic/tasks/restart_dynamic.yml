@@ -11,6 +11,8 @@
   loop: "{{ ydbd_dynnodes }}"
   any_errors_fatal: true
 
-- name: Allow the dynamic nodes to settle
-  ansible.builtin.pause:
-    seconds: 10
+- name: Wait for the dynamic nodes to come up
+  command: "sudo -u ydb {{ ydbd_dir }}/home/wait_initial.sh {{ inventory_hostname }} {{ 2136 + item.offset }} {{ item.dbname }}"
+  delegate_to: "{{ dynnode_name }}"
+  delegate_facts: true
+  loop: "{{ ydbd_dynnodes }}"

@@ -1,11 +1,11 @@
 #! /bin/sh
-# Wait for initial YDB storage node startup.
+# Wait for YDB database node startup.
 
 set +e
 set +u
 
-DB_ENDPOINT=grpcs://"$1":2135
-DB_DOMAIN=/Root
+DB_ENDPOINT=grpcs://"$1":$2
+DB_DOMAIN=/Root/"$3"
 CAFILE={{ ydbd_dir }}/certs/ca.crt
 PASSFILE={{ ydbd_dir }}/certs/secret
 
@@ -41,7 +41,7 @@ while true; do
         if run_discovery; then
             exit 0
         fi
-        echo "ERROR: storage node did not appear in 3 minutes" >&2
+        echo "ERROR: dynamic node did not appear in 3 minutes" >&2
         exit 1
     fi
     sleep 5

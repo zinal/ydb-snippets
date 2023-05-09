@@ -1,0 +1,15 @@
+---
+# ydbd dynamic nodes rolling restart
+
+- name: YDB database rolling restart
+  block:
+    - name: Restart the dynamic node
+      ansible.builtin.systemd:
+        state: restarted
+        name: "ydbd-{{ item.dbname }}-{{ item.instance }}"
+      loop: "{{ ydbd_dynnodes }}"
+      throttle: 1
+    - name: Allow the dynamic node to settle
+      ansible.builtin.pause:
+        seconds: 10
+  throttle: 1

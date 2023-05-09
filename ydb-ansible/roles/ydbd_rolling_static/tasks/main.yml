@@ -2,17 +2,7 @@
 # ydbd storage rolling restart
 
 - name: YDB storage rolling restart
-  block:
-    - name: Restart the storage node
-      ansible.builtin.systemd:
-        state: restarted
-        name: ydbd-storage
-    - name: Transfer the password value
-      copy: src=secret dest={{ ydbd_dir }}/certs/secret
-    - name: Wait for storage state recovery
-      command: "sudo -u ydb {{ ydbd_dir }}/home/wait_normal.sh {{ inventory_hostname }}"
-    - name: Cleanup the transferred password
-      file: state=absent path={{ ydbd_dir }}/certs/secret
+  include_tasks: "restart_static.yml"
   delegate_to: "{{ item }}"
   with_items: "{{ groups['ydbd_static'] }}"
   run_once: true

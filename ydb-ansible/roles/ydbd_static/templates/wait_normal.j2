@@ -7,6 +7,7 @@ set +u
 DB_ENDPOINT=grpcs://"$1":2135
 DB_DOMAIN=/Root
 CAFILE={{ ydbd_dir }}/certs/ca.crt
+PASSFILE={{ ydbd_dir }}/certs/secret
 
 LD_LIBRARY_PATH={{ ydbd_dir }}/lib
 export LD_LIBRARY_PATH
@@ -17,12 +18,25 @@ export PATH
 set +e
 set -u
 
+HEALTH_AUTH=0
+if [ -f ${PASSFILE} ]; then
+    HEALTH_AUTH=1
+    source ${PASSFILE}
+fi
+
+run_health() {
+    if [ ${HEALTH_AUTH} -eq 1 ]; then
+        ydb --ca-file ${CAFILE} -e ${DB_ENDPOINT} -d ${DB_DOMAIN} \
+            monitoring healthcheck --format json 2>/dev/null
+    else
+        ydb --ca-file ${CAFILE} -e ${DB_ENDPOINT} -d ${DB_DOMAIN} \
+            --user root --no-password monitoring healthcheck --format json 2>/dev/null
+    fi
+}
+
 COUNTER=0
 while true; do
-    V=$(
-        ydb --ca-file ${CAFILE} -e ${DB_ENDPOINT} -d ${DB_DOMAIN}  --user root --no-password \
-          monitoring healthcheck --format json 2>/dev/null | jq -r '.self_check_result' 2>/dev/null
-    )
+    V=$( run_health | jq -r '.self_check_result' 2>/dev/null )
     if [ "$V" == "GOOD" ]; then
         exit 0
     fi

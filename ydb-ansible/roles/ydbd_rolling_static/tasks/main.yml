@@ -13,4 +13,6 @@
       command: "sudo -u ydb {{ ydbd_dir }}/home/wait_normal.sh {{ inventory_hostname }}"
     - name: Cleanup the transferred password
       file: state=absent path={{ ydbd_dir }}/certs/secret
-  throttle: 1
+  delegate_to: "{{ item }}"
+  with_items: "{{ groups['ydbd_static'] }}"
+  run_once: true

@@ -31,9 +31,11 @@
   ansible.builtin.systemd:
     state: started
     name: ydbd-storage
+  any_errors_fatal: true
 
 - name: Wait for storage node startup
   command: "sudo -u ydb {{ ydbd_dir }}/home/wait_initial.sh {{ inventory_hostname }}"
+  any_errors_fatal: true
 
 - name: Initial YDB cluster setup
   block:
@@ -41,10 +43,11 @@
       command: "sudo -u ydb {{ ydbd_dir }}/home/init_storage.sh {{ inventory_hostname }}"
     - name: Wait for storage bootstrap to complete
       command: "sudo -u ydb {{ ydbd_dir }}/home/wait_normal.sh {{ inventory_hostname }}"
-    - name: Transfer the password value
+    - name: Transfer the secrets
       copy: src=secret dest={{ ydbd_dir }}/certs/secret
     - name: Set the initial cluster password
       command: "sudo -u ydb {{ ydbd_dir }}/home/init_password.sh {{ inventory_hostname }}"
-    - name: Cleanup the transferred password
-      file: state=absent path={{ ydbd_dir }}/certs/secret
   run_once: true
+
+- name: Cleanup the transferred secrets
+  file: state=absent path={{ ydbd_dir }}/certs/secret

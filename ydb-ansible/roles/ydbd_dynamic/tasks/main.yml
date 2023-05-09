@@ -20,6 +20,12 @@
     name: "ydbd-{{ item.dbname }}-{{ item.instance }}"
   loop: "{{ ydbd_dynnodes }}"
 
+- name: Transfer the secrets
+  copy: src=secret dest={{ ydbd_dir }}/certs/secret
+
 - name: Wait for the dynamic nodes availability
   command: "sudo -u ydb {{ ydbd_dir }}/home/wait_dynamic.sh {{ inventory_hostname }} {{ 2136 + item.offset }} {{ item.dbname }}"
   loop: "{{ ydbd_dynnodes }}"
+
+- name: Cleanup the transferred secrets
+  file: state=absent path={{ ydbd_dir }}/certs/secret

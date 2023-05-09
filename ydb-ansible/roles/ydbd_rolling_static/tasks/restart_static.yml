@@ -9,7 +9,7 @@
   delegate_facts: true
   any_errors_fatal: true
 
-- name: Transfer the password value to {{ snode_name }}
+- name: Transfer the secrets
   copy: src=secret dest={{ ydbd_dir }}/certs/secret
   delegate_to: "{{ snode_name }}"
   delegate_facts: true
@@ -21,7 +21,7 @@
   delegate_facts: true
   any_errors_fatal: true
 
-- name: Cleanup the transferred password on {{ snode_name }}
+- name: Cleanup the transferred secrets
   file: state=absent path={{ ydbd_dir }}/certs/secret
   delegate_to: "{{ snode_name }}"
   delegate_facts: true

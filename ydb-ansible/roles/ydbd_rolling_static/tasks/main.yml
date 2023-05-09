@@ -1,0 +1,12 @@
+---
+# ydbd storage rolling restart
+
+- name: YDB storage rolling restart
+  block:
+    - name: Restart the storage node
+      ansible.builtin.systemd:
+        state: restarted
+        name: ydbd-storage
+    - name: Wait for storage state recovery
+      command: "sudo -u ydb {{ ydbd_dir }}/home/wait_normal.sh {{ inventory_hostname }}"
+  throttle: 1

@@ -4,8 +4,8 @@
 
 - hosts: ydbd_static
   roles:
-  - role: ydbd_rolling
+  - role: ydbd_rolling_static
 
 - hosts: ydbd_dynamic
   roles:
-  - role: ydbd_rolling
+  - role: ydbd_rolling_dynamic

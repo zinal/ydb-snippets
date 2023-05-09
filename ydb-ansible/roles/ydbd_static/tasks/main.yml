@@ -8,7 +8,10 @@
   template: src=safe_format.j2 dest={{ ydbd_dir }}/home/safe_format.sh mode=755
 
 - name: Create the static node startup wait script
-  template: src=wait_static.j2 dest={{ ydbd_dir }}/home/wait_static.sh mode=755
+  template: src=wait_initial.j2 dest={{ ydbd_dir }}/home/wait_initial.sh mode=755
+
+- name: Create the storage recovery wait script
+  template: src=wait_normal.j2 dest={{ ydbd_dir }}/home/wait_normal.sh mode=755
 
 - name: Create the storage initialization script
   template: src=init_storage.j2 dest={{ ydbd_dir }}/home/init_storage.sh mode=755
@@ -27,8 +30,11 @@
     name: ydbd-storage
 
 - name: Wait for storage node startup
-  command: "sudo -u ydb {{ ydbd_dir }}/home/wait_static.sh {{ inventory_hostname }}"
+  command: "sudo -u ydb {{ ydbd_dir }}/home/wait_initial.sh {{ inventory_hostname }}"
 
 - name: Initialize the YDB storage
   command: "sudo -u ydb {{ ydbd_dir }}/home/init_storage.sh {{ inventory_hostname }}"
   run_once: true
+
+- name: Wait for storage bootstrap to complete
+  command: "sudo -u ydb {{ ydbd_dir }}/home/wait_normal.sh {{ inventory_hostname }}"

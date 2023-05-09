@@ -22,6 +22,11 @@
     name: chrony
     state: present
 
+- name: Ensure jq is installed
+  ansible.builtin.package:
+    name: jq
+    state: present
+
 - name: Deploy custom libidn
   block:
     - name: Unpacking custom libidn
@@ -66,6 +71,9 @@
 
 - name: Create the YDB certs directory
   file: state=directory path={{ ydbd_dir }}/certs group=ydb owner=ydb mode=700
+
+- name: Create the YDB configuration backup directory
+  file: state=directory path={{ ydbd_dir }}/reserve group=ydb owner=ydb mode=700
 
 - name: Disable YDB CLI version checks
   command: "sudo -u ydb LD_LIBRARY_PATH={{ ydbd_dir }}/lib {{ ydbd_dir }}/bin/ydb version --disable-checks"

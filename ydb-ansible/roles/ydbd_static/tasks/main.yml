@@ -38,3 +38,4 @@
 
 - name: Wait for storage bootstrap to complete
   command: "sudo -u ydb {{ ydbd_dir }}/home/wait_normal.sh {{ inventory_hostname }}"
+  run_once: true

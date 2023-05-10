@@ -37,7 +37,7 @@ run_health() {
 COUNTER=0
 while true; do
     V=$( run_health | jq -r '.self_check_result' 2>/dev/null )
-    if [ "$V" == "GOOD" ]; then
+    if [ "$V" = "GOOD" ]; then
         exit 0
     fi
     COUNTER=$((COUNTER + 1))

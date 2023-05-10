@@ -90,7 +90,7 @@ To update the YDB cluster configuration files (`ydbd-config.yaml`, TLS certifica
 
 Notes:
 1. Please take into account that rolling restart is performed node by node, and for a large cluster the process may consume a significant amount of time.
-2. For Certificate Authority (CA) certificate rotation, at least two configuration updates are needed:
+1. For Certificate Authority (CA) certificate rotation, at least two separate configuration updates are needed:
     * first to deploy the ca.crt file, containing both new and old CA certificates;
     * second to deploy the fresh server keys and certificates signed by the new CA certificate.
 

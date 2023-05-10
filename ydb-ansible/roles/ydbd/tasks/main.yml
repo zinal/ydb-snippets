@@ -67,7 +67,7 @@
     group: bin
     owner: root
     src: "{{ ydbd_archive }}"
-    extra_opts: "--strip-component=1"
+    extra_opts: "{{ ydbd_unpack_options }}"
 
 - name: Create the YDB configuration directory
   file: state=directory path={{ ydbd_dir }}/cfg group=bin owner=root mode=755

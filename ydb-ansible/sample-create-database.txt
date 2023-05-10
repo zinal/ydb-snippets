@@ -1,6 +1,7 @@
 sudo su - ydb
 
 export PATH=/opt/ydb/bin:$PATH
+export LD_LIBRARY_PATH=/opt/ydb/lib
 
 export YDB_USER=root
 export YDB_PASSWORD='P@$$w0rd+'

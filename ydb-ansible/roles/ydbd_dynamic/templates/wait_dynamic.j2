@@ -18,7 +18,7 @@ export PATH
 USE_ENV_AUTH=0
 if [ -f ${PASSFILE} ]; then
     USE_ENV_AUTH=1
-    source ${PASSFILE}
+    . ${PASSFILE}
 fi
 
 run_discovery() {

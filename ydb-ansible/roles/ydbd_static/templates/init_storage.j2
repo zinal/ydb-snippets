@@ -22,7 +22,7 @@ set -u
 
 if [ -f ${PASSFILE} ]; then
   # Username and password are passed in file for reconfiguration.
-  source ${PASSFILE}
+  . ${PASSFILE}
   ydb --ca-file ${CAFILE} -e ${DB_ENDPOINT} -d ${DB_DOMAIN} \
     auth get-token -f > ${TOKEN}
 else

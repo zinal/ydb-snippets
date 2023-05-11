@@ -20,7 +20,7 @@ for i in `seq ${ydb_nodes_begin} ${ydb_nodes_end}`; do
     echo "...${vm_disk_data}"
     while true; do
       yc compute disk create ${vm_disk_data} --zone ${yc_zone} \
-        --type network-ssd-nonreplicated --size ${yc_data_disk_size} --async >mkinst.tmp 2>&1
+        --type ${yc_data_disk_type} --size ${yc_data_disk_size} --async >mkinst.tmp 2>&1
       cnt=`checkLimit`
       if [ "$cnt" == "0" ]; then break; else sleep 10; fi
     done

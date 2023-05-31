@@ -16,5 +16,10 @@
 - name: Public copy of ca.crt
   copy: src={{ ydbd_tls_dir }}/ca.crt dest={{ ydbd_dir }}/cfg/ca.crt
 
-- name: Copy cluster configuration file
-  copy: src={{ ydbd_config }} dest={{ ydbd_dir }}/cfg/ydbd-config.yaml
+- name: Copy static node configuration file
+  copy: src={{ ydbd_config_static }} dest={{ ydbd_dir }}/cfg/ydbd-static.yaml
+  when: ydbd_config_static is defined
+
+- name: Copy dynamic node configuration file
+  copy: src={{ ydbd_config_dynamic }} dest={{ ydbd_dir }}/cfg/ydbd-dynamic-{{ ydb_dbname }}.yaml
+  when: ydbd_config_dynamic is defined and ydb_dbname is defined

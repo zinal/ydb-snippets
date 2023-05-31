@@ -7,7 +7,7 @@
 - name: Generate the dynamic node service files
   template:
     src: dynnode-service.j2
-    dest: "/etc/systemd/system/ydbd-{{ item.dbname }}-{{ item.instance }}.service"
+    dest: "/etc/systemd/system/ydbd-{{ ydb_dbname }}-{{ item.instance }}.service"
   loop: "{{ ydbd_dynnodes }}"
 
 - name: Refresh systemd services configuration
@@ -17,14 +17,14 @@
 - name: Start the dynamic nodes
   ansible.builtin.systemd:
     state: started
-    name: "ydbd-{{ item.dbname }}-{{ item.instance }}"
+    name: "ydbd-{{ ydb_dbname }}-{{ item.instance }}"
   loop: "{{ ydbd_dynnodes }}"
 
 - name: Transfer the secrets
   copy: src=secret dest={{ ydbd_dir }}/certs/secret
 
 - name: Wait for the dynamic nodes availability
-  command: "sudo -u ydb {{ ydbd_dir }}/home/wait_dynamic.sh {{ inventory_hostname }} {{ 2136 + item.offset }} {{ item.dbname }}"
+  command: "sudo -u ydb {{ ydbd_dir }}/home/wait_dynamic.sh {{ inventory_hostname }} {{ 2136 + item.offset }} {{ ydb_dbname }}"
   loop: "{{ ydbd_dynnodes }}"
 
 - name: Cleanup the transferred secrets

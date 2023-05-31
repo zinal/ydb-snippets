@@ -3,3 +3,5 @@
 ydbd_disks:
     - name: /dev/vdb
       label: ydb_disk_1
+
+ydbd_config_static: config-static.yaml

@@ -12,5 +12,3 @@ ydbd_tls_dir: ../tls/CA/certs/2023-03-09_16-49-39
 ydbd_archive: ydbd-22.5.10-linux-amd64.tar.gz
 
 ydbd_unpack_options: "--strip-component=1"
-
-ydbd_config: config.yaml

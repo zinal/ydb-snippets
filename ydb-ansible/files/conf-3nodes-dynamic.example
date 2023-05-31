@@ -1,0 +1,24 @@
+bootstrap_config:
+  shared_cache_config: {memory_limit: '4294967296'}
+table_service_config:
+  sql_version: 1
+interconnect_config:
+  start_tcp: true
+  encryption_mode: OPTIONAL
+  path_to_certificate_file: "/opt/ydb/certs/node.crt"
+  path_to_private_key_file: "/opt/ydb/certs/node.key"
+  path_to_ca_file: "/opt/ydb/certs/ca.crt"
+grpc_config:
+    cert: "/opt/ydb/certs/node.crt"
+    key: "/opt/ydb/certs/node.key"
+    ca: "/opt/ydb/certs/ca.crt"
+    services_enabled:
+    - legacy
+actor_system_config:
+  use_auto_config: true
+  node_type: STORAGE
+  cpu_count: 18
+audit_config:
+  file_backend:
+    format: JSON
+    file_path: "/opt/ydb/audit/ydb-audit.log"

@@ -4,7 +4,7 @@
 - name: Restart the dynamic nodes on {{ dynnode_name }}
   ansible.builtin.systemd:
     state: restarted
-    name: "ydbd-{{ item.dbname }}-{{ item.instance }}"
+    name: "ydbd-{{ ydb_dbname }}-{{ item.instance }}"
   throttle: 1
   delegate_to: "{{ dynnode_name }}"
   delegate_facts: true
@@ -18,7 +18,7 @@
   any_errors_fatal: true
 
 - name: Wait for the dynamic nodes to come up
-  command: "sudo -u ydb {{ ydbd_dir }}/home/wait_dynamic.sh {{ inventory_hostname }} {{ 2136 + item.offset }} {{ item.dbname }}"
+  command: "sudo -u ydb {{ ydbd_dir }}/home/wait_dynamic.sh {{ inventory_hostname }} {{ 2136 + item.offset }} {{ ydb_dbname }}"
   delegate_to: "{{ dynnode_name }}"
   delegate_facts: true
   loop: "{{ ydbd_dynnodes }}"

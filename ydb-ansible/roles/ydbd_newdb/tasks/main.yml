@@ -6,7 +6,7 @@
     - name: Transfer the secrets
       copy: src=secret dest={{ ydbd_dir }}/certs/secret
     - name: Run the database creation script
-      command: "sudo -u ydb {{ ydbd_dir }}/home/create_database.sh {{ inventory_hostname }} {{ ydb_dbname }} {{ ydb_default_groups }}"
+      command: "sudo -u ydb {{ ydbd_dir }}/home/create_database.sh {{ inventory_hostname }} {{ ydb_dbname }} {{ ydb_default_groups }} {{ dynnode_cores }}"
     - name: Cleanup the transferred secrets
       file: state=absent path={{ ydbd_dir }}/certs/secret
   run_once: true

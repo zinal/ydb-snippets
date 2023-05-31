@@ -1,5 +1,10 @@
 #! /bin/sh
 # Create the YDB database.
+# Parameters:
+# * static node fqdn
+# * database name
+# * initial number of storage groups
+# * number of cores per dynnode
 
 set +e
 set +u
@@ -12,6 +17,7 @@ TOKEN={{ ydbd_dir }}/home/ydbd-token-file
 PASSFILE={{ ydbd_dir }}/certs/secret
 DB_NAME="$2"
 DB_GROUPS="$3"
+DB_CORES="$4"
 
 LD_LIBRARY_PATH={{ ydbd_dir }}/lib
 export LD_LIBRARY_PATH
@@ -36,5 +42,37 @@ trap "rm -f ${TOKEN}" EXIT
 
 ydbd --ca-file ${CAFILE} -s ${DB_ENDPOINT} -f ${TOKEN} \
   admin database /{{ ydb_domain }}/${DB_NAME} create ${DB_POOL}:${DB_GROUPS}
+
+CMS_FILE=$HOME/cms-${DB_NAME}.txt
+CMS_COOKIE="init-$DB_NAME"
+CMS_TENANT="$DB_DOMAIN/$DB_NAME"
+
+cat >${CMS_FILE} <<EOF
+ConfigureRequest {
+  Actions {
+    AddConfigItem {
+      ConfigItem {
+        Cookie: "$CMS_COOKIE"
+        UsageScope: {
+          TenantAndNodeTypeFilter {
+            Tenant: "$CMS_TENANT"
+          }
+        }
+        Config {
+          ActorSystemConfig {
+            UseAutoConfig: true
+            CpuCount: $DB_CORES
+            NodeType: COMPUTE
+          }  
+        }
+        MergeStrategy: 3
+      }
+    }
+  }
+}
+EOF
+
+ydbd --ca-file ${CAFILE} -s ${DB_ENDPOINT} -f ${TOKEN} \
+  admin console execute --domain=${DB_DOMAIN} --retry=10 ${CMS_FILE}
 
 # End Of File

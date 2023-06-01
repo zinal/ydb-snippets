@@ -6,13 +6,13 @@ set +u
 
 DB_ENDPOINT=grpcs://"$1":2135
 DB_DOMAIN=/{{ ydb_domain }}
-CAFILE={{ ydbd_dir }}/certs/ca.crt
-PASSFILE={{ ydbd_dir }}/certs/secret
+CAFILE={{ ydb_dir }}/certs/ca.crt
+PASSFILE={{ ydb_dir }}/certs/secret
 
-LD_LIBRARY_PATH={{ ydbd_dir }}/lib
+LD_LIBRARY_PATH={{ ydb_dir }}/lib
 export LD_LIBRARY_PATH
 
-PATH={{ ydbd_dir }}/bin:$PATH
+PATH={{ ydb_dir }}/bin:$PATH
 export PATH
 
 USE_ENV_AUTH=0

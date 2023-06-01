@@ -10,18 +10,18 @@
   any_errors_fatal: true
 
 - name: Transfer the secrets
-  copy: src=secret dest={{ ydbd_dir }}/certs/secret
+  copy: src=secret dest={{ ydb_dir }}/certs/secret
   delegate_to: "{{ snode_name }}"
   delegate_facts: true
   any_errors_fatal: true
 
 - name: Wait for storage state recovery on {{ snode_name }}
-  command: "sudo -u ydb {{ ydbd_dir }}/home/wait_normal.sh {{ inventory_hostname }}"
+  command: "sudo -u ydb {{ ydb_dir }}/home/wait_normal.sh {{ inventory_hostname }}"
   delegate_to: "{{ snode_name }}"
   delegate_facts: true
   any_errors_fatal: true
 
 - name: Cleanup the transferred secrets
-  file: state=absent path={{ ydbd_dir }}/certs/secret
+  file: state=absent path={{ ydb_dir }}/certs/secret
   delegate_to: "{{ snode_name }}"
   delegate_facts: true

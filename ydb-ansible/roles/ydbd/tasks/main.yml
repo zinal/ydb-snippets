@@ -58,34 +58,34 @@
   group: name=ydb system=true
 
 - name: Create the ydb user
-  user: name=ydb group=ydb groups=disk system=true create_home=true home={{ ydbd_dir }}/home comment="YDB Service Account"
+  user: name=ydb group=ydb groups=disk system=true create_home=true home={{ ydb_dir }}/home comment="YDB Service Account"
 
 - name: Install the YDB server binary package
   ansible.builtin.unarchive:
-    creates: "{{ ydbd_dir }}/bin/ydbd"
-    dest: "{{ ydbd_dir }}"
+    creates: "{{ ydb_dir }}/bin/ydbd"
+    dest: "{{ ydb_dir }}"
     group: bin
     owner: root
-    src: "{{ ydbd_archive }}"
-    extra_opts: "{{ ydbd_unpack_options }}"
+    src: "{{ ydb_archive }}"
+    extra_opts: "{{ ydb_unpack_options }}"
 
 - name: Create the YDB configuration directory
-  file: state=directory path={{ ydbd_dir }}/cfg group=bin owner=root mode=755
+  file: state=directory path={{ ydb_dir }}/cfg group=bin owner=root mode=755
 
 - name: Create the YDB audit directory
-  file: state=directory path={{ ydbd_dir }}/audit group=ydb owner=ydb mode=700
+  file: state=directory path={{ ydb_dir }}/audit group=ydb owner=ydb mode=700
 
 - name: Create the YDB certs directory
-  file: state=directory path={{ ydbd_dir }}/certs group=ydb owner=ydb mode=700
+  file: state=directory path={{ ydb_dir }}/certs group=ydb owner=ydb mode=700
 
 - name: Create the YDB configuration backup directory
-  file: state=directory path={{ ydbd_dir }}/reserve group=ydb owner=ydb mode=700
+  file: state=directory path={{ ydb_dir }}/reserve group=ydb owner=ydb mode=700
 
 - name: Disable YDB CLI version checks
-  command: "sudo -u ydb LD_LIBRARY_PATH={{ ydbd_dir }}/lib {{ ydbd_dir }}/bin/ydb version --disable-checks"
+  command: "sudo -u ydb LD_LIBRARY_PATH={{ ydb_dir }}/lib {{ ydb_dir }}/bin/ydb version --disable-checks"
 
 - name: Copy the thp-config.sh script
-  copy: src=thp-config.sh dest={{ ydbd_dir }}/bin/thp-config.sh
+  copy: src=thp-config.sh dest={{ ydb_dir }}/bin/thp-config.sh
 
 - name: Generate the THP service files
   template:

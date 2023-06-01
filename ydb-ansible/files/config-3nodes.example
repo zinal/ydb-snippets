@@ -143,3 +143,12 @@ actor_system_config:
   use_auto_config: true
   node_type: STORAGE
   cpu_count: 6
+# The remaining settings are to be inherited by the dynamic nodes.
+table_service_config:
+  sql_version: 1
+bootstrap_config:
+  shared_cache_config: {memory_limit: '4294967296'}
+audit_config:
+  file_backend:
+    format: JSON
+    file_path: "/opt/ydb/audit/ydb-audit.log"

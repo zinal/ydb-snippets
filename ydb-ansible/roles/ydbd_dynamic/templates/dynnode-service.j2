@@ -15,15 +15,15 @@ StandardError=syslog
 SyslogIdentifier=ydbd
 SyslogFacility=daemon
 SyslogLevel=err
-Environment=LD_LIBRARY_PATH={{ ydbd_dir }}/lib
-ExecStart={{ ydbd_dir }}/bin/ydbd server \
-    --grpcs-port {{ 2136 + item.offset }} --grpc-ca {{ ydbd_dir }}/certs/ca.crt \
-    --ic-port {{ 19002 + item.offset }} --ca {{ ydbd_dir }}/certs/ca.crt \
-    --mon-port {{ 8766 + item.offset }} --mon-cert {{ ydbd_dir }}/certs/web.pem \
-    --yaml-config  {{ ydbd_dir }}/cfg/ydbd-dynamic-{{ ydb_dbname }}.yaml --tenant /{{ ydb_domain }}/{{ ydb_dbname }} \
-    --node-broker grpcs://{{ ydbd_brokers[0] }}:2135 \
-    --node-broker grpcs://{{ ydbd_brokers[1] }}:2135 \
-    --node-broker grpcs://{{ ydbd_brokers[2] }}:2135
+Environment=LD_LIBRARY_PATH={{ ydb_dir }}/lib
+ExecStart={{ ydb_dir }}/bin/ydbd server \
+    --grpcs-port {{ 2136 + item.offset }} --grpc-ca {{ ydb_dir }}/certs/ca.crt \
+    --ic-port {{ 19002 + item.offset }} --ca {{ ydb_dir }}/certs/ca.crt \
+    --mon-port {{ 8766 + item.offset }} --mon-cert {{ ydb_dir }}/certs/web.pem \
+    --tenant /{{ ydb_domain }}/{{ ydb_dbname }} \
+    --node-broker grpcs://{{ ydb_brokers[0] }}:2135 \
+    --node-broker grpcs://{{ ydb_brokers[1] }}:2135 \
+    --node-broker grpcs://{{ ydb_brokers[2] }}:2135
 LimitNOFILE=65536
 LimitCORE=0
 LimitMEMLOCK=32212254720

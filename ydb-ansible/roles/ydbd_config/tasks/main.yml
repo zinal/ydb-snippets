@@ -2,24 +2,20 @@
 # ydbd configuration
 
 - name: Copy the TLS ca.crt
-  copy: src={{ ydbd_tls_dir }}/ca.crt dest={{ ydbd_dir }}/certs/ca.crt
+  copy: src={{ ydb_tls_dir }}/ca.crt dest={{ ydb_dir }}/certs/ca.crt
 
 - name: Copy the TLS node.crt
-  copy: src={{ ydbd_tls_dir }}/{{ inventory_hostname_short }}/node.crt dest={{ ydbd_dir }}/certs/node.crt
+  copy: src={{ ydb_tls_dir }}/{{ inventory_hostname_short }}/node.crt dest={{ ydb_dir }}/certs/node.crt
 
 - name: Copy the TLS node.key
-  copy: src={{ ydbd_tls_dir }}/{{ inventory_hostname_short }}/node.key dest={{ ydbd_dir }}/certs/node.key
+  copy: src={{ ydb_tls_dir }}/{{ inventory_hostname_short }}/node.key dest={{ ydb_dir }}/certs/node.key
 
 - name: Copy the TLS web.pem
-  copy: src={{ ydbd_tls_dir }}/{{ inventory_hostname_short }}/web.pem dest={{ ydbd_dir }}/certs/web.pem
+  copy: src={{ ydb_tls_dir }}/{{ inventory_hostname_short }}/web.pem dest={{ ydb_dir }}/certs/web.pem
 
 - name: Public copy of ca.crt
-  copy: src={{ ydbd_tls_dir }}/ca.crt dest={{ ydbd_dir }}/cfg/ca.crt
+  copy: src={{ ydb_tls_dir }}/ca.crt dest={{ ydb_dir }}/cfg/ca.crt
 
 - name: Copy static node configuration file
-  copy: src={{ ydbd_config_static }} dest={{ ydbd_dir }}/cfg/ydbd-static.yaml
-  when: ydbd_config_static is defined
-
-- name: Copy dynamic node configuration file
-  copy: src={{ ydbd_config_dynamic }} dest={{ ydbd_dir }}/cfg/ydbd-dynamic-{{ ydb_dbname }}.yaml
-  when: ydbd_config_dynamic is defined and ydb_dbname is defined
+  copy: src={{ ydb_config_static }} dest={{ ydb_dir }}/cfg/ydbd-static.yaml
+  when: ydb_config_static is defined

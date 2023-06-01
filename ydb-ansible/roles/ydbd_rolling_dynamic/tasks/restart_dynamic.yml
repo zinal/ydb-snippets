@@ -8,23 +8,23 @@
   throttle: 1
   delegate_to: "{{ dynnode_name }}"
   delegate_facts: true
-  loop: "{{ ydbd_dynnodes }}"
+  loop: "{{ ydb_dynnodes }}"
   any_errors_fatal: true
 
 - name: Transfer the secrets to {{ dynnode_name }}
-  copy: src=secret dest={{ ydbd_dir }}/certs/secret
+  copy: src=secret dest={{ ydb_dir }}/certs/secret
   delegate_to: "{{ dynnode_name }}"
   delegate_facts: true
   any_errors_fatal: true
 
 - name: Wait for the dynamic nodes to come up
-  command: "sudo -u ydb {{ ydbd_dir }}/home/wait_dynamic.sh {{ inventory_hostname }} {{ 2136 + item.offset }} {{ ydb_dbname }}"
+  command: "sudo -u ydb {{ ydb_dir }}/home/wait_dynamic.sh {{ inventory_hostname }} {{ 2136 + item.offset }} {{ ydb_dbname }}"
   delegate_to: "{{ dynnode_name }}"
   delegate_facts: true
-  loop: "{{ ydbd_dynnodes }}"
+  loop: "{{ ydb_dynnodes }}"
 
 - name: Cleanup the transferred secrets at {{ dynnode_name }}
-  file: state=absent path={{ ydbd_dir }}/certs/secret
+  file: state=absent path={{ ydb_dir }}/certs/secret
   delegate_to: "{{ dynnode_name }}"
   delegate_facts: true
 

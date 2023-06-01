@@ -48,7 +48,7 @@ if [ ! -e "$disk_part" ]; then
 fi
 
 set +e
-LD_LIBRARY_PATH={{ ydbd_dir }}/lib {{ ydbd_dir }}/bin/ydbd admin bs disk info -k 8229298086344098676 ${disk_part} >/dev/null 2>&1
+LD_LIBRARY_PATH={{ ydb_dir }}/lib {{ ydb_dir }}/bin/ydbd admin bs disk info -k 8229298086344098676 ${disk_part} >/dev/null 2>&1
 CHECK_RESULT=$?
 set -e
 if [ $CHECK_RESULT -eq 0 ]; then
@@ -60,7 +60,7 @@ else
         echo "Found pre-obliterated YDB disk ${disk_part} on "`hostname -f` >&2
     else
         echo "Formatting YDB disk ${disk_part} on "`hostname -f` >&2
-        LD_LIBRARY_PATH={{ ydbd_dir }}/lib {{ ydbd_dir }}/bin/ydbd admin bs disk obliterate ${disk_part}
+        LD_LIBRARY_PATH={{ ydb_dir }}/lib {{ ydb_dir }}/bin/ydbd admin bs disk obliterate ${disk_part}
     fi
 fi
 

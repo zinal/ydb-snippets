@@ -13,9 +13,9 @@ PermissionsStartOnly=true
 SyslogIdentifier=ydbd
 SyslogFacility=daemon
 SyslogLevel=err
-Environment=LD_LIBRARY_PATH={{ ydbd_dir }}/lib
-ExecStart={{ ydbd_dir }}/bin/ydbd server --log-level 3 --syslog --tcp --yaml-config  {{ ydbd_dir }}/cfg/ydbd-static.yaml \
-    --grpcs-port 2135 --ic-port 19001 --mon-port 8765 --mon-cert {{ ydbd_dir }}/certs/web.pem --node static
+Environment=LD_LIBRARY_PATH={{ ydb_dir }}/lib
+ExecStart={{ ydb_dir }}/bin/ydbd server --log-level 3 --syslog --tcp --yaml-config  {{ ydb_dir }}/cfg/ydbd-static.yaml \
+    --grpcs-port 2135 --ic-port 19001 --mon-port 8765 --mon-cert {{ ydb_dir }}/certs/web.pem --node static
 LimitNOFILE=65536
 LimitCORE=0
 #LimitCORE=infinity

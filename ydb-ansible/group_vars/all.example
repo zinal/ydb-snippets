@@ -10,16 +10,16 @@ ansible_python_interpreter: /usr/bin/python3
 ydb_domain: ycydb00
 
 # YDB software installation directory
-ydbd_dir: /opt/ydb
+ydb_dir: /opt/ydb
 
 # Source directory with TLS keys and certificares
-ydbd_tls_dir: ../tls/CA/certs/2023-03-09_16-49-39
+ydb_tls_dir: ../tls/CA/certs/2023-03-09_16-49-39
 
 # YDB server software archive
-ydbd_archive: ydbd-22.5.10-linux-amd64.tar.gz
+ydb_archive: ydbd-23.1.26-linux-amd64.tar.gz
 
 # Extra options passed to tar for unpack, typically "--strip-component=1"
-ydbd_unpack_options: "--strip-component=1"
+ydb_unpack_options: "--strip-component=1"
 
 # YDB default storage pool kind, as specified in the static nodes
 #   configuration file as storage_pool_types.kind field
@@ -32,25 +32,22 @@ ydb_dbname: testdb
 ydb_default_groups: 9
 
 # Name of YDB static nodes configuration file
-ydbd_config_static: config-static.yaml
-
-# Dynamic nodes configuration file
-ydbd_config_dynamic: config-dynamic.yaml
+ydb_config_static: config.yaml
 
 # YDB physical disk device names and labels for static nodes
-ydbd_disks:
+ydb_disks:
     - name: /dev/vdb
       label: ydb_disk_1
 # Configuration settings for dynamic YDB cluster nodes
 
 # The list of exactly three node brokers (static nodes)
-ydbd_brokers:
+ydb_brokers:
   - ycydb-s1
   - ycydb-s2
   - ycydb-s3
 
 # The list of dynnodes to run on each host
-ydbd_dynnodes:
+ydb_dynnodes:
   - { instance: 'alfa', offset: 0 }
   - { instance: 'bravo', offset: 1 }
   - { instance: 'charlie', offset: 2 }

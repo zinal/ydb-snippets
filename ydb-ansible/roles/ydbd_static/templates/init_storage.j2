@@ -6,15 +6,15 @@ set +u
 
 DB_ENDPOINT=grpcs://"$1":2135
 DB_DOMAIN=/{{ ydb_domain }}
-CAFILE={{ ydbd_dir }}/certs/ca.crt
-CONFIG={{ ydbd_dir }}/cfg/ydbd-static.yaml
-TOKEN={{ ydbd_dir }}/home/ydbd-token-file
-PASSFILE={{ ydbd_dir }}/certs/secret
+CAFILE={{ ydb_dir }}/certs/ca.crt
+CONFIG={{ ydb_dir }}/cfg/ydbd-static.yaml
+TOKEN={{ ydb_dir }}/home/ydbd-token-file
+PASSFILE={{ ydb_dir }}/certs/secret
 
-LD_LIBRARY_PATH={{ ydbd_dir }}/lib
+LD_LIBRARY_PATH={{ ydb_dir }}/lib
 export LD_LIBRARY_PATH
 
-PATH={{ ydbd_dir }}/bin:$PATH
+PATH={{ ydb_dir }}/bin:$PATH
 export PATH
 
 set -e

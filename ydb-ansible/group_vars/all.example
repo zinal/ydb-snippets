@@ -57,8 +57,5 @@ ydb_dynnodes:
   - { instance: 'charlie', offset: 2 }
   - { instance: 'delta', offset: 3 }
 
-# Number of cores dedicated for the dynamic node
-dynnode_cores: 9
-
 # Extra sleep time to allow dynamic nodes to settle up
 dynnode_restart_sleep_seconds: 30

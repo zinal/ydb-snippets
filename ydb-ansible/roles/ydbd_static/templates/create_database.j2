@@ -4,7 +4,6 @@
 # * static node fqdn
 # * database name
 # * initial number of storage groups
-# * number of cores per dynnode
 
 set +e
 set +u
@@ -17,7 +16,6 @@ TOKEN={{ ydb_dir }}/home/ydbd-token-file
 PASSFILE={{ ydb_dir }}/certs/secret
 DB_NAME="$2"
 DB_GROUPS="$3"
-DB_CORES="$4"
 
 LD_LIBRARY_PATH={{ ydb_dir }}/lib
 export LD_LIBRARY_PATH

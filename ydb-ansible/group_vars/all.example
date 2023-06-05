@@ -31,8 +31,12 @@ ydb_dbname: testdb
 # Default number of groups per newly created database
 ydb_default_groups: 9
 
-# Name of YDB static nodes configuration file
-ydb_config_static: config.yaml
+# Name of YDB cluster configuration file
+ydb_config: config.yaml
+
+# Number of cores for static and dynamic nodes
+ydb_cores_static: 7
+ydb_cores_dynamic: 8
 
 # YDB physical disk device names and labels for static nodes
 ydb_disks:

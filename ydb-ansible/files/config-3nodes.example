@@ -33,6 +33,7 @@ domains_config:
   # in a cluster with domains_config.domain.name parameter set to Root would be equal to /Root/db1/table1
   domain:
   - name: ycydb00
+    domain_id: 1
     storage_pool_types:
     - kind: ssd
       pool_config:
@@ -139,11 +140,6 @@ grpc_config:
     ca: "/opt/ydb/certs/ca.crt"
     services_enabled:
     - legacy
-actor_system_config:
-  use_auto_config: true
-  node_type: STORAGE
-  cpu_count: 6
-# The remaining settings are to be inherited by the dynamic nodes.
 table_service_config:
   sql_version: 1
 bootstrap_config:
@@ -152,3 +148,9 @@ audit_config:
   file_backend:
     format: JSON
     file_path: "/opt/ydb/audit/ydb-audit.log"
+# Actor system config is appended to the configuration file by Ansible task.
+# Provided here in the commented form for reference
+#actor_system_config:
+#  use_auto_config: true
+#  node_type: STORAGE # STORAGE or COMPUTE
+#  cpu_count: 6

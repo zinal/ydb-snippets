@@ -166,6 +166,14 @@ func main() {
 	if len(os.Args) > 1 {
 		addr = os.Args[1]
 	}
+	operTotal := 100
+	if len(os.Args) > 2 {
+		var err error
+		operTotal, err = strconv.Atoi(os.Args[2])
+		if err != nil {
+			panic(err)
+		}
+	}
 
 	fmt.Println("Starting up...")
 	ydbContext, ctxCloseFn := context.WithCancel(context.Background())
@@ -183,7 +191,6 @@ func main() {
 
 	operStart := time.Now()
 
-	operTotal := 10000
 	operDone := 0
 	operIter := 0
 	for operTotal > operDone {
@@ -201,7 +208,10 @@ func main() {
 
 	operFinish := time.Now()
 
-	fmt.Printf("Processed! Duraction = %s, iterations = %d", operFinish.Sub(operStart).String(), operIter)
+	avgTime := float64(operFinish.Sub(operStart).Milliseconds()) / float64(operTotal)
+
+	fmt.Printf("Processed! Ops = %d, iterations = %d, duraction = %s, avg = %f msec\n",
+		operTotal, operIter, operFinish.Sub(operStart).String(), avgTime)
 
 	fmt.Println("Shutting down...")
 }

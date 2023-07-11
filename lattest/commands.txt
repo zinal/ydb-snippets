@@ -1,0 +1,3 @@
+go build
+./lattest grpcs://ydb.serverless.yandexcloud.net:2135/ru-central1/b1gfvslmokutuvt2g019/etnuogblap3e7dok6tf5'?authMode=saKey&saKeyFile=/Users/mzinal/Magic/key-ydb-sa1.json'
+./lattest grpcs://ydb.serverless.yandexcloud.net:2135/ru-central1/b1gfvslmokutuvt2g019/etnuogblap3e7dok6tf5'?authMode=saKey&saKeyFile=/Users/mzinal/Magic/key-ydb-sa1.json&serverless=true'

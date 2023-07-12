@@ -1,4 +1,5 @@
 lattest
+*.zip
 *.tmp
 *~
 ~*

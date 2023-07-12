@@ -16,10 +16,10 @@ Connected! Duraction = 120.811259ms
 Processed! Ops = 1000, iterations = 155, duraction = 3.523300892s, avg = 3.523000 msec
 Shutting down...
 
-$ ./lattest grpcs://'stroppy:passw0rd@'ycydb-s1:2136/ycydb00/demo1'?authMode=static&tlsCertFile=/home/demo/ydb-snippets/tls/CA/certs/ca.crt' 1000
+$ ./lattest grpcs://vm-etnqkl8mc5g1iefthnh5-ru-central1-b-jjrx-iwiv.etnqkl8mc5g1iefthnh5.ydb.mdb.yandexcloud.net:2135/ru-central1/b1gfvslmokutuvt2g019/etnqkl8mc5g1iefthnh5'?authMode=saKey&saKeyFile=/home/demo/Magic/key-ydb-sa1.json&tlsCertFile=/home/demo/yandexca.cer&serverless=true' 10000
 Starting up...
-Connected! Duraction = 61.00871ms
-Processed! Ops = 1000, iterations = 142, duraction = 975.809632ms, avg = 0.975000 msec
+Connected! Duraction = 12.984307ms
+Processed! Ops = 10000, iterations = 1529, duraction = 14.054242194s, avg = 1.405400 msec
 Shutting down...
 
 $ ./lattest grpcs://'stroppy:passw0rd@'ycydb-s1:2136/ycydb00/demo1'?authMode=static&tlsCertFile=/home/demo/ydb-snippets/tls/CA/certs/ca.crt' 10000

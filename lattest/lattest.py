@@ -2,6 +2,7 @@ import os
 import sys
 import random
 import importlib.metadata
+from timeit import default_timer as timer
 import ydb
 
 def runStep(pool: ydb.SessionPool, operCur: int):
@@ -36,13 +37,20 @@ def run(operTotal: int):
     ydb_database = os.getenv("YDB_DATABASE")
     if ydb_database is None or len(ydb_database)==0:
         raise Exception("missing YDB_DATABASE env")
+    connStart = timer()
     with ydb.Driver(endpoint=ydb_endpoint, 
                     database=ydb_database,
                     credentials=ydb.credentials_from_env_variables()) as driver:
         driver.wait(timeout=5, fail_fast=True)
         with ydb.SessionPool(driver) as pool:
-            print("Connected!")
+            connFinish = timer()
+            print("Connected! Elapsed = " + str(connFinish - connStart))
+            operStart = timer()
             runCtx(pool, operTotal)
+            operFinish = timer()
+            operTime = (operFinish - operStart)
+            operAvg = 1000 * (operTime / operTotal)
+            print("Oper count = " + str(operTotal) + ", time = " + str(operTime) + "sec., avg = " + str(operAvg) + " msec.")
 
 if __name__ == '__main__':
     print("YDB Python SDK version " + importlib.metadata.version("ydb"))

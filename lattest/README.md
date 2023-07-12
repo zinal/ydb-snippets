@@ -33,5 +33,5 @@ YDB Python SDK v3.3.6
 | YDB Serverless | 22.773 |
 | YDB Dedicated, default endpoint | 1.7347 |
 | YDB Dedicated, same DC vm | 1.7215 |
-| YDB Self-hosted, same DC, 3 nodes |  |
+| YDB Self-hosted, same DC, 3 nodes | 1.0321 |
 | YDB Local, same host | 0.6733 |

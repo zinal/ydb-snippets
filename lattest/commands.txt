@@ -39,3 +39,10 @@ Starting up...
 Connected! Duraction = 16.871422ms
 Processed! Ops = 10000, iterations = 1549, duraction = 4.601542444s, avg = 0.460100 msec
 Shutting down...
+
+***********************************
+
+export YDB_ENDPOINT=grpcs://ydb.serverless.yandexcloud.net:2135
+export YDB_DATABASE=/ru-central1/b1gfvslmokutuvt2g019/etnuogblap3e7dok6tf5
+export YDB_SERVICE_ACCOUNT_KEY_FILE_CREDENTIALS=/home/zinal/Keys/ydb-sa1-key1.json
+python3 lattest.py 100

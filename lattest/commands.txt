@@ -42,7 +42,27 @@ Shutting down...
 
 ***********************************
 
+export YDB_SERVICE_ACCOUNT_KEY_FILE_CREDENTIALS=/home/zinal/Keys/ydb-sa1-key1.json
+export YDB_SERVICE_ACCOUNT_KEY_FILE_CREDENTIALS=/home/demo/Magic/key-ydb-sa1.json
+
 export YDB_ENDPOINT=grpcs://ydb.serverless.yandexcloud.net:2135
 export YDB_DATABASE=/ru-central1/b1gfvslmokutuvt2g019/etnuogblap3e7dok6tf5
-export YDB_SERVICE_ACCOUNT_KEY_FILE_CREDENTIALS=/home/zinal/Keys/ydb-sa1-key1.json
-python3 lattest.py 100
+python3 lattest.py 1000
+
+export YDB_ENDPOINT=grpcs://lb.etnqkl8mc5g1iefthnh5.ydb.mdb.yandexcloud.net:2135
+export YDB_DATABASE=/ru-central1/b1gfvslmokutuvt2g019/etnqkl8mc5g1iefthnh5
+python3 lattest.py 10000
+
+export YDB_ENDPOINT=grpcs://vm-etnqkl8mc5g1iefthnh5-ru-central1-b-jjrx-iwiv.etnqkl8mc5g1iefthnh5.ydb.mdb.yandexcloud.net:2135
+python3 lattest.py 10000
+
+unset YDB_SERVICE_ACCOUNT_KEY_FILE_CREDENTIALS
+export YDB_ENDPOINT=grpcs://ycydb-s1:2136
+export YDB_DATABASE=/ycydb00/demo1
+python3 lattest.py 10000
+
+unset YDB_SERVICE_ACCOUNT_KEY_FILE_CREDENTIALS
+export YDB_ANONYMOUS_CREDENTIALS=1
+export YDB_ENDPOINT=grpc://localhost:2136
+export YDB_DATABASE=/Root/test
+python3 lattest.py 10000

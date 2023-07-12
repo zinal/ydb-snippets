@@ -91,7 +91,7 @@ func ydbConnect(addr string) (*ydb.Driver, error) {
 		certFile = "/dev/null"
 	}
 
-	bconf := balancers.Default()
+	bconf := balancers.PreferLocalDCWithFallBack(balancers.RandomChoice())
 	if serverless {
 		bconf = balancers.SingleConn()
 	}
@@ -185,7 +185,7 @@ func main() {
 		panic(err)
 	}
 	defer con.Close(ydbContext)
-	fmt.Println("Connected! Duraction = " + connectFinish.Sub(connectStart).String())
+	fmt.Println("Connected! Duration = " + connectFinish.Sub(connectStart).String())
 
 	rand.Seed(uint64(time.Now().UnixNano()))
 
@@ -210,7 +210,7 @@ func main() {
 
 	avgTime := float64(operFinish.Sub(operStart).Milliseconds()) / float64(operTotal)
 
-	fmt.Printf("Processed! Ops = %d, iterations = %d, duraction = %s, avg = %f msec\n",
+	fmt.Printf("Processed! Ops = %d, iterations = %d, duration = %s, avg = %f msec\n",
 		operTotal, operIter, operFinish.Sub(operStart).String(), avgTime)
 
 	fmt.Println("Shutting down...")

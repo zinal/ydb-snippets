@@ -39,14 +39,18 @@ def run(operTotal: int):
         raise Exception("missing YDB_DATABASE env")
     ydb_username = os.getenv("YDB_USER")
     ydb_password = os.getenv("YDB_PASSWORD")
+    rootCerts = ydb.load_ydb_root_certificate()
+    driverConfig = ydb.get_config(endpoint=ydb_endpoint, 
+                                  database=ydb_database,
+                                  root_certificates=rootCerts)
     creds = ydb.credentials_from_env_variables()
     if ydb_username is not None and len(ydb_username) > 0:
-        creds = ydb.StaticCredentials(user=ydb_username, password=ydb_password)
+        creds = ydb.StaticCredentials(driverConfig, user=ydb_username, password=ydb_password)
     connStart = timer()
-    with ydb.Driver(endpoint=ydb_endpoint, 
+    with ydb.Driver(endpoint=ydb_endpoint,
                     database=ydb_database,
-                    credentials=creds,
-                    root_certificates=ydb.load_ydb_root_certificate()) as driver:
+                    root_certificates=rootCerts,
+                    credentials=creds) as driver:
         driver.wait(timeout=5, fail_fast=True)
         with ydb.SessionPool(driver) as pool:
             connFinish = timer()

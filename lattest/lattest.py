@@ -45,7 +45,8 @@ def run(operTotal: int):
     connStart = timer()
     with ydb.Driver(endpoint=ydb_endpoint, 
                     database=ydb_database,
-                    credentials=creds) as driver:
+                    credentials=creds,
+                    root_certificates=ydb.load_ydb_root_certificate()) as driver:
         driver.wait(timeout=5, fail_fast=True)
         with ydb.SessionPool(driver) as pool:
             connFinish = timer()

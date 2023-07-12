@@ -57,6 +57,8 @@ export YDB_ENDPOINT=grpcs://vm-etnqkl8mc5g1iefthnh5-ru-central1-b-jjrx-iwiv.etnq
 python3 lattest.py 10000
 
 unset YDB_SERVICE_ACCOUNT_KEY_FILE_CREDENTIALS
+export YDB_USERNAME=stroppy
+export YDB_PASSWORD=passw0rd
 export YDB_ENDPOINT=grpcs://ycydb-s1:2136
 export YDB_DATABASE=/ycydb00/demo1
 python3 lattest.py 10000
@@ -65,4 +67,5 @@ unset YDB_SERVICE_ACCOUNT_KEY_FILE_CREDENTIALS
 export YDB_ANONYMOUS_CREDENTIALS=1
 export YDB_ENDPOINT=grpc://localhost:2136
 export YDB_DATABASE=/Root/test
+export YDB_SSL_ROOT_CERTIFICATES_FILE=/home/demo/ydb-snippets/tls/CA/certs/ca.crt
 python3 lattest.py 10000

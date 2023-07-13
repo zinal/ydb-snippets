@@ -70,3 +70,7 @@ export YDB_ENDPOINT=grpc://localhost:2136
 export YDB_DATABASE=/Root/test
 export YDB_SSL_ROOT_CERTIFICATES_FILE=/home/demo/ydb-snippets/tls/CA/certs/ca.crt
 python3 lattest.py 10000
+
+***********************************
+
+$ yc serverless function logs --name cf-lattest-py-sl --since '2023-07-12T00:00:00Z' --until '2023-07-14T00:00:00Z' --filter xstat

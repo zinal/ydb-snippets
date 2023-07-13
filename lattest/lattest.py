@@ -70,7 +70,7 @@ def run(operTotal: int):
 def handler(event, context):
     logging.getLogger().setLevel(logging.INFO)
     logging.getLogger('ydb').setLevel(logging.WARNING)
-    run(100)
+    run(500)
 
 # Self-contained entry point
 if __name__ == '__main__':
@@ -79,4 +79,3 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         operTotal = int(sys.argv[1])
     run(operTotal)
-

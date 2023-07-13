@@ -31,7 +31,7 @@ YDB Python SDK v3.3.6
 | Среда | Средняя задержка на 1 запрос, мсек |
 | ----- | ---------------------------------- |
 | YDB Serverless | 22.773 |
-| YDB Dedicated | 1.735 |
-| YDB Dedicated (public address) | 10.718 |
+| YDB Dedicated | 1.735 **плавает** |
+| YDB Dedicated (public address) | 10.718 **плавает** |
 | YDB Self-hosted, same DC, 3 nodes | 1.032 |
 | YDB Local, same host | 0.673 |

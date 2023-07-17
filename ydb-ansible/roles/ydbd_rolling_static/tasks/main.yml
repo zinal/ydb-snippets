@@ -1,9 +1,0 @@
----
-# ydbd storage rolling restart
-
-- name: YDB storage rolling restart
-  include_tasks: "restart_static.yml"
-  loop: "{{ groups['ydbd_static']|flatten(levels=1) }}"
-  loop_control:
-    loop_var: snode_name
-  run_once: true

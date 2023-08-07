@@ -1,21 +1,26 @@
 #! /bin/sh
-# Создание виртуальных машин Yandex Cloud для работы кластера YDB.
+# Логика создания виртуальных машин Yandex Cloud для работы кластера YDB.
 
-. ./options.sh
+if [ "1" == "$ydb_nodes_begin" ]; then
+  echo "Retrieving public SSH keyfile ${keyfile_gw} from host ${host_gw}..."
+  ssh ${host_gw} cat ${keyfile_gw} >keyfile.tmp
+  ssh ${host_gw} rm -f .ssh/known_hosts
+fi
 
 checkLimit() {
   grep "The limit on maximum number of active operations has exceeded" mkinst.tmp | wc -l | (read x && echo $x)
 }
 
 echo "Creating disks..."
-for i in `seq 1 ${ydb_static}`; do
+rm -f mkinst.tmp
+for i in `seq ${ydb_nodes_begin} ${ydb_nodes_end}`; do
   vm_name="${host_base}-s${i}"
   for j in `seq 1 ${ydb_disk_count}`; do
     vm_disk_data="${host_base}-s${i}-data${j}"
     echo "...${vm_disk_data}"
     while true; do
       yc compute disk create ${vm_disk_data} --zone ${yc_zone} \
-        --type network-ssd-nonreplicated --size 372G --async >mkinst.tmp 2>&1
+        --type ${yc_data_disk_type} --size ${yc_data_disk_size} --async >mkinst.tmp 2>&1
       cnt=`checkLimit`
       if [ "$cnt" == "0" ]; then break; else sleep 10; fi
     done
@@ -27,10 +32,6 @@ if [ $cnt -gt 0 ]; then
     cat mkinst.tmp
     exit 1
 fi
-
-echo "Retrieving public SSH keyfile ${keyfile_gw} from host ${host_gw}..."
-ssh ${host_gw} cat ${keyfile_gw} >keyfile.tmp
-ssh ${host_gw} rm -f .ssh/known_hosts
 
 echo "Waiting for disks to get ready..."
 while true; do
@@ -44,44 +45,23 @@ while true; do
 done
 
 echo "Creating static node VMs..."
-for i in `seq 1 ${ydb_static}`; do
+for i in `seq ${ydb_nodes_begin} ${ydb_nodes_end}`; do
   vm_name="${host_base}-s${i}"
   vm_disk_boot="${host_base}-s${i}-boot"
-  vm_disk_data1="${host_base}-s${i}-data1"
-  echo "...${vm_name}"
-  while true; do
-    yc compute instance create ${vm_name} --zone ${yc_zone} \
-      --platform ${yc_platform} \
-      --ssh-key keyfile.tmp \
-      --create-boot-disk ${yc_vm_image},name=${vm_disk_boot},type=network-ssd-nonreplicated,size=93G,auto-delete=true \
-      --attach-disk disk-name=${vm_disk_data1},auto-delete=true \
-      --network-settings type=software-accelerated \
-      --network-interface subnet-name=${yc_subnet},dns-record-spec="{name=${vm_name}.ru-central1.internal.}" \
-      --memory 32G --cores 16 --async >mkinst.tmp 2>&1
-    cnt=`checkLimit`
-    if [ "$cnt" == "0" ]; then break; else sleep 10; fi
-  done
-done
-cnt=`grep "ERROR:" mkinst.tmp | wc -l`
-if [ $cnt -gt 0 ]; then
-    echo "*** ERROR: VM creation failed, ABORTING!"
-    cat mkinst.tmp
-    exit 1
-fi
 
-echo "Creating dynamic node VMs..."
-for i in `seq 1 ${ydb_dynamic}`; do
-  vm_name="${host_base}-d${i}"
-  vm_disk_boot="${host_base}-d${i}-boot"
+  disk_datum=""
+  for j in `seq 1 ${ydb_disk_count}`; do
+    disk_datum="$disk_datum --attach-disk disk-name=${host_base}-s${i}-data${j},auto-delete=true"
+  done
   echo "...${vm_name}"
   while true; do
     yc compute instance create ${vm_name} --zone ${yc_zone} \
       --platform ${yc_platform} \
       --ssh-key keyfile.tmp \
       --create-boot-disk ${yc_vm_image},name=${vm_disk_boot},type=network-ssd-nonreplicated,size=93G,auto-delete=true \
-      --network-settings type=software-accelerated \
+      ${disk_datum} --network-settings type=software-accelerated \
       --network-interface subnet-name=${yc_subnet},dns-record-spec="{name=${vm_name}.ru-central1.internal.}" \
-      --memory 32G --cores 16 --async >mkinst.tmp 2>&1
+      --memory ${yc_vm_mem} --cores ${yc_vm_cores} --async >mkinst.tmp 2>&1
     cnt=`checkLimit`
     if [ "$cnt" == "0" ]; then break; else sleep 10; fi
   done
@@ -104,23 +84,15 @@ while true; do
   sleep 5
 done
 
+ssh ${host_gw} resolvectl flush-caches
+
 echo "Validating network access..."
 while true; do
   num_fail=0
   t=s
-  for i in `seq 1 ${ydb_static}`; do
+  for i in `seq ${ydb_nodes_begin} ${ydb_nodes_end}`; do
     vm_name="${host_base}-s${i}"
-    ZODAK_TEST=`ssh ${host_gw} ssh -o StrictHostKeyChecking=no yc-user@${vm_name} echo ZODAK 2>/dev/null`
-    if [ "$ZODAK_TEST" == "ZODAK" ]; then
-      echo "Host ${vm_name} is available."
-    else
-      echo "Host ${vm_name} IS NOT AVAILABLE!"
-      num_fail=`echo "$num_fail + 1" | bc`
-    fi
-  done
-  for i in `seq 1 ${ydb_dynamic}`; do
-    vm_name="${host_base}-d${i}"
-    ZODAK_TEST=`ssh ${host_gw} ssh -o StrictHostKeyChecking=no yc-user@${vm_name} echo ZODAK 2>/dev/null`
+    ZODAK_TEST=`ssh ${host_gw} ssh -o StrictHostKeyChecking=no ${host_user}@${vm_name} echo ZODAK 2>/dev/null`
     if [ "$ZODAK_TEST" == "ZODAK" ]; then
       echo "Host ${vm_name} is available."
     else
@@ -137,15 +109,10 @@ while true; do
 done
 
 echo "Configuring host names and timezones..."
-for i in `seq 1 ${ydb_static}`; do
+for i in `seq ${ydb_nodes_begin} ${ydb_nodes_end}`; do
   vm_name="${host_base}-s${i}"
-  ssh ${host_gw} ssh yc-user@${vm_name} sudo hostnamectl set-hostname ${vm_name}
-  ssh ${host_gw} ssh yc-user@${vm_name} sudo timedatectl set-timezone Europe/Moscow
-done
-for i in `seq 1 ${ydb_dynamic}`; do
-  vm_name="${host_base}-d${i}"
-  ssh ${host_gw} ssh yc-user@${vm_name} sudo hostnamectl set-hostname ${vm_name}
-  ssh ${host_gw} ssh yc-user@${vm_name} sudo timedatectl set-timezone Europe/Moscow
+  ssh ${host_gw} ssh ${host_user}@${vm_name} sudo hostnamectl set-hostname ${vm_name}
+  ssh ${host_gw} ssh ${host_user}@${vm_name} sudo timedatectl set-timezone Europe/Moscow
 done
 
 # End Of File

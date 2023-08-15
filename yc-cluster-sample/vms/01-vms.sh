@@ -10,5 +10,6 @@ ydb_nodes_begin=1
 ydb_nodes_end=${ydb_nodes}
 
 . ./supp/vms.sh
+. ./supp/host.sh
 
 # End Of File

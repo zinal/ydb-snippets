@@ -1,0 +1,162 @@
+This HOWTO explains the offline installation procedure for TPC-C YDB runner tools.
+
+Logging: BS_PDISK_TEST -> WARN
+
+table_service_config:
+  sql_version: 1
+  enable_kqp_scan_query_source_read: true
+  enable_kqp_data_query_source_read: true
+  enable_kqp_data_query_stream_lookup: true
+  enable_kqp_scan_query_stream_lookup: true
+  enable_kqp_immediate_effects: true
+grpc_config:
+  worker_threads: 2
+  workers_per_completion_queue: 1
+  handlers_per_completion_queue: 1000
+  grpc_proxy_count: 2
+shared_cache_config:
+  memory_limit: 100000000000
+
+** 1. Preparing the Python image
+
+Actions are performed on host with internet access.
+
+sudo apt-get install -y build-essential gdb lcov pkg-config \
+      libbz2-dev libffi-dev libgdbm-dev libgdbm-compat-dev liblzma-dev \
+      libncurses5-dev libreadline6-dev libsqlite3-dev libssl-dev \
+      lzma lzma-dev tk-dev uuid-dev zlib1g-dev
+
+wget https://github.com/python/cpython/archive/refs/tags/v3.11.5.tar.gz
+
+./configure --prefix=/opt/custom-python --enable-optimizations --enable-shared
+
+nice make -j16
+
+sudo mkdir -v /opt/custom-python
+sudo chown yc-user /opt/custom-python
+
+make install
+
+export PATH=/opt/custom-python/bin:$PATH
+export LD_LIBRARY_PATH=/opt/custom-python/lib
+
+pip3 install virtualenv wheel
+pip3 install 'ydb[yc]'
+pip3 install numpy requests
+pip3 install pssh parallel-ssh
+
+(cd /opt/custom-python/bin && ln -s pssh parallel-ssh && ln -s pscp parallel-scp)
+
+vi /opt/custom-python/lib/python3.11/site-packages/psshlib/cli.py:
+  - import version
+  + from . import version
+
+# https://bugs.archlinux.org/task/46571
+vi /opt/custom-python/lib/python3.11/site-packages/psshlib/manager.py
+  + import fcntl
+  + fcntl.fcntl(wakeup_writefd, fcntl.F_SETFL, os.O_NONBLOCK)
+  (near line 216)
+
+parallel-ssh --version
+parallel-scp --version
+
+scp /home/demo/ydb/bin/ydb runner-s1:/opt/custom-python/bin/
+
+(cd /opt && tar cf - custom-python) | gzip -9c >custom-python.tgz
+
+
+** 2. Downloading the packages
+
+OpenJDK 20: https://adoptium.net/download/
+
+wget https://storage.yandexcloud.net/ydb-benchmark-builds/benchbase-ydb.tgz
+
+wget custom-python.tgz
+
+
+** 3. Installing the packages
+
+vi /etc/ssh/sshd_config
+    PermitUserEnvironment yes
+sudo systemctl restart sshd
+for i in `seq 1 4`; do ssh runner-s${i} sudo systemctl restart sshd; done
+
+vi /etc/systemd/logind.conf
+    KillUserProcesses=no
+systemctl restart systemd-logind.service
+
+for i in `seq 1 4`; do scp OpenJDK20U-jdk_x64_linux_hotspot_20.0.2_9.tar.gz runner-s${i}:.; done
+for i in `seq 1 4`; do scp custom-python.tgz runner-s${i}:.; done
+for i in `seq 1 4`; do scp benchbase-ydb.tgz runner-s${i}:.; done
+
+for i in `seq 1 4`; do ssh runner-s${i} sudo mkdir -v /opt/openjdk-20; done
+for i in `seq 1 4`; do ssh runner-s${i} sudo chown -v yc-user /opt/openjdk-20; done
+for i in `seq 1 4`; do ssh runner-s${i} tar xfz OpenJDK20U-jdk_x64_linux_hotspot_20.0.2_9.tar.gz -C /opt/openjdk-20 --strip-component=1; done
+
+for i in `seq 1 4`; do ssh runner-s${i} sudo mkdir -v /opt/custom-python; done
+for i in `seq 1 4`; do ssh runner-s${i} sudo chown -v yc-user /opt/custom-python; done
+for i in `seq 1 4`; do ssh runner-s${i} tar xfz custom-python.tgz -C /opt/custom-python --strip-component=1; done
+
+for i in `seq 1 4`; do ssh runner-s${i} tar xfz benchbase-ydb.tgz; done
+
+cat >environment <<EOF
+PATH=/opt/custom-python/bin:/opt/openjdk-20/bin:/usr/local/bin:/usr/bin:/bin
+LD_LIBRARY_PATH=/opt/custom-python/lib
+JAVA_HOME=/opt/openjdk-20
+EOF
+
+for i in `seq 1 4`; do scp environment runner-s${i}:.ssh/environment; done
+for i in `seq 1 4`; do ssh runner-s${i} java -version; done
+for i in `seq 1 4`; do ssh runner-s${i} python3 --version; done
+for i in `seq 1 4`; do ssh runner-s${i} parallel-ssh --version; done
+
+
+** 3. YDB Connection Configuration
+
+ydb config profile create tpcc_root
+ydb config profile update --ca-file /home/yc-user/ca.crt tpcc_root
+
+ydb -p tpcc_root yql -s 'CREATE USER tpcc1 PASSWORD "Passw0rd"'
+ydb -p tpcc_root yql -s 'ALTER GROUP `DATABASE-ADMINS` ADD USER tpcc1'
+ydb -p tpcc_root scheme permissions grant -p ydb.generic.full_legacy /Domain0/tpcc DATABASE-ADMINS
+
+ydb config profile create tpcc1
+ydb config profile update --ca-file /home/demo/yasubd-install/ydb-ansible-0.2/tls/CA/certs/ca.crt tpcc1
+ydb config profile update --ca-file /home/yc-user/ca.crt tpcc1
+
+export YDB_SSL_ROOT_CERTIFICATES_FILE=/home/yc-user/ca.crt
+export YDB_USER=tpcc1
+export YDB_PASSWORD='Passw0rd'
+
+mkdir -p $HOME/tpcc_logs
+
+vi runner_hosts.txt
+
+# Load data
+./run_ydb.sh --warehouses 10000 \
+  --config tpcc_config_selfhosted_template.xml \
+  --secure --ydb-host ycydb-s1 --ydb-port 2136 --database /Domain0/tpcc \
+  --hosts runner_hosts.txt \
+  --log-dir $HOME/tpcc_logs \
+  --no-run
+
+# Retrieve token from viewer
+https://localhost:8766/viewer/json/whoami
+mkdir ~/.ydb
+vi ~/.ydb/token
+
+# Table compaction
+./table_full_compact.py --viewer-url https://ycydb-s1:8766 --auth Login --all /Domain0/tpcc/order_line
+
+export AWS_ACCESS_KEY_ID='...'
+export AWS_SECRET_ACCESS_KEY='...'
+ydb -p tpcc_root export s3 --s3-endpoint storage.yandexcloud.net --bucket tpcc-backup --item src=.,dst=backup1 --compression zstd
+
+# Run the test
+./run_ydb.sh --warehouses 10000 \
+  --config tpcc_config_selfhosted_template.xml \
+  --secure --ydb-host ycydb-s1 --ydb-port 2136 --database /Domain0/tpcc \
+  --hosts runner_hosts.txt \
+  --java-memory 2g --skip-compaction \
+  --log-dir $HOME/tpcc_logs \
+  --run-phase-only --warmup 600 --time 3600

@@ -1,0 +1,29 @@
+Actions {
+  RemoveConfigItems {
+    CookieFilter {
+      Cookies: "TPCC-01"
+    }
+  }
+}
+
+Actions {
+  AddConfigItem {
+      ConfigItem {
+          Cookie: "TPCC-01"
+          UsageScope {
+              TenantAndNodeTypeFilter {
+                  Tenant: "/Domain0/tpcc"
+              }
+          }
+          Config {
+              TableServiceConfig {
+                  EnableKqpImmediateEffects: true
+                  EnableKqpDataQueryStreamLookup: true
+                  EnableKqpDataQuerySourceRead: true
+                  EnableKqpScanQuerySourceRead: true
+                  EnableKqpScanQueryStreamLookup: true
+              }
+          }
+      }
+  }
+}

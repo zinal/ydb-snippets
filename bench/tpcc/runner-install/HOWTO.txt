@@ -133,7 +133,7 @@ mkdir -p $HOME/tpcc_logs
 vi runner_hosts.txt
 
 # Load data
-./run_ydb.sh --warehouses 10000 \
+./run_ydb.sh --warehouses 2000 \
   --config tpcc_config_selfhosted_template.xml \
   --secure --ydb-host ycydb-s1 --ydb-port 2136 --database /Domain0/tpcc \
   --hosts runner_hosts.txt \
@@ -159,4 +159,13 @@ ydb -p tpcc_root export s3 --s3-endpoint storage.yandexcloud.net --bucket tpcc-b
   --hosts runner_hosts.txt \
   --java-memory 2g --skip-compaction \
   --log-dir $HOME/tpcc_logs \
-  --run-phase-only --warmup 600 --time 3600
+  --run-phase-only --warmup 1200 --time 7200
+
+
+./run_multiple.sh --whlist "1000 2000 3000 4000 5000 6000 7000 8000 9000 10000" \
+  --config tpcc_config_selfhosted_template.xml \
+  --secure --ydb-host ycydb-s1 --ydb-port 2136 --database /Domain0/tpcc \
+  --hosts runner_hosts.txt --max-sessions 10000 \
+  --java-memory 2g --skip-compaction \
+  --log-dir $HOME/tpcc_logs \
+  --run-phase-only --warmup 600 --time 1200

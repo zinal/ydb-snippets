@@ -1,0 +1,13 @@
+cp ~/ydb-ansible/tls/CA/certs/ca.crt .
+export PATH=$PATH:~/yasubd/yasubd-23.2.12.3-linux-amd64/bin
+export LD_LIBRARY_PATH=~/yasubd/yasubd-23.2.12.3-linux-amd64/lib
+
+YDB_ENDPOINT=grpcs://ycydb-s1:2135
+YDB_ROOT=/ycydb01
+export YDB_USER=root
+export YDB_PASSWORD='...'
+
+ydb --ca-file ca.crt -e ${YDB_ENDPOINT} -d ${YDB_ROOT} auth get-token -f >ydbd-token-file
+ydbd -f ydbd-token-file --ca-file ca.crt -s ${YDB_ENDPOINT} admin console configs update db-settings.txt
+
+# BS_PDISK_TEST

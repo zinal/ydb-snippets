@@ -1,6 +1,6 @@
 This HOWTO explains the offline installation procedure for TPC-C YDB runner tools.
 
-Logging: BS_PDISK_TEST -> WARN
+Logging: BS_PDISK_TEST -> WARN, KQP_NODE -> CRIT
 
 table_service_config:
   sql_version: 1

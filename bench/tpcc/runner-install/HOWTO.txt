@@ -135,9 +135,10 @@ vi runner_hosts.txt
 # Load data
 ./run_ydb.sh --warehouses 2000 \
   --config tpcc_config_selfhosted_template.xml \
-  --secure --ydb-host ycydb-s1 --ydb-port 2136 --database /Domain0/tpcc \
-  --hosts runner_hosts.txt \
-  --log-dir $HOME/tpcc_logs \
+  --ydb-host ycydb-s1 --ydb-port 2136 --secure \
+  --database /Domain0/tpcc \
+  --hosts runner_hosts.txt --log-dir $HOME/tpcc_logs \
+  --viewer-url 'https://ycydb-s1:8766' --compaction-auth Login \
   --no-run
 
 # Retrieve token from viewer

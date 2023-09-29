@@ -1,0 +1,36 @@
+# Настройки процесса создания виртуальных машин под кластер YDB
+
+# Имя промежуточного "хоста подскока", с которого видны создаваемые виртуалки
+host_gw=run0
+# Базовое имя хоста, создаваемые виртуалки называются по шаблону ${host_base}-s{host_number}
+host_base=ydb-d
+# Имя пользователя на виртуалках с правом на беспарольный sudo.
+# Необходим беспарольный ssh-доступ с "хоста подскока".
+host_user=yc-user
+
+# Имя файла публичного ключа на "хосте подскока",
+# который нужно прописать при создании виртуалок для беспарольного входа.
+keyfile_gw=.ssh/id_ecdsa.pub
+
+# AZ Яндекс Облака, в которой создаются виртуалки
+yc_zone=ru-central1-b
+# Существующая подсеть в Яндекс Облаке
+yc_subnet=default-ru-central1-b
+# Тип платформы виртуалок, standard-v2 или standard-v3
+yc_platform=standard-v3
+# Выбранный образ операционной системы виртуалок
+#yc_vm_image="image-folder-id=standard-images,image-family=ubuntu-2204-lts"
+#yc_vm_image="image-folder-id=standard-images,image-name=astralinux-alse-v20230215"
+#yc_vm_image="image-folder-id=standard-images,image-name=redsoft-red-os-standart-server-7-3-v20220810"
+#yc_vm_image="image-folder-id=standard-images,image-name=almalinux-9-v20230417"
+#yc_vm_image="image-folder-id=standard-images,image-name=almalinux-v20230417"
+yc_vm_image="image-folder-id=standard-images,image-name=ubuntu-22-04-lts-v20230925"
+# Количество vCPU каждой виртуалки
+yc_vm_cores=16
+# Объем оперативной памяти на одну виртуалку, Гбайт
+yc_vm_mem=32
+
+# Количество узлов в кластере
+ydb_nodes=9
+
+# End Of File

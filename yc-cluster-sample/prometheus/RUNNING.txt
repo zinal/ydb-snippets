@@ -1,0 +1,7 @@
+Prometheus:
+
+./prometheus --config.file=prometheus-ydb.yml
+
+VictoriaMetrics:
+
+./victoria-metrics-prod -promscrape.config prometheus-ydb.yml -promscrape.config.strictParse=false -storageDataPath ./data

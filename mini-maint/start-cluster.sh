@@ -9,7 +9,7 @@ set -u
 
 ./wait-storage.sh
 
-cat data/databases | while read DBNAME; do
+cat data/databases | while read DBNAME YAML; do
   if [[ ! -z "$DBNAME" ]]; then
     echo "** Starting database ${DBNAME}..."
     ./start-database.sh ${DBNAME}

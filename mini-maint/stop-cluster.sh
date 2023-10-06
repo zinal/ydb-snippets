@@ -7,7 +7,7 @@ set -u
 
 SVC_STATIC=`cat data/svc-static`
 
-cat data/databases | while read DBNAME; do
+cat data/databases | while read DBNAME YAML; do
   if [[ ! -z "$DBNAME" ]]; then
     echo "** Stopping database ${DBNAME}..."
     ./stop-database.sh ${DBNAME}

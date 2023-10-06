@@ -8,6 +8,9 @@ scrape_configs:
     scheme: https
     tls_config:
       ca_file: "/home/demo/ca.crt"
+    basic_auth:
+      username: stroppy
+      password: $2y$10$4kt5ymMbEq5m6AUeaa90xufYAFS8x9.9tNqLKuufrF9ksqkoAhNMi
     static_configs:
       - targets: ["ycydb-s1:8766","ycydb-s2:8766","ycydb-s3:8766","ycydb-s4:8766","ycydb-s5:8766","ycydb-s6:8766","ycydb-s7:8766","ycydb-s8:8766","ycydb-s9:8766","ycydb-s10:8766","ycydb-s11:8766","ycydb-s12:8766","ycydb-s13:8766","ycydb-s14:8766","ycydb-s15:8766","ycydb-s16:8766","ycydb-s17:8766","ycydb-s18:8766"]
         labels:
@@ -21,6 +24,9 @@ scrape_configs:
     scheme: https
     tls_config:
       ca_file: "/home/demo/ca.crt"
+    basic_auth:
+      username: stroppy
+      password: $2y$10$4kt5ymMbEq5m6AUeaa90xufYAFS8x9.9tNqLKuufrF9ksqkoAhNMi
     static_configs:
       - targets: ["ycydb-s1:8766","ycydb-s2:8766","ycydb-s3:8766","ycydb-s4:8766","ycydb-s5:8766","ycydb-s6:8766","ycydb-s7:8766","ycydb-s8:8766","ycydb-s9:8766","ycydb-s10:8766","ycydb-s11:8766","ycydb-s12:8766","ycydb-s13:8766","ycydb-s14:8766","ycydb-s15:8766","ycydb-s16:8766","ycydb-s17:8766","ycydb-s18:8766"]
         labels:
@@ -34,6 +40,9 @@ scrape_configs:
     scheme: https
     tls_config:
       ca_file: "/home/demo/ca.crt"
+    basic_auth:
+      username: stroppy
+      password: $2y$10$4kt5ymMbEq5m6AUeaa90xufYAFS8x9.9tNqLKuufrF9ksqkoAhNMi
     static_configs:
       - targets: ["ycydb-s1:8766","ycydb-s2:8766","ycydb-s3:8766","ycydb-s4:8766","ycydb-s5:8766","ycydb-s6:8766","ycydb-s7:8766","ycydb-s8:8766","ycydb-s9:8766","ycydb-s10:8766","ycydb-s11:8766","ycydb-s12:8766","ycydb-s13:8766","ycydb-s14:8766","ycydb-s15:8766","ycydb-s16:8766","ycydb-s17:8766","ycydb-s18:8766"]
         labels:
@@ -47,6 +56,9 @@ scrape_configs:
     scheme: https
     tls_config:
       ca_file: "/home/demo/ca.crt"
+    basic_auth:
+      username: stroppy
+      password: $2y$10$4kt5ymMbEq5m6AUeaa90xufYAFS8x9.9tNqLKuufrF9ksqkoAhNMi
     static_configs:
       - targets: ["ycydb-s1:8766","ycydb-s2:8766","ycydb-s3:8766","ycydb-s4:8766","ycydb-s5:8766","ycydb-s6:8766","ycydb-s7:8766","ycydb-s8:8766","ycydb-s9:8766","ycydb-s10:8766","ycydb-s11:8766","ycydb-s12:8766","ycydb-s13:8766","ycydb-s14:8766","ycydb-s15:8766","ycydb-s16:8766","ycydb-s17:8766","ycydb-s18:8766"]
         labels:
@@ -60,6 +72,9 @@ scrape_configs:
     scheme: https
     tls_config:
       ca_file: "/home/demo/ca.crt"
+    basic_auth:
+      username: stroppy
+      password: $2y$10$4kt5ymMbEq5m6AUeaa90xufYAFS8x9.9tNqLKuufrF9ksqkoAhNMi
     static_configs:
       - targets: ["ycydb-s1:8766","ycydb-s2:8766","ycydb-s3:8766","ycydb-s4:8766","ycydb-s5:8766","ycydb-s6:8766","ycydb-s7:8766","ycydb-s8:8766","ycydb-s9:8766","ycydb-s10:8766","ycydb-s11:8766","ycydb-s12:8766","ycydb-s13:8766","ycydb-s14:8766","ycydb-s15:8766","ycydb-s16:8766","ycydb-s17:8766","ycydb-s18:8766"]
         labels:
@@ -73,6 +88,9 @@ scrape_configs:
     scheme: https
     tls_config:
       ca_file: "/home/demo/ca.crt"
+    basic_auth:
+      username: stroppy
+      password: $2y$10$4kt5ymMbEq5m6AUeaa90xufYAFS8x9.9tNqLKuufrF9ksqkoAhNMi
     static_configs:
       - targets: ["ycydb-s1:8766","ycydb-s2:8766","ycydb-s3:8766","ycydb-s4:8766","ycydb-s5:8766","ycydb-s6:8766","ycydb-s7:8766","ycydb-s8:8766","ycydb-s9:8766","ycydb-s10:8766","ycydb-s11:8766","ycydb-s12:8766","ycydb-s13:8766","ycydb-s14:8766","ycydb-s15:8766","ycydb-s16:8766","ycydb-s17:8766","ycydb-s18:8766"]
         labels:
@@ -86,6 +104,9 @@ scrape_configs:
     scheme: https
     tls_config:
       ca_file: "/home/demo/ca.crt"
+    basic_auth:
+      username: stroppy
+      password: $2y$10$4kt5ymMbEq5m6AUeaa90xufYAFS8x9.9tNqLKuufrF9ksqkoAhNMi
     static_configs:
       - targets: ["ycydb-s1:8766","ycydb-s2:8766","ycydb-s3:8766","ycydb-s4:8766","ycydb-s5:8766","ycydb-s6:8766","ycydb-s7:8766","ycydb-s8:8766","ycydb-s9:8766","ycydb-s10:8766","ycydb-s11:8766","ycydb-s12:8766","ycydb-s13:8766","ycydb-s14:8766","ycydb-s15:8766","ycydb-s16:8766","ycydb-s17:8766","ycydb-s18:8766"]
         labels:

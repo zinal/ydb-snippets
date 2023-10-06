@@ -1,9 +1,10 @@
 #! /bin/bash
 
 DBNAME="$1"
+LOCAL_YAML="$2"
 
-if [ -z "$DBNAME" ]; then
-  echo "USAGE: $0 DBNAME"
+if [ -z "$DBNAME" ] || [ -z "$LOCAL_YAML" ] || [ ! -f "$LOCAL_YAML" ]; then
+  echo "USAGE: $0 DBNAME FILE.YAML"
   exit 1
 fi
 
@@ -12,19 +13,28 @@ set -u
 
 . ./options.sh
 
-stopNode() {
-  DBHOST="$1"
-  cat data/svc-db-${DBNAME} | while read DBSVC DBPORT; do
-    if [[ ! -z "$DBSVC" ]]; then
-      echo "...${DBSVC}"
-      ssh ${REMOTE_USER}'@'${DBHOST} sudo systemctl stop ${DBSVC}
+updateYaml() {
+  YAML=$1
+  DBHOST=$2
+  scp ${LOCAL_YAML} ${REMOTE_USER}'@'${DBHOST}:/tmp/
+  ssh ${REMOTE_USER}'@'${DBHOST} sudo mv /tmp/${LOCAL_YAML} ${REMOTE_YDB}/cfg/${YAML} </dev/null
+  ssh ${REMOTE_USER}'@'${DBHOST} sudo chown root:root ${REMOTE_YDB}/cfg/${YAML} </dev/null
+}
+
+doIt() {
+  YAML=$1
+  cat data/hosts-db-${DBNAME} | while read DBHOST; do
+    if [[ ! -z "$DBHOST" ]]; then
+      echo "Updating ${YAML} on ${DBHOST}..."
+      updateYaml ${YAML} ${DBHOST}
     fi
   done
 }
 
-cat data/hosts-db-${DBNAME} | while read DBHOST; do
-  if [[ ! -z "$DBHOST" ]]; then
-    echo "Stopping services on ${DBHOST}..."
-    stopNode ${DBHOST}
+FOUNDIT=0
+cat data/databases | while read DBNAME1 YAML; do
+  if [ "$DBNAME" = "$DBNAME1" ]; then
+    doIt "$YAML"
+    FOUNDIT=1
   fi
 done

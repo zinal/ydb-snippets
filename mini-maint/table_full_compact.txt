@@ -1,0 +1,7 @@
+For clusters with authorization, obtain the token from the following page:
+
+https://<ydb-node>:8765/viewer/json/whoami
+
+The token has to be saved to the ~/.ydb/token file
+
+After that, the `--auth Login` argument has to be used when running the tool.

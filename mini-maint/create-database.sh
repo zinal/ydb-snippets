@@ -1,11 +1,16 @@
 #! /bin/bash
 
-set -e
-set -u
-
 DB_NAME=$1
 DB_POOL=ssd
 DB_GROUPS=$2
+
+if [ -z "$DB_NAME" ] || [ -z "$DB_GROUPS" ]; then
+  echo "USAGE: $0 DBNAME N"
+  exit 1
+fi
+
+set -e
+set -u
 
 . ./options.sh
 

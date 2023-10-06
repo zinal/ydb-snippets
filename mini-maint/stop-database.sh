@@ -1,11 +1,16 @@
 #! /bin/bash
 
+DBNAME="$1"
+
+if [ -z "$DBNAME" ]; then
+  echo "USAGE: $0 DBNAME"
+  exit 1
+fi
+
 set -e
 set -u
 
 . ./options.sh
-
-DBNAME="$1"
 
 stopNode() {
   DBHOST="$1"

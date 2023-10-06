@@ -1,5 +1,11 @@
 #! /bin/bash
 
+ASKYES=$1
+if [ -z "$ASKYES" ]; then
+  echo "USAGE: $0 yes-really-do-it"
+  exit
+fi
+
 set -e
 set -u
 

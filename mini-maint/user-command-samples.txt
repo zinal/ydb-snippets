@@ -1,0 +1,7 @@
+ydb config profile create testdb_root
+...
+ydb config profile update --ca-file /home/demo/ca.crt testdb_root
+ydb -p testdb_root yql -s 'CREATE USER tpcab PASSWORD "passw0rd"'
+ydb -p testdb_root yql -s 'ALTER GROUP `DATABASE-ADMINS` ADD USER tpcab'
+# for backups
+ydb -p testdb_root scheme permissions grant -p ydb.generic.full_legacy /Domain0/testdb DATABASE-ADMINS

@@ -1,0 +1,31 @@
+Actions {
+  RemoveConfigItems {
+    CookieFilter {
+      Cookies: "TABCONF-001"
+    }
+  }
+}
+
+Actions {
+  AddConfigItem {
+      ConfigItem {
+          Cookie: "TABCONF-001"
+          UsageScope {
+              TenantAndNodeTypeFilter {
+                  Tenant: "/Domain0/testdb"
+              }
+          }
+          Config {
+              TableServiceConfig {
+                  QueryLimits {
+                      ResultRowsLimit: 15000
+                  }
+                  EnableKqpDataQueryStreamLookup: true
+                  EnableKqpScanQueryStreamLookup: true
+                  EnableKqpDataQuerySourceRead: true
+                  EnableKqpImmediateEffects: true
+              }
+          }
+      }
+  }
+}

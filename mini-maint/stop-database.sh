@@ -17,7 +17,7 @@ stopNode() {
   cat data/svc-db-${DBNAME} | while read DBSVC DBPORT; do
     if [[ ! -z "$DBSVC" ]]; then
       echo "...${DBSVC}"
-      ssh ${REMOTE_USER}'@'${DBHOST} sudo systemctl stop ${DBSVC}
+      ssh ${REMOTE_USER}'@'${DBHOST} sudo systemctl stop ${DBSVC} </dev/null
     fi
   done
 }

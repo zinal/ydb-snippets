@@ -17,7 +17,7 @@ startNode() {
   cat data/svc-db-${DBNAME} | while read DBSVC DBPORT; do
     if [[ ! -z "$DBSVC" ]]; then
       echo "...${DBSVC}"
-      ssh ${REMOTE_USER}'@'${DBHOST} sudo systemctl start ${DBSVC}
+      ssh ${REMOTE_USER}'@'${DBHOST} sudo systemctl start ${DBSVC} </dev/null
     fi
   done
 }

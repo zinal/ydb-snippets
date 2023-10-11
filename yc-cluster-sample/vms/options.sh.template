@@ -31,6 +31,8 @@ yc_vm_mem=32
 # Размер диска для данных YDB на одну виртуалку, Гбайт
 yc_data_disk_size=186G
 yc_data_disk_type=network-ssd-nonreplicated
+yc_boot_disk_size=93G
+yc_boot_disk_type=network-ssd-nonreplicated
 
 # Количество узлов в кластере
 ydb_nodes=9

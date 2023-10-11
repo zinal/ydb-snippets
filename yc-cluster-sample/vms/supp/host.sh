@@ -8,4 +8,6 @@ for i in `seq ${ydb_nodes_begin} ${ydb_nodes_end}`; do
   ssh ${host_gw} ssh ${host_user}@${vm_name} sudo timedatectl set-timezone Europe/Moscow
 done
 
+wait
+
 # End Of File

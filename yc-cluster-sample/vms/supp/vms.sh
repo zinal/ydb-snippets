@@ -54,7 +54,7 @@ for i in `seq ${ydb_nodes_begin} ${ydb_nodes_end}`; do
   vm_disk_boot="${host_base}${i}-boot"
 
   disk_datum=""
-  if [ ${ydb_disk_count} -gt 0 ];
+  if [ ${ydb_disk_count} -gt 0 ]; then
     for j in `seq 1 ${ydb_disk_count}`; do
       disk_datum="$disk_datum --attach-disk disk-name=${host_base}${i}-data${j},auto-delete=true"
     done

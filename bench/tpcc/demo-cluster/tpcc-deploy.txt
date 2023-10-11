@@ -1,0 +1,42 @@
+Logging: BS_PDISK_TEST -> WARN, KQP_NODE -> CRIT
+
+ydb -p testdb_root scheme permissions grant -p ydb.generic.full_legacy /Domain0/testdb DATABASE-ADMINS
+ydb -p testdb_root yql -s 'CREATE USER tpcab PASSWORD "passw0rd"'
+ydb -p testdb_root yql -s 'ALTER GROUP `DATABASE-ADMINS` ADD USER tpcab'
+
+sudo vi /etc/systemd/logind.conf
+  KillUserProcesses=no
+sudo systemctl restart systemd-logind.service
+
+for i in `seq 1 4`; do scp -r tpcc yc-user@run${i}:.; done
+for i in `seq 1 4`; do ssh yc-user@run${i} tar xfz tpcc/OpenJDK20U-jdk_x64_linux_hotspot_20.0.2_9.tar.gz; done
+for i in `seq 1 4`; do ssh yc-user@run${i} tar xfz tpcc/custom-python.tgz; done
+for i in `seq 1 4`; do ssh yc-user@run${i} tar xfz tpcc/benchbase-ydb.tgz; done
+for i in `seq 1 4`; do ssh yc-user@run${i} tar xfz tpcc/tpcc-helpers-ydb.tgz; done
+for i in `seq 1 4`; do ssh yc-user@run${i} mv jdk-20.0.2+9 openjdk-20; done
+for i in `seq 1 4`; do scp ~/ca.crt yc-user@run${i}:.; done
+
+for i in `seq 1 4`; do ssh yc-user@run${i} sudo mv custom-python /opt/; done
+for i in `seq 1 4`; do ssh yc-user@run${i} sudo chown -R root:root /opt/custom-python; done
+
+ssh yc-user@run1 ssh-keygen -q -t ecdsa -f /home/yc-user/.ssh/id_ecdsa
+KEY=`ssh yc-user@run1 cat .ssh/id_ecdsa.pub`
+for i in `seq 1 4`; do ssh yc-user@run${i} "echo '$KEY' >>.ssh/authorized_keys"; done
+for i in `seq 1 4`; do ssh yc-user@run1 ssh -o StrictHostKeyChecking=no run${i} hostname -f; done
+
+cat >environment <<EOF
+PATH=/opt/custom-python/bin:$HOME/openjdk-20/bin:/usr/local/bin:/usr/bin:/bin
+LD_LIBRARY_PATH=/opt/custom-python/lib
+JAVA_HOME=$HOME/openjdk-20
+EOF
+/etc/ssh/sshd_config: PermitUserEnvironment yes
+for i in `seq 1 4`; do ssh yc-user@run${i} sudo systemctl restart sshd; done
+
+for i in `seq 1 4`; do ssh yc-user@run${i} parallel-ssh --version; done
+for i in `seq 1 4`; do ssh yc-user@run${i} java -version; done
+
+ydb config profile create tpcc1
+ydb config profile update --ca-file /home/yc-user/ca.crt tpcc1
+
+for j in `seq 1 10`; do for i in `seq 1 4`; do echo "run${i}"; done; done > runner_hosts.txt
+

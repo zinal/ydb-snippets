@@ -31,3 +31,19 @@ for x in `seq 1 21`; do ssh yc-user@ydb-d${x} screen -d -m sudo apt-get install 
 
 linux-image-5.10-hardened
 
+****************
+
+ydb -p testdb_root yql -s 'CREATE USER tpcab PASSWORD "passw0rd"'
+ydb -p testdb_root yql -s 'ALTER GROUP `DATABASE-ADMINS` ADD USER tpcab'
+
+ydb yql -s 'CREATE TABLE zodak(a Int32, b Int32, PRIMARY KEY(a))'
+ydb yql -s 'ALTER TABLE zodak ADD INDEX ix_b GLOBAL ON (b)'
+ydb yql -s 'SELECT COUNT(*) FROM zodak VIEW ix_b'
+
+Status: GENERIC_ERROR
+Issues: 
+<main>: Error: Execution, code: 1060
+    <main>: Error: Failed to resolve table `/Domain0/testdb/zodak/ix_b/indexImplTable` keys: PathErrorNotExist., code: 2028
+    <main>: Error: Query invalidated on scheme/internal error., code: 2019
+
+ydb yql -s 'DROP TABLE zodak'

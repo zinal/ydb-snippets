@@ -1,0 +1,33 @@
+for x in `seq 1 9`; do scp logind.conf yc-user@ydb-s${x}:.; done
+for x in `seq 1 9`; do ssh yc-user@ydb-s${x} sudo cp -v logind.conf /etc/systemd/logind.conf; done
+for x in `seq 1 9`; do ssh yc-user@ydb-s${x} sudo systemctl restart systemd-logind; done
+
+for x in `seq 1 9`; do screen -d -m ssh yc-user@ydb-s${x} sudo apt-get update; done
+for x in `seq 1 9`; do screen -d -m ssh yc-user@ydb-s${x} sudo apt-get install -y screen mc; done
+for x in `seq 1 9`; do ssh yc-user@ydb-s${x} screen -d -m sudo apt-get upgrade -y; done
+for x in `seq 1 9`; do ssh yc-user@ydb-s${x} screen -d -m sudo apt-get install -y linux-image-5.15-hardened; done
+
+for x in `seq 1 9`; do ssh yc-user@ydb-s${x} sudo /sbin/astra-hardened-control enable; done
+for x in `seq 1 9`; do ssh yc-user@ydb-s${x} sudo shutdown -r now; done
+
+for x in `seq 1 9`; do ssh yc-user@ydb-s${x} screen -d -m sudo apt-get install -y atop; done
+
+**************
+
+for x in `seq 1 21`; do scp logind.conf yc-user@ydb-d${x}:.; done
+for x in `seq 1 21`; do ssh yc-user@ydb-d${x} sudo cp -v logind.conf /etc/systemd/logind.conf; done
+for x in `seq 1 21`; do ssh yc-user@ydb-d${x} sudo systemctl restart systemd-logind; done
+
+for x in `seq 1 21`; do screen -d -m ssh yc-user@ydb-d${x} sudo apt-get update; done
+for x in `seq 1 21`; do screen -d -m ssh yc-user@ydb-d${x} sudo apt-get install -y screen mc; done
+for x in `seq 1 21`; do ssh yc-user@ydb-d${x} screen -d -m sudo DEBIAN_FRONTEND=noninteractive apt-get upgrade -y; done
+for x in `seq 1 21`; do ssh yc-user@ydb-d${x} ldd --version; done
+
+for x in `seq 1 21`; do ssh yc-user@ydb-d${x} screen -d -m sudo apt-get install -y linux-image-5.15-hardened; done
+for x in `seq 1 21`; do ssh yc-user@ydb-d${x} sudo /sbin/astra-hardened-control enable; done
+for x in `seq 1 21`; do ssh yc-user@ydb-d${x} sudo shutdown -r now; done
+
+for x in `seq 1 21`; do ssh yc-user@ydb-d${x} screen -d -m sudo apt-get install -y atop; done
+
+linux-image-5.10-hardened
+

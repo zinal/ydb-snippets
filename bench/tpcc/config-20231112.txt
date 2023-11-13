@@ -1,0 +1,4 @@
+static nodes: 9 x ( 16 vCPU, 32 GB RAM, 3 x 372 GB NR SSD )
+dynamic nodes: 9 x ( 16 vCPU, 64 GB RAM )
+YDB version: 23.2.12.yasubd.3.029bfe4
+

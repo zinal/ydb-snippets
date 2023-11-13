@@ -1,0 +1,46 @@
+Result: Total
+  Time: 7200.0 seconds  
+  Start measure: 1699806025
+  Warehouses: 5000
+  New orders: 7640096   
+  TPM-C: 63667.499999999985
+  Efficiency: 99.01632970451008
+  Throughput: 2360.3093982538308
+  Goodput: 2615.209378256656
+
+NewOrder: OK: 7640096, FAILED: 83 (0.0%)
+Payment: OK: 7306710, FAILED: 8521 (0.12%)
+OrderStatus: OK: 680574, FAILED: 111 (0.02%)
+Delivery: OK: 678579, FAILED: 774 (0.11%)
+StockLevel: OK: 678770, FAILED: 11 (0.0%)
+NewOrder:
+  50%: 100 ms
+  90%: 100 ms
+  95%: 100 ms
+  99%: 500 ms
+  99.9%: 500 ms
+Payment:
+  50%: 50 ms
+  90%: 100 ms
+  95%: 100 ms
+  99%: 100 ms
+  99.9%: 1000 ms
+OrderStatus:
+  50%: 10 ms
+  90%: 50 ms
+  95%: 50 ms
+  99%: 100 ms
+  99.9%: 100 ms
+Delivery:
+  50%: 500 ms
+  90%: 500 ms
+  95%: 1000 ms
+  99%: 1000 ms
+  99.9%: 2000 ms
+StockLevel:
+  50%: 10 ms
+  90%: 10 ms
+  95%: 10 ms
+  99%: 100 ms
+  99.9%: 100 ms
+

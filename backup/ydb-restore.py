@@ -106,8 +106,8 @@ def getYdbDriver(profile: str) -> ydb.Driver:
         with open(caFile) as stream:
             caData = stream.read()
     return ydb.Driver(
-        endpoint='',
-        database='',
+        endpoint=curProfile.get('endpoint'),
+        database=curProfile.get('database'),
         credentials=credentials,
         root_certificates=caData,
     )
@@ -135,7 +135,8 @@ def importFromS3(driver: ydb.Driver, tables: dict, bucket: str, output_prefix: s
     import_client = ydb.ImportClient(driver)
     import_client.import_from_s3(import_settings)
 
-# S3_ENDPOINT=https://storage.yandexcloud.net python3 ydb-restore.py tpcc-backup0 /backup/test1 restore1
+# S3_ENDPOINT=https://storage.yandexcloud.net
+# python3 ydb-restore.py tpcc-backup0 /backup/test1 restore1 --ydb_profile ydb0_tpcab
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     logging.getLogger('s3transfer').setLevel(logging.INFO)

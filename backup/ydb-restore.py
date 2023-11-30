@@ -84,6 +84,11 @@ def getYdbDriver(profile: str) -> ydb.Driver:
         curProfile = curProfile.get(profile)
     if curProfile is None:
         raise Exception(f"Illegal YDB CLI profile: {profile}")
+    caData = None
+    caFile = curProfile.get('ca-file')
+    if caFile is not None:
+        with open(caFile) as stream:
+            caData = stream.read()
     credentials = ydb.AnonymousCredentials()
     authData = curProfile.get('authentication')
     if authData is not None:
@@ -96,15 +101,16 @@ def getYdbDriver(profile: str) -> ydb.Driver:
                 )
             case 'static-credentials':
                 loginInfo = authData.get('data')
+                driverConfig = ydb.get_config(
+                    endpoint=curProfile.get('endpoint'),
+                    database=curProfile.get('database'),
+                    root_certificates=caData,
+                )
                 credentials = ydb.StaticCredentials(
+                    driver_config=driverConfig,
                     user=loginInfo.get('user'), 
                     password=loginInfo.get('password'),
                 )
-    caData = None
-    caFile = curProfile.get('ca-file')
-    if caFile is not None:
-        with open(caFile) as stream:
-            caData = stream.read()
     return ydb.Driver(
         endpoint=curProfile.get('endpoint'),
         database=curProfile.get('database'),

@@ -157,4 +157,5 @@ if __name__ == '__main__':
     tables = locateTables(args.bucket, args.input_prefix)
     logging.info(f"Total {len(tables)} tables to be restored")
     with getYdbDriver(args.ydb_profile) as driver:
+        driver.wait(timeout=10)
         importFromS3(driver, tables, args.bucket, args.output_prefix)

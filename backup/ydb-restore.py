@@ -1,13 +1,18 @@
 #! /usr/bin/env python3
 
 import os
+import yaml
 import logging
 import argparse
 import boto3
+import ydb
+import ydb.iam
 
 storage_client = None
 boto_session = None
 s3_endpoint = None
+s3_key_id = None
+s3_key_secret = None
 
 def getS3Client():
     global storage_client
@@ -25,6 +30,9 @@ def getS3Client():
             aws_access_key_id=access_key,
             aws_secret_access_key=secret_key
         )
+        global s3_key_id, s3_key_secret
+        s3_key_id = access_key
+        s3_key_secret = secret_key
 
     endpoint = os.getenv('S3_ENDPOINT')
     if endpoint is None:
@@ -65,40 +73,67 @@ def locateTables(bucket: str, prefix: str) -> dict:
         prevToken = response.get('NextContinuationToken', None)
     return tablesDict
 
-def buildBasicCommand(args: argparse.ArgumentParser) -> list:
-    cmd = ['ydb']
-    if args.profile is not None and len(args.profile) > 0:
-        cmd.append('-p')
-        cmd.append(args.profile)
-    cmd.append('import')
-    cmd.append('s3')
-    cmd.append('--s3-endpoint')
-    cmd.append(s3_endpoint)
-    cmd.append('--bucket')
-    cmd.append(args.bucket)
-    return cmd
+def getYdbDriver(profile: str) -> ydb.Driver:
+    allProfiles = []
+    with open(os.getenv("HOME") + "/ydb/config/config.yaml") as stream:
+        allProfiles = yaml.safe_load(stream)
+    if profile is None:
+        profile = allProfiles.get('active_profile')
+    curProfile = allProfiles.get('profiles')
+    if curProfile is not None:
+        curProfile = curProfile.get(profile)
+    if curProfile is None:
+        raise Exception(f"Illegal YDB CLI profile: {profile}")
+    credentials = ydb.AnonymousCredentials()
+    authData = curProfile.get('authentication')
+    if authData is not None:
+        match authData.get('method'):
+            case 'use-metadata-credentials':
+                credentials = ydb.iam.MetadataUrlCredentials()
+            case 'sa-key-file':
+                credentials = ydb.iam.ServiceAccountCredentials.from_file(
+                    key_file=authData.get('data'),
+                )
+            case 'static-credentials':
+                loginInfo = authData.get('data')
+                credentials = ydb.StaticCredentials(
+                    user=loginInfo.get('user'), 
+                    password=loginInfo.get('password'),
+                )
+    caData = None
+    caFile = curProfile.get('ca-file')
+    if caFile is not None:
+        with open(caFile) as stream:
+            caData = stream.read()
+    return ydb.Driver(
+        endpoint='',
+        database='',
+        credentials=credentials,
+        root_certificates=caData,
+    )
 
-def buildCommands(cmdIn: list, dstprefix: str, maxtabs: int, tables: dict):
-    if dstprefix is not None and len(dstprefix)>0 and dstprefix != '.':
-        if not dstprefix.endswith("/"):
-            dstprefix = dstprefix + "/"
-        if dstprefix.startswith('/'):
-            dstprefix = dstprefix[1:]
-    hasPrefix = dstprefix is not None and len(dstprefix)>0 and dstprefix != '.'
-    allCmds = []
-    cmd = cmdIn.copy()
+def importFromS3(driver: ydb.Driver, tables: dict, bucket: str, output_prefix: str):
+    if output_prefix is not None and len(output_prefix)>0 and output_prefix != '.':
+        if not output_prefix.endswith("/"):
+            output_prefix = output_prefix + "/"
+        if output_prefix.startswith('/'):
+            output_prefix = output_prefix[1:]
+    hasPrefix = output_prefix is not None and len(output_prefix)>0 and output_prefix != '.'
+    import_settings = (
+        ydb.ImportFromS3Settings()
+        .with_endpoint(s3_endpoint)
+        .with_bucket(bucket)
+        .with_access_key(s3_key_id)
+        .with_secret_key(s3_key_secret)
+    )
     for tabname, datapath in tables.items():
-        tabpath = tabname
         if hasPrefix:
-            tabpath = dstprefix + tabname
-        cmd.append('--item')
-        cmd.append('s=' + datapath + ',d=' + tabpath)
-        if (len(cmd) - len(cmdIn)) / 2 >= maxtabs:
-            allCmds.append(cmd)
-            cmd = cmdIn.copy()
-    if len(cmd) > len(cmdIn):
-        allCmds.append(cmd)
-    return allCmds
+            tabpath = output_prefix + tabname
+        else:
+            tabpath = tabname
+        import_settings.with_source_and_destination(tabpath, datapath)
+    import_client = ydb.ImportClient(driver)
+    import_client.import_from_s3(import_settings)
 
 # S3_ENDPOINT=https://storage.yandexcloud.net python3 ydb-restore.py tpcc-backup0 /backup/test1 restore1
 if __name__ == '__main__':
@@ -108,14 +143,11 @@ if __name__ == '__main__':
     logging.getLogger('urllib3').setLevel(logging.INFO)
     parser = argparse.ArgumentParser(description='YDB restore tool')
     parser.add_argument('bucket', type=str, help='S3 bucket name')
-    parser.add_argument('inputPrefix', type=str, help='Backup storage input prefix')
-    parser.add_argument('outputPrefix', type=str, help='YDB destination prefix')
-    parser.add_argument('--tableLimit', type=int, default=50, help='Maximum tables per import command')
-    parser.add_argument('--profile', type=str, help='YDB CLI connection profile name')
+    parser.add_argument('input_prefix', type=str, help='Backup storage input prefix')
+    parser.add_argument('output_prefix', type=str, help='YDB destination prefix')
+    parser.add_argument('--ydb_profile', type=str, help='YDB CLI connection profile name')
     args = parser.parse_args()
-    tables = locateTables(args.bucket, args.inputPrefix)
+    tables = locateTables(args.bucket, args.input_prefix)
     logging.info(f"Total {len(tables)} tables to be restored")
-    cmdBase = buildBasicCommand(args)
-    allCommands = buildCommands(cmdBase, args.outputPrefix, args.tableLimit, tables)
-    for cmd in allCommands:
-        print(cmd)
+    with getYdbDriver(args.ydb_profile) as driver:
+        importFromS3(driver, tables, args.bucket, args.output_prefix)

@@ -7,6 +7,7 @@ import boto3
 
 storage_client = None
 boto_session = None
+s3_endpoint = None
 
 def getS3Client():
     global storage_client
@@ -32,6 +33,8 @@ def getS3Client():
         service_name='s3',
         endpoint_url=endpoint,
     )
+    global s3_endpoint
+    s3_endpoint = endpoint
     return storage_client
 
 def locateTables(bucket: str, prefix: str) -> dict:
@@ -62,7 +65,42 @@ def locateTables(bucket: str, prefix: str) -> dict:
         prevToken = response.get('NextContinuationToken', None)
     return tablesDict
 
-# S3_ENDPOINT=https://storage.yandexcloud.net python3 ydb-restore.py tpcc-backup0 /backup/test1
+def buildBasicCommand(args: argparse.ArgumentParser) -> list:
+    cmd = ['ydb']
+    if args.profile is not None and len(args.profile) > 0:
+        cmd.append('-p')
+        cmd.append(args.profile)
+    cmd.append('import')
+    cmd.append('s3')
+    cmd.append('--s3-endpoint')
+    cmd.append(s3_endpoint)
+    cmd.append('--bucket')
+    cmd.append(args.bucket)
+    return cmd
+
+def buildCommands(cmdIn: list, dstprefix: str, maxtabs: int, tables: dict):
+    if dstprefix is not None and len(dstprefix)>0 and dstprefix != '.':
+        if not dstprefix.endswith("/"):
+            dstprefix = dstprefix + "/"
+        if dstprefix.startswith('/'):
+            dstprefix = dstprefix[1:]
+    hasPrefix = dstprefix is not None and len(dstprefix)>0 and dstprefix != '.'
+    allCmds = []
+    cmd = cmdIn.copy()
+    for tabname, datapath in tables.items():
+        tabpath = tabname
+        if hasPrefix:
+            tabpath = dstprefix + tabname
+        cmd.append('--item')
+        cmd.append('s=' + datapath + ',d=' + tabpath)
+        if (len(cmd) - len(cmdIn)) / 2 >= maxtabs:
+            allCmds.append(cmd)
+            cmd = cmdIn.copy()
+    if len(cmd) > len(cmdIn):
+        allCmds.append(cmd)
+    return allCmds
+
+# S3_ENDPOINT=https://storage.yandexcloud.net python3 ydb-restore.py tpcc-backup0 /backup/test1 restore1
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     logging.getLogger('s3transfer').setLevel(logging.INFO)
@@ -70,7 +108,14 @@ if __name__ == '__main__':
     logging.getLogger('urllib3').setLevel(logging.INFO)
     parser = argparse.ArgumentParser(description='YDB restore tool')
     parser.add_argument('bucket', type=str, help='S3 bucket name')
-    parser.add_argument('prefix', type=str, help='Backup storage prefix')
+    parser.add_argument('inputPrefix', type=str, help='Backup storage input prefix')
+    parser.add_argument('outputPrefix', type=str, help='YDB destination prefix')
+    parser.add_argument('--tableLimit', type=int, default=50, help='Maximum tables per import command')
+    parser.add_argument('--profile', type=str, help='YDB CLI connection profile name')
     args = parser.parse_args()
-    tables = locateTables(args.bucket, args.prefix)
+    tables = locateTables(args.bucket, args.inputPrefix)
     logging.info(f"Total {len(tables)} tables to be restored")
+    cmdBase = buildBasicCommand(args)
+    allCommands = buildCommands(cmdBase, args.outputPrefix, args.tableLimit, tables)
+    for cmd in allCommands:
+        print(cmd)

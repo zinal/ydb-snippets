@@ -87,7 +87,7 @@ def getYdbDriver(profile: str) -> ydb.Driver:
     caData = None
     caFile = curProfile.get('ca-file')
     if caFile is not None:
-        with open(caFile) as stream:
+        with open(caFile, 'rb') as stream:
             caData = stream.read()
     credentials = ydb.AnonymousCredentials()
     authData = curProfile.get('authentication')

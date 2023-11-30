@@ -13,6 +13,7 @@ boto_session = None
 s3_endpoint = None
 s3_key_id = None
 s3_key_secret = None
+ydb_database = None
 
 def getS3Client():
     global storage_client
@@ -111,20 +112,26 @@ def getYdbDriver(profile: str) -> ydb.Driver:
                     user=loginInfo.get('user'), 
                     password=loginInfo.get('password'),
                 )
+    global ydb_database
+    ydb_database = curProfile.get('database')
     return ydb.Driver(
         endpoint=curProfile.get('endpoint'),
-        database=curProfile.get('database'),
+        database=ydb_database,
         credentials=credentials,
         root_certificates=caData,
     )
 
 def importFromS3(driver: ydb.Driver, tables: dict, bucket: str, output_prefix: str):
+    global ydb_database
     if output_prefix is not None and len(output_prefix)>0 and output_prefix != '.':
         if not output_prefix.endswith("/"):
             output_prefix = output_prefix + "/"
         if output_prefix.startswith('/'):
             output_prefix = output_prefix[1:]
-    hasPrefix = output_prefix is not None and len(output_prefix)>0 and output_prefix != '.'
+    if output_prefix is None or len(output_prefix)==0 or output_prefix == '.':
+        output_prefix = ydb_database
+    else:
+        output_prefix = ydb_database + "/" + output_prefix
     import_settings = (
         ydb.ImportFromS3Settings()
         .with_endpoint(s3_endpoint)
@@ -133,11 +140,9 @@ def importFromS3(driver: ydb.Driver, tables: dict, bucket: str, output_prefix: s
         .with_secret_key(s3_key_secret)
     )
     for tabname, datapath in tables.items():
-        if hasPrefix:
-            tabpath = output_prefix + tabname
-        else:
-            tabpath = tabname
+        tabpath = output_prefix + tabname
         import_settings.with_source_and_destination(tabpath, datapath)
+        logging.info(f"... configured {datapath} -> {tabpath}")
     import_client = ydb.ImportClient(driver)
     import_client.import_from_s3(import_settings)
 
@@ -148,6 +153,7 @@ if __name__ == '__main__':
     logging.getLogger('s3transfer').setLevel(logging.INFO)
     logging.getLogger('botocore').setLevel(logging.INFO)
     logging.getLogger('urllib3').setLevel(logging.INFO)
+    logging.getLogger('ydb').setLevel(logging.WARN)
     parser = argparse.ArgumentParser(description='YDB restore tool')
     parser.add_argument('bucket', type=str, help='S3 bucket name')
     parser.add_argument('input_prefix', type=str, help='Backup storage input prefix')

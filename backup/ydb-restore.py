@@ -141,7 +141,7 @@ def importFromS3(driver: ydb.Driver, tables: dict, bucket: str, output_prefix: s
     )
     for tabname, datapath in tables.items():
         tabpath = output_prefix + tabname
-        import_settings.with_source_and_destination(tabpath, datapath)
+        import_settings.with_source_and_destination(datapath, tabpath)
         logging.info(f"... configured {datapath} -> {tabpath}")
     import_client = ydb.ImportClient(driver)
     import_client.import_from_s3(import_settings)

@@ -1,10 +1,28 @@
 #! /usr/bin/env python3
 
+# This simple tool restores the full backup created by commands like
+#   `ydb export s3 ... --item src=.,dst=backups/<backup_id>`
+#
+# Right now the `ydb import s3` command requires that each table
+# has to be specified as a separate `--item` argument, which leads
+# to the need to automate the process.
+#
+# The tool scans the specified S3 prefix for exported YDB tables,
+# and generates the list of items to be imported. The import itself
+# is initiated via the YDB API, and can be monitored through the
+# regular `ydb operation list import/s3` commands.
+#
+# YDB connection options are read from the YDB CLI profile.
+# This means that YDB CLI has to be installed on the same host
+# where this tool runs, but that is logical as backups (export s3)
+# operations require YDB CLI anyway.
+
 import os
 import yaml
 import logging
 import argparse
 import boto3
+from botocore.client import Config
 import ydb
 import ydb.iam
 
@@ -38,10 +56,18 @@ def getS3Client():
     endpoint = os.getenv('S3_ENDPOINT')
     if endpoint is None:
         raise Exception("S3 endpoint is missing")
-    storage_client = boto_session.client(
-        service_name='s3',
-        endpoint_url=endpoint,
-    )
+    path_style = os.getenv('AWS_S3_PATH_STYLE') # path or virtual
+    if path_style is None:
+        storage_client = boto_session.client(
+            service_name='s3',
+            endpoint_url=endpoint,
+        )
+    else:
+        storage_client = boto_session.client(
+            service_name='s3',
+            endpoint_url=endpoint,
+            config=Config(s3={'addressing_style': path_style}),
+        )
     global s3_endpoint
     s3_endpoint = endpoint
     return storage_client
@@ -157,7 +183,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='YDB restore tool')
     parser.add_argument('bucket', type=str, help='S3 bucket name')
     parser.add_argument('input_prefix', type=str, help='Backup storage input prefix')
-    parser.add_argument('output_prefix', type=str, help='YDB destination prefix')
+    parser.add_argument('output_prefix', type=str, help='YDB destination prefix, "." for database root')
     parser.add_argument('--ydb_profile', type=str, help='YDB CLI connection profile name')
     args = parser.parse_args()
     tables = locateTables(args.bucket, args.input_prefix)

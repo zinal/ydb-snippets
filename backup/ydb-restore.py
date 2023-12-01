@@ -58,13 +58,13 @@ def getS3Client():
         raise Exception("S3 endpoint is missing")
     path_style = os.getenv('AWS_S3_PATH_STYLE') # path or virtual
     if path_style is None:
-        logging.info(f"Implicit S3 path style for endpoint {endpoint}")
+        logging.info(f"Implicit S3 path style for endpoint '{endpoint}'")
         storage_client = boto_session.client(
             service_name='s3',
             endpoint_url=endpoint,
         )
     else:
-        logging.info(f"Configuring explicit S3 path style {path_style} for endpoint {endpoint}")
+        logging.info(f"Explicit S3 path style '{path_style}' for endpoint '{endpoint}'")
         storage_client = boto_session.client(
             service_name='s3',
             endpoint_url=endpoint,
@@ -95,11 +95,12 @@ def locateTables(bucket: str, prefix: str) -> dict:
                 datapath = key[:-len(suffix)]
                 tabname = key[len(prefix):-len(suffix)]
                 tablesDict[tabname] = datapath
-                logging.info(f"... table `{tabname}` at {datapath}")
+                logging.debug(f"... table `{tabname}` at {datapath}")
         isTruncated = response.get('IsTruncated', False)
         if not isTruncated:
             break
         prevToken = response.get('NextContinuationToken', None)
+    logging.info(f"Total {len(tablesDict)} tables to be restored.")
     return tablesDict
 
 def getYdbDriver(profile: str) -> ydb.Driver:
@@ -170,7 +171,7 @@ def importFromS3(driver: ydb.Driver, tables: dict, bucket: str, output_prefix: s
     for tabname, datapath in tables.items():
         tabpath = output_prefix + tabname
         import_settings.with_source_and_destination(datapath, tabpath)
-        logging.info(f"... configured {datapath} -> {tabpath}")
+        logging.debug(f"... configured {datapath} -> {tabpath}")
     import_client = ydb.ImportClient(driver)
     import_client.import_from_s3(import_settings)
 
@@ -188,8 +189,7 @@ if __name__ == '__main__':
     parser.add_argument('output_prefix', type=str, help='YDB destination prefix, "." for database root')
     parser.add_argument('--ydb_profile', type=str, help='YDB CLI connection profile name')
     args = parser.parse_args()
-    tables = locateTables(args.bucket, args.input_prefix)
-    logging.info(f"Total {len(tables)} tables to be restored")
     with getYdbDriver(args.ydb_profile) as driver:
         driver.wait(timeout=10)
+        tables = locateTables(args.bucket, args.input_prefix)
         importFromS3(driver, tables, args.bucket, args.output_prefix)

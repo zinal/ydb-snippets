@@ -193,4 +193,4 @@ if __name__ == '__main__':
         driver.wait(timeout=10)
         tables = locateTables(args.bucket, args.input_prefix)
         result = importFromS3(driver, tables, args.bucket, args.output_prefix)
-        logging.info(f"Started async import operation '{result.operation.id}'")
+        logging.info(f"Started async import operation '{result.id}'")

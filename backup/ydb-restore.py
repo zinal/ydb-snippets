@@ -173,7 +173,7 @@ def importFromS3(driver: ydb.Driver, tables: dict, bucket: str, output_prefix: s
         import_settings.with_source_and_destination(datapath, tabpath)
         logging.debug(f"... configured {datapath} -> {tabpath}")
     import_client = ydb.ImportClient(driver)
-    import_client.import_from_s3(import_settings)
+    return import_client.import_from_s3(import_settings)
 
 # S3_ENDPOINT=https://storage.yandexcloud.net
 # python3 ydb-restore.py tpcc-backup0 /backup/test1 restore1 --ydb_profile ydb0_tpcab
@@ -192,4 +192,5 @@ if __name__ == '__main__':
     with getYdbDriver(args.ydb_profile) as driver:
         driver.wait(timeout=10)
         tables = locateTables(args.bucket, args.input_prefix)
-        importFromS3(driver, tables, args.bucket, args.output_prefix)
+        result = importFromS3(driver, tables, args.bucket, args.output_prefix)
+        logging.info(f"Started async import operation '{result.operation.id}'")

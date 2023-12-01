@@ -58,11 +58,13 @@ def getS3Client():
         raise Exception("S3 endpoint is missing")
     path_style = os.getenv('AWS_S3_PATH_STYLE') # path or virtual
     if path_style is None:
+        logging.info(f"Implicit S3 path style for endpoint {endpoint}")
         storage_client = boto_session.client(
             service_name='s3',
             endpoint_url=endpoint,
         )
     else:
+        logging.info(f"Configuring explicit S3 path style {path_style} for endpoint {endpoint}")
         storage_client = boto_session.client(
             service_name='s3',
             endpoint_url=endpoint,

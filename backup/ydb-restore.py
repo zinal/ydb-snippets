@@ -158,7 +158,7 @@ def importFromS3(driver: ydb.Driver, tables: dict, bucket: str, output_prefix: s
         if output_prefix.startswith('/'):
             output_prefix = output_prefix[1:]
     if output_prefix is None or len(output_prefix)==0 or output_prefix == '.':
-        output_prefix = ydb_database
+        output_prefix = ydb_database + "/"
     else:
         output_prefix = ydb_database + "/" + output_prefix
     import_settings = (

@@ -1,0 +1,34 @@
+ConfigureRequest {
+  Actions {
+    AddConfigItem {
+      ConfigItem {
+        MergeStrategy: 3
+        Config {
+          ResourceBrokerConfig {
+            Queues [
+              {
+                Name: "queue_restore"
+                Weight: 100
+                Limit {
+                  Cpu: 8
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}
+
+
+
+resource_broker_config:
+  queues:
+    - name: "queue_restore"
+      weight: 100
+      limit:
+        cpu: 8
+
+
+очередь для индекса называется queue_build_index (https://a.yandex-team.ru/arcadia/ydb/core/tablet/resource_broker.cpp?rev=r13046340#L1366-1369). Там дефолт 10 потоков. Я ставил 20 и вроде работало быстрее, но при этом статус операции иногда фейлился. В итоге, я отказался и оставил 10.

@@ -1,0 +1,12 @@
+-- ydb table query execute --tx-mode stale-ro -f check-query.yql
+-- Запрос работает по асинхронным индексам и должен запускаться в режиме stale-ro.
+-- Поскольку запрос дважды сканирует исходный индекс, то в режиме stale-ro возможны аномалии:
+-- первое и второе сканирование могут возвращать разные результаты агрерирования
+-- или даже разные наборы ключей b.
+$q = (SELECT b, COUNT(*) AS cc FROM `async-index-demo` VIEW ix_b
+      WHERE b BETWEEN "A" AND "Z" GROUP BY b);
+SELECT COALESCE(q1.b, q2.b) AS b, q1.cc AS cnt1, q2.cc AS cnt2
+FROM $q q1
+FULL OUTER JOIN $q q2
+  ON q1.b=q2.b
+WHERE q1.cc IS NULL OR q2.cc IS NULL OR q1.cc<>q2.cc;

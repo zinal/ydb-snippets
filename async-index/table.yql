@@ -2,7 +2,7 @@ CREATE TABLE `async-index-demo` (
     a Int32 NOT NULL,
     b Text,
     PRIMARY KEY(a),
-    INDEX ix_b GLOBAL ON (b)
+    INDEX ix_b GLOBAL ASYNC ON (b)
 ) WITH (
     AUTO_PARTITIONING_BY_SIZE = ENABLED,
     AUTO_PARTITIONING_BY_LOAD = ENABLED,

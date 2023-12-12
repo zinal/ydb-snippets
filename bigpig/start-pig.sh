@@ -52,7 +52,7 @@ if [ $need_init -eq 1 ]; then
   fi
 fi
 echo Registering database...
-$YDBD_PATH -s grpc://localhost:2136 admin database /Root/test create ssd:1 > "$LOGS_PATH/db_reg.log" 2>&1
+$YDBD_PATH -s grpc://localhost:2136 admin database /Root/test create ssd:5 > "$LOGS_PATH/db_reg.log" 2>&1
 if [[ $? -ge 1 ]]; then
   echo Errors found when registering database, cancelling start script, check "$LOGS_PATH/db_reg.log"
   exit

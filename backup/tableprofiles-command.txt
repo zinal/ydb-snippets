@@ -1,0 +1,1 @@
+~/ydbd/ydbd/bin/ydbd -s grpc://localhost:2136 admin console execute tableprofiles.proto

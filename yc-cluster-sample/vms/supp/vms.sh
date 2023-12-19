@@ -5,7 +5,7 @@ if [ "1" == "$ydb_nodes_begin" ]; then
   set -e
   echo "Retrieving public SSH keyfile ${keyfile_gw} from host ${host_gw}..."
   ssh ${host_gw} cat ${keyfile_gw} >keyfile.tmp
-  ssh ${host_gw} rm -f .ssh/known_hosts
+  ssh ${host_gw} rm -f .ssh/known_hosts .ssh/temphosts
   set +e
 fi
 

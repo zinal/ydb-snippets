@@ -2,7 +2,6 @@ package tech.ydb.samples.interactive.tx;
 
 import java.util.Arrays;
 import tech.ydb.core.Result;
-import tech.ydb.core.Status;
 import tech.ydb.table.SessionRetryContext;
 import tech.ydb.table.query.DataQueryResult;
 import tech.ydb.table.query.Params;

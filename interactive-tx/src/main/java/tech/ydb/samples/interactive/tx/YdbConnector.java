@@ -121,6 +121,13 @@ public class YdbConnector implements AutoCloseable {
                 LOG.warn("TableClient closing threw an exception", ex);
             }
         }
+        if (schemeClient != null) {
+            try {
+                schemeClient.close();
+            } catch (Exception ex) {
+                LOG.warn("SchemeClient closing threw an exception", ex);
+            }
+        }
         if (transport != null) {
             try {
                 transport.close();

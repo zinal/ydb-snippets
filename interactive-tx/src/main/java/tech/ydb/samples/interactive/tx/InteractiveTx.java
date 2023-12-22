@@ -44,6 +44,10 @@ public class InteractiveTx implements Runnable {
         rtx.supplyStatus(session -> session.executeSchemeQuery(""
                 + "CREATE TABLE `interactive-tx/table-b`(b Int32 NOT NULL, "
                 + "  c Text, PRIMARY KEY(b))")).join().expectSuccess();
+        rtx.supplyStatus(session -> session.executeSchemeQuery(""
+                + "CREATE TABLE `interactive-tx/table-c`(a Int32 NOT NULL, "
+                + "  b Int32, PRIMARY KEY(b), "
+                + "  INDEX ix_a GLOBAL ON (a))")).join().expectSuccess();
         LOG.info("Tables created.");
     }
 
@@ -52,6 +56,8 @@ public class InteractiveTx implements Runnable {
                 + "DROP TABLE `interactive-tx/table-a`")).join().expectSuccess();
         rtx.supplyStatus(session -> session.executeSchemeQuery(""
                 + "DROP TABLE `interactive-tx/table-b`")).join().expectSuccess();
+        rtx.supplyStatus(session -> session.executeSchemeQuery(""
+                + "DROP TABLE `interactive-tx/table-c`")).join().expectSuccess();
         LOG.info("Tables dropped.");
         yc.getSchemeClient().removeDirectory("interactive-tx");
         LOG.info("Directory removed.");
@@ -59,6 +65,7 @@ public class InteractiveTx implements Runnable {
 
     private void interactiveTransaction() {
         LOG.info("Start of interactive transaction");
+
         final String insertA = "DECLARE $input AS List<Struct<a:Int32,b:Int32,c:Utf8>>;"
                 + "UPSERT INTO `interactive-tx/table-a` SELECT * FROM AS_TABLE($input);";
         final StructType structA = StructType.of(
@@ -87,7 +94,6 @@ public class InteractiveTx implements Runnable {
         LOG.info("Statement 1 successful, transaction id {}", dqr.getValue().getTxId());
 
         final TxControl<?> txc = TxControl.id(dqr.getValue().getTxId());
-        
 
         final String insertB = "DECLARE $input AS List<Struct<b:Int32,c:Utf8>>;"
                 + "UPSERT INTO `interactive-tx/table-b` SELECT * FROM AS_TABLE($input);";
@@ -107,10 +113,33 @@ public class InteractiveTx implements Runnable {
                                 "c", PrimitiveValue.newText("value 300"))
                 )));
         dqr = rtx.supplyResult(session -> session.executeDataQuery(insertB,
-                txc.setCommitTx(true), paramsB)).join();
+                txc.setCommitTx(false), paramsB)).join();
         dqr.getStatus().expectSuccess();
 
-        LOG.info("Statement 2 successful, transaction committed");
+        LOG.info("Statement 2 successful, transaction continues");
+
+        final String insertC = "DECLARE $input AS List<Struct<a:Int32, b:Int32>>;"
+                + "UPSERT INTO `interactive-tx/table-c` SELECT * FROM AS_TABLE($input);";
+        final StructType structC = StructType.of(
+                "a", PrimitiveType.Int32,
+                "b", PrimitiveType.Int32);
+        final Params paramsC = Params.of("$input", ListType.of(structC)
+                .newValue(Arrays.asList(
+                        structC.newValue(
+                                "a", PrimitiveValue.newInt32(1),
+                                "b", PrimitiveValue.newInt32(10)),
+                        structC.newValue(
+                                "a", PrimitiveValue.newInt32(2),
+                                "b", PrimitiveValue.newInt32(20)),
+                        structC.newValue(
+                                "a", PrimitiveValue.newInt32(3),
+                                "b", PrimitiveValue.newInt32(30))
+                )));
+        dqr = rtx.supplyResult(session -> session.executeDataQuery(insertC,
+                txc.setCommitTx(true), paramsC)).join();
+        dqr.getStatus().expectSuccess();
+
+        LOG.info("Statement 3 successful, transaction committed");
     }
 
     public static void main(String[] args) {

@@ -1,0 +1,14 @@
+apiVersion: 1
+
+providers:
+  - name: 'ydb'
+    type: file
+    orgId: 1
+    folder: ''
+    folderUid: ''
+    disableDeletion: true
+    updateIntervalSeconds: 10
+    allowUiUpdates: false
+    options:
+      path: /home/demo/grafana/dashboards
+      foldersFromFilesStructure: true

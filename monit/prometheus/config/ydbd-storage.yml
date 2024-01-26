@@ -1,0 +1,12 @@
+- labels:
+    container: ydb-static
+  targets:
+  - "ydb-pay-1:8765"
+  - "ydb-pay-2:8765"
+  - "ydb-pay-3:8765"
+  - "ydb-pay-4:8765"
+  - "ydb-pay-5:8765"
+  - "ydb-pay-6:8765"
+  - "ydb-pay-7:8765"
+  - "ydb-pay-8:8765"
+  - "ydb-pay-9:8765"

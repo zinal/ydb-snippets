@@ -76,7 +76,7 @@ def main():
     parser = ArgumentParser()
     parser.add_argument('--threads', type=int, default=10)
     parser.add_argument('--viewer-url')
-    parser.add_argument('--auth', dest="auth_mode", default='OAuth')
+    parser.add_argument('--auth', dest="auth_mode", default='Login') # OAuth or Login
     parser.add_argument('--all', action='store_true')
     parser.add_argument('table')
     args = parser.parse_args()
@@ -126,7 +126,6 @@ def main():
     with ThreadPool(args.threads) as pool:
         for _ in pool.imap_unordered(process_task, generate_tasks()):
             pass
-
 
 if __name__ == '__main__':
     import urllib3

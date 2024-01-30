@@ -5,9 +5,10 @@ import os
 import sys
 import requests
 import time
+from argparse import ArgumentParser
 from lxml import etree
 from lxml.cssselect import CSSSelector
-from cStringIO import StringIO
+#from cStringIO import StringIO
 
 VIEWER_HEADERS = {}
 
@@ -16,11 +17,12 @@ URL_TABLET_COUNTERS = '{url_base}/tablets/counters?TabletID=%d'
 
 SEL_THEAD = CSSSelector('table > thead > tr')
 SEL_TBODY = CSSSelector('table > tbody')
-RE_VALUE = re.compile('<pre>CachePinned: (\d+)</pre>', re.S)
+RE_VALUE = re.compile('<pre>DataShard/LocksWholeShard: (\d+)</pre>', re.S)
 
 def load_table(url, index=0):
     text = requests.get(url, headers=VIEWER_HEADERS, verify=False).text
-    tree = etree.parse(StringIO(text), etree.HTMLParser())
+    #tree = etree.parse(StringIO(text), etree.HTMLParser())
+    tree = etree.HTML(text)
     thead = SEL_THEAD(tree.getroot())[index]
     tbody = SEL_TBODY(tree.getroot())[index]
     headers = []
@@ -51,6 +53,30 @@ def load_running_tablets():
             sys.stdout.flush()
 
 def main():
+    parser = ArgumentParser()
+    parser.add_argument('--viewer-url')
+    parser.add_argument('--auth', dest="auth_mode", default='Login') # OAuth or Login
+    parser.add_argument('table')
+    args = parser.parse_args()
+
+    global VIEWER_HEADERS
+
+    if args.auth_mode=='' or args.auth_mode.lower()=='disabled':
+        VIEWER_HEADERS = {}
+    else:
+        token_path = os.path.expanduser("~/.ydb/token")
+        if not os.path.isfile(token_path):
+            print(f"{token_path} does not exist")
+            sys.exit(1)
+
+        token = open(token_path).read().strip()
+        VIEWER_HEADERS = {
+            'Authorization': str(args.auth_mode) + ' ' + token,
+        }
+
+    global VIEWER_URL_BASE
+    VIEWER_URL_BASE = args.viewer_url
+
     load_running_tablets()
 
 if __name__ == '__main__':

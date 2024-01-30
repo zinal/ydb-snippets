@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 
+# sudo apt install python3-pip
+# pip3 install lxml cssselect
+# https://localhost:8766/viewer/json/whoami
+# vi ~/.ydb/token
+
 import re
 import os
 import sys
@@ -56,7 +61,6 @@ def main():
     parser = ArgumentParser()
     parser.add_argument('--viewer-url')
     parser.add_argument('--auth', dest="auth_mode", default='Login') # OAuth or Login
-    parser.add_argument('table')
     args = parser.parse_args()
 
     global VIEWER_HEADERS

@@ -63,7 +63,7 @@ def load_running_tablets():
         if result['TabletType'] == 'DataShard':
             tablet_id = int(result['TabletID'])
             value = get_value(tablet_id)
-            if value > 0:
+            if value is not None and value > 0:
                 table_name = get_table_name(tablet_id)
                 sys.stdout.write('%r %d %s\n' % (value, tablet_id, table_name))
                 sys.stdout.flush()

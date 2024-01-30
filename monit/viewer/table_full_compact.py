@@ -7,9 +7,7 @@ import requests
 from argparse import ArgumentParser
 from urllib.parse import quote_plus
 
-# TODO: eliminate global variable
 VIEWER_URL_BASE = ''
-
 VIEWER_HEADERS = {}
 
 URL_TABLE_DESCRIPTION = '{url_base}/viewer/json/describe?path={path}&enums=true'

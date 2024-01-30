@@ -15,6 +15,7 @@ from lxml import etree
 from lxml.cssselect import CSSSelector
 #from cStringIO import StringIO
 
+VIEWER_URL_BASE = ''
 VIEWER_HEADERS = {}
 
 URL_NODE_TABLETS = '{url_base}/nodetabmon?action=browse_tablets&node_id=2465'
@@ -42,7 +43,7 @@ def load_table(url, index=0):
     return results
 
 def get_value(tablet_id):
-    url = URL_TABLET_COUNTERS % (tablet_id,)
+    url = URL_TABLET_COUNTERS.format(url_base=VIEWER_URL_BASE) % (tablet_id,)
     text = requests.get(url, headers=VIEWER_HEADERS, verify=False).text
     m = RE_VALUE.search(text)
     if m:
@@ -50,7 +51,8 @@ def get_value(tablet_id):
     return None
 
 def load_running_tablets():
-    for result in load_table(URL_NODE_TABLETS):
+    url = URL_NODE_TABLETS.format(url_base=VIEWER_URL_BASE)
+    for result in load_table(url):
         if result['TabletType'] == 'DataShard':
             tablet_id = int(result['TabletID'])
             value = get_value(tablet_id)

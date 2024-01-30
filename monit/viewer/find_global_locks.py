@@ -45,7 +45,18 @@ def load_table(url, index=0):
 
 def get_value(tablet_id):
     url = URL_TABLET_COUNTERS.format(url_base=VIEWER_URL_BASE) % (tablet_id,)
-    text = requests.get(url, headers=VIEWER_HEADERS, verify=False).text
+    retries = 0
+    while True:
+        try:
+            text = requests.get(url, headers=VIEWER_HEADERS, verify=False).text
+            break
+        except:
+            if retries == 0:
+                sys.stderr.write('Warning: retrying access to counters of %d' % (tablet_id))
+                sys.stderr.flush()
+            retries += 1
+            if retries >= 10:
+                pass
     m = RE_VALUE.search(text)
     if m:
         return int(m.group(1))

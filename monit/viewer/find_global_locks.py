@@ -52,7 +52,7 @@ def get_value(tablet_id):
             break
         except:
             if retries == 0:
-                sys.stderr.write('Warning: retrying access to counters of %d' % (tablet_id))
+                sys.stderr.write('Warning: retrying access to counters of %d\n' % (tablet_id))
                 sys.stderr.flush()
             retries += 1
             if retries >= 10:

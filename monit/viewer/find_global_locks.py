@@ -9,7 +9,6 @@ import re
 import os
 import sys
 import requests
-import time
 from argparse import ArgumentParser
 from lxml import etree
 from lxml.cssselect import CSSSelector
@@ -20,6 +19,7 @@ VIEWER_HEADERS = {}
 
 URL_NODE_TABLETS = '{url_base}/nodetabmon?action=browse_tablets'
 URL_TABLET_COUNTERS = '{url_base}/tablets/counters?TabletID=%d'
+URL_TABLET_INFO= '{url_base}/cms/api/datashard/json/getinfo?tabletid=%d'
 
 SEL_THEAD = CSSSelector('table > thead > tr')
 SEL_TBODY = CSSSelector('table > tbody')
@@ -50,6 +50,11 @@ def get_value(tablet_id):
         return int(m.group(1))
     return None
 
+def get_table_name(tablet_id:int):
+    url = URL_TABLET_INFO.format(url_base=VIEWER_URL_BASE) % (tablet_id,)
+    data = requests.get(url, headers=VIEWER_HEADERS, verify=False).json
+    return data["UserTables"]["Path"]
+
 def load_running_tablets():
     url = URL_NODE_TABLETS.format(url_base=VIEWER_URL_BASE)
     for result in load_table(url):
@@ -57,7 +62,8 @@ def load_running_tablets():
             tablet_id = int(result['TabletID'])
             value = get_value(tablet_id)
             if value > 0:
-                sys.stdout.write('%r %d\n' % (value, tablet_id))
+                table_name = get_table_name(tablet_id)
+                sys.stdout.write('%r %d %s\n' % (value, tablet_id, table_name))
                 sys.stdout.flush()
 
 def main():

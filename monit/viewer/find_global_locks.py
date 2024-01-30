@@ -18,7 +18,7 @@ from lxml.cssselect import CSSSelector
 VIEWER_URL_BASE = ''
 VIEWER_HEADERS = {}
 
-URL_NODE_TABLETS = '{url_base}/nodetabmon?action=browse_tablets&node_id=2465'
+URL_NODE_TABLETS = '{url_base}/nodetabmon?action=browse_tablets'
 URL_TABLET_COUNTERS = '{url_base}/tablets/counters?TabletID=%d'
 
 SEL_THEAD = CSSSelector('table > thead > tr')

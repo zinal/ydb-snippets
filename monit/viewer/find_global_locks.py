@@ -56,8 +56,9 @@ def load_running_tablets():
         if result['TabletType'] == 'DataShard':
             tablet_id = int(result['TabletID'])
             value = get_value(tablet_id)
-            sys.stdout.write('%r %d\n' % (value, tablet_id))
-            sys.stdout.flush()
+            if value > 0:
+                sys.stdout.write('%r %d\n' % (value, tablet_id))
+                sys.stdout.flush()
 
 def main():
     parser = ArgumentParser()

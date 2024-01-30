@@ -8,6 +8,7 @@
 import re
 import os
 import sys
+import json
 import requests
 from argparse import ArgumentParser
 from lxml import etree
@@ -52,8 +53,9 @@ def get_value(tablet_id):
 
 def get_table_name(tablet_id:int):
     url = URL_TABLET_INFO.format(url_base=VIEWER_URL_BASE) % (tablet_id,)
-    data = requests.get(url, headers=VIEWER_HEADERS, verify=False).json
-    return data["UserTables"]["Path"]
+    textval = requests.get(url, headers=VIEWER_HEADERS, verify=False).text
+    jsonval = json.loads(textval)
+    return jsonval["UserTables"][0]["Path"]
 
 def load_running_tablets():
     url = URL_NODE_TABLETS.format(url_base=VIEWER_URL_BASE)

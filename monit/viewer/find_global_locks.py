@@ -28,7 +28,7 @@ RE_VALUE = re.compile('<pre>DataShard/LocksWholeShard: (\d+)</pre>', re.S)
 def load_table(url, index=0):
     text = requests.get(url, headers=VIEWER_HEADERS, verify=False).text
     #tree = etree.parse(StringIO(text), etree.HTMLParser())
-    tree = etree.HTML(text)
+    tree = etree.ElementTree(etree.HTML(text))
     thead = SEL_THEAD(tree.getroot())[index]
     tbody = SEL_TBODY(tree.getroot())[index]
     headers = []

@@ -68,8 +68,10 @@ def get_table_name(tablet_id:int):
     jsonval = json.loads(textval)
     return jsonval["UserTables"][0]["Path"]
 
-def load_running_tablets():
+def load_running_tablets(node_id):
     url = URL_NODE_TABLETS.format(url_base=VIEWER_URL_BASE)
+    if node_id is not None and node_id!="" and node_id!="ALL":
+        url = url + '&node_id=' + node_id
     for result in load_table(url):
         if result['TabletType'] == 'DataShard':
             tablet_id = int(result['TabletID'])
@@ -83,6 +85,7 @@ def main():
     parser = ArgumentParser()
     parser.add_argument('--viewer-url')
     parser.add_argument('--auth', dest="auth_mode", default='Login') # OAuth or Login
+    parser.add_argument('--node', default='ALL')
     args = parser.parse_args()
 
     global VIEWER_HEADERS
@@ -103,7 +106,7 @@ def main():
     global VIEWER_URL_BASE
     VIEWER_URL_BASE = args.viewer_url
 
-    load_running_tablets()
+    load_running_tablets(args.node)
 
 if __name__ == '__main__':
     import urllib3

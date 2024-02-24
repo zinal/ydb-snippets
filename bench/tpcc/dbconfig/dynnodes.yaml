@@ -1,0 +1,41 @@
+
+actor_system_config:
+  executor:
+  - {name: System, spin_threshold: '10', threads: 2, max_threads: 11, type: BASIC}
+  - {name: User, spin_threshold: '1', threads: 5, max_threads: 12, type: BASIC}
+  - {name: Batch, spin_threshold: '1', threads: 2, max_threads: 4, type: BASIC}
+  - {name: IO, threads: 1, type: IO}
+  - {name: IC, spin_threshold: '10', threads: 5, max_threads: 11, time_per_mailbox_micro_secs: 100, max_avg_ping_deviation: 500, type: BASIC}
+  scheduler: {progress_threshold: '10000', resolution: '64', spin_threshold: '0'}
+  sys_executor: 0
+  user_executor: 1
+  batch_executor: 2
+  io_executor: 3
+  service_executor:
+  - {executor_id: 4, service_name: Interconnect}
+
+table_service_config:
+  sql_version: 1
+  enable_kqp_scan_query_source_read: true
+  enable_kqp_data_query_source_read: true
+  enable_kqp_data_query_stream_lookup: true
+  enable_kqp_scan_query_stream_lookup: true
+  enable_kqp_immediate_effects: true
+  enable_sequential_reads: true
+  predicate_extract20: true
+
+grpc_config:
+  worker_threads: 2
+  workers_per_completion_queue: 1
+  handlers_per_completion_queue: 1000
+  grpc_proxy_count: 2
+
+shared_cache_config:
+  memory_limit: 95000000000
+
+resource_broker_config:
+  queues:
+    - name: "queue_restore"
+      weight: 100
+      limit:
+        cpu: 8

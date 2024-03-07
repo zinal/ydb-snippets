@@ -1,0 +1,28 @@
+Actions {
+  RemoveConfigItems {
+    CookieFilter {
+      Cookies: "SRVBAL00"
+    }
+  }
+}
+
+Actions {
+  AddConfigItem {
+      ConfigItem {
+          Cookie: "SRVBAL00"
+          UsageScope {
+              TenantAndNodeTypeFilter {
+                  Tenant: "/Root/db1"
+              }
+          }
+          Config {
+              TableServiceConfig {
+                  SessionBalancerSettings {
+                      Enabled: true
+                      MaxSessionsShutdownInFlightSize: 2
+                  }
+              }
+          }
+      }
+  }
+}

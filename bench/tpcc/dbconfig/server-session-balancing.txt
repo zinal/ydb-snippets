@@ -20,6 +20,9 @@ Actions {
                   SessionBalancerSettings {
                       Enabled: true
                       MaxSessionsShutdownInFlightSize: 2
+                      MinCVTreshold: 75
+                      MaxCVTreshold: 100
+                      LocalDatacenterPolicy: false
                   }
               }
           }

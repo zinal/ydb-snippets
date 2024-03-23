@@ -1,6 +1,7 @@
 package ru.zinal.lockrecord;
 
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -14,6 +15,7 @@ public class Main {
 
     final YdbConnector yc;
     final YdbLockRecord locker;
+    final AtomicBoolean running = new AtomicBoolean(true);
     final AtomicInteger owner = new AtomicInteger(-1);
     final AtomicLong execCount = new AtomicLong(0);
 
@@ -37,7 +39,7 @@ public class Main {
     void run() {
         startExecutors();
         waitTime();
-
+        running.set(false);
         LOG.info("Total workload executions within the lock: {}", execCount.get());
     }
 
@@ -45,7 +47,7 @@ public class Main {
         LOG.info("Starting executors...");
         for (int i=0; i<50; ++i) {
             var t = new Thread(new Executor(i));
-            t.setDaemon(true);
+            t.setDaemon(false); // ожидаем завершения потока
             t.start();
         }
         LOG.info("All executors are running!");
@@ -106,7 +108,7 @@ public class Main {
         @Override
         public void run() {
             locker.init();
-            while (true) {
+            while (running.get()) {
                 work(i);
             }
         }

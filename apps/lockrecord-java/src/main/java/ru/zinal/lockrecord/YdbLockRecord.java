@@ -77,7 +77,9 @@ public class YdbLockRecord {
 
     private String getSystemInfo() {
         try {
-            return InetAddress.getLocalHost().getHostName() + " #" + ProcessHandle.current().pid();
+            return InetAddress.getLocalHost().getHostName()
+                    + " #" + ProcessHandle.current().pid()
+                    + " @" + Thread.currentThread().getId();
         } catch(Exception ex) {
             throw new RuntimeException(ex);
         }

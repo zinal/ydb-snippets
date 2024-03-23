@@ -44,7 +44,7 @@ public class YdbLockRecord {
                 break;
             }
             try {
-                Thread.sleep(ThreadLocalRandom.current().nextLong(100L, 500L));
+                Thread.sleep(ThreadLocalRandom.current().nextLong(50L, 200L));
             } catch(InterruptedException ix) {
                 Thread.currentThread().interrupt();
             }

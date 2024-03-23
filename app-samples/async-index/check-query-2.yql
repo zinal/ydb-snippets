@@ -1,0 +1,9 @@
+-- ydb table query execute --tx-mode online-ro -f check-query-2.yql
+-- ***********************************************************************************************
+$q = (SELECT b, COUNT(*) AS cc FROM `async-index-demo`
+      WHERE b BETWEEN "A" AND "Z" GROUP BY b);
+SELECT COALESCE(q1.b, q2.b) AS b, q1.cc AS cnt1, q2.cc AS cnt2
+FROM $q q1
+FULL OUTER JOIN $q q2
+  ON q1.b=q2.b
+WHERE q1.cc IS NULL OR q2.cc IS NULL OR q1.cc<>q2.cc;

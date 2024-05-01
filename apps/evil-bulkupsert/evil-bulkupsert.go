@@ -62,7 +62,7 @@ func main() {
 }
 
 func createTable(ctx context.Context, db *ydb.Driver, tableName string) (err error) {
-	sqlTable1 := fmt.Sprintf("CREATE TABLE `%s` (a Int32 NOT NULL, b JsonDocument, PRIMARY KEY(a))", tableName)
+	sqlTable1 := fmt.Sprintf("CREATE TABLE `%s` (a Int32 NOT NULL, b Utf8, c JsonDocument, d Int32, PRIMARY KEY(a))", tableName)
 	return db.Table().Do(ctx, func(ctx context.Context, session table.Session) (err error) {
 		return session.ExecuteSchemeQuery(ctx, sqlTable1)
 	}, table.WithIdempotent())
@@ -72,17 +72,25 @@ func normalBulkUpsert(ctx context.Context, db *ydb.Driver, tableName string) err
 	rows := make([]types.Value, 0, 2)
 
 	columns := make([]types.StructValueOption, 0, 2)
-	v := types.JSONDocumentValue("{}")
-	columns = append(columns, types.StructFieldValue("b", v))
-	v = types.Int32Value(101)
+	v := types.Int32Value(101)
 	columns = append(columns, types.StructFieldValue("a", v))
+	v = types.TextValue("row-101")
+	columns = append(columns, types.StructFieldValue("b", v))
+	v = types.JSONDocumentValue("{\"a\": 101}")
+	columns = append(columns, types.StructFieldValue("c", v))
+	v = types.Int32Value(111)
+	columns = append(columns, types.StructFieldValue("d", v))
 	rows = append(rows, types.StructValue(columns...))
 
 	columns = make([]types.StructValueOption, 0, 2)
-	v = types.JSONDocumentValue("{\"a\": 1}")
-	columns = append(columns, types.StructFieldValue("b", v))
 	v = types.Int32Value(102)
 	columns = append(columns, types.StructFieldValue("a", v))
+	v = types.TextValue("row-102")
+	columns = append(columns, types.StructFieldValue("b", v))
+	v = types.JSONDocumentValue("{\"a\": 102}")
+	columns = append(columns, types.StructFieldValue("c", v))
+	v = types.Int32Value(112)
+	columns = append(columns, types.StructFieldValue("d", v))
 	rows = append(rows, types.StructValue(columns...))
 
 	return db.Table().Do(ctx, func(ctx context.Context, sess table.Session) error {
@@ -96,15 +104,19 @@ func evilBulkUpsert(ctx context.Context, db *ydb.Driver, tableName string) (err 
 	columns := make([]types.StructValueOption, 0, 2)
 	v := types.Int32Value(201)
 	columns = append(columns, types.StructFieldValue("a", v))
-	v = types.JSONDocumentValue("{}")
+	v = types.TextValue("row-201")
 	columns = append(columns, types.StructFieldValue("b", v))
+	v = types.JSONDocumentValue("{\"a\": 201}")
+	columns = append(columns, types.StructFieldValue("c", v))
 	rows = append(rows, types.StructValue(columns...))
 
 	columns = make([]types.StructValueOption, 0, 2)
 	v = types.Int32Value(202)
 	columns = append(columns, types.StructFieldValue("a", v))
-	v = types.JSONDocumentValue("{\"a\": 2}")
+	v = types.TextValue("row-202")
 	columns = append(columns, types.StructFieldValue("b", v))
+	v = types.Int32Value(212)
+	columns = append(columns, types.StructFieldValue("d", v))
 	rows = append(rows, types.StructValue(columns...))
 
 	return db.Table().Do(ctx, func(ctx context.Context, sess table.Session) error {

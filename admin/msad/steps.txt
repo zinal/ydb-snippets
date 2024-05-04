@@ -1,0 +1,37 @@
+Загрузка образа:
+yc compute image create --name temp2019 --description temp --os-type windows --source-uri "https://storage.yandexcloud.net/<path_to_image>.vhd
+
+1. Создать из vhd ВРЕМЕННЫЙ образ
+2. Создать из временного образа временную ВМ (можно через UI)
+3. Дождаться выключения ВМ (10-15 минут). ВМ не включать.
+4. Создать постоянный образ из диска выключенной временной ВМ
+5. Удалить временный образ и временную ВМ.
+
+Разворачивать рекомендуется так: https://yandex.cloud/ru/docs/microsoft/tutorials/secure-password-script (не получится при развертывании Windows Server 2012R2 из-за ошибки TLS1.2 в поше).
+
+yc iam service-account create --name win-secret-sa1
+
+yc kms symmetric-key create --name win-secret-key --default-algorithm aes-256
+
+yc resource-manager folder add-access-binding b1gpi6439l5ioin4mg74 \
+   --role kms.keys.encrypterDecrypter \
+   --subject serviceAccount:ajeddagattob279vp8bg
+
+yc lockbox secret create \
+   --name win-secret1 \
+   --kms-key-id abj4fllg7u6gv82fgvba \
+   --payload "[{'key': 'Administrator', 'text_value': '***'},{'key': 'user1', 'text_value': '***'}]" \
+   --cloud-id b1g3o4minpkuh10pd2rj \
+   --folder-id b1gpi6439l5ioin4mg74
+
+yc resource-manager folder add-access-binding b1gpi6439l5ioin4mg74 \
+   --role lockbox.payloadViewer \
+   --subject serviceAccount:ajeddagattob279vp8bg
+
+yc compute instance create --name dc2016 --hostname dc2016 --zone ru-central1-d \
+   --create-boot-disk image-id=fd82009p19t1qnhhl372,size=200G,auto-delete=true,type=network-ssd \
+   --cores 8 --memory 32 --platform standard-v3 \
+   --metadata serial-port-enable=1 \
+   --metadata-from-file user-data=mustdie1.ps1 \
+   --network-interface subnet-name=default-ru-central1-d,nat-ip-version=ipv4 \
+   --service-account-name win-secret-sa1

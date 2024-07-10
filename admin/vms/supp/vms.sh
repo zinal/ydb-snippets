@@ -13,6 +13,7 @@ checkLimit() {
   grep "The limit on maximum number of active operations has exceeded" mkinst.tmp | wc -l | (read x && echo $x)
 }
 
+if [ "Y" == "$ydb_create_disks" ]; then
 if [ ${ydb_disk_count} -gt 0 ]; then # begin disks creation
 echo "Creating disks..."
 rm -f mkinst.tmp
@@ -47,6 +48,7 @@ while true; do
   sleep 5
 done
 fi # end disks creation
+fi
 
 echo "Creating static node VMs..."
 for i in `seq ${ydb_nodes_begin} ${ydb_nodes_end}`; do

@@ -1,0 +1,9 @@
+id: fhm3rkdidctiptbk6m56
+description: Create instance
+created_at: "2024-08-06T10:00:49.678973931Z"
+created_by: ajeoge5odofsnsa7afib
+modified_at: "2024-08-06T10:00:49.678973931Z"
+metadata:
+  '@type': type.googleapis.com/yandex.cloud.compute.v1.CreateInstanceMetadata
+  instance_id: fhm00lrdbutcj0u0030p
+

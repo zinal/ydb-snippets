@@ -1,0 +1,72 @@
+# Configuration settings for all YDB cluster nodes
+
+ansible_python_interpreter: /usr/bin/python3
+
+# YDB cluster domain (aka cluster identifier), Root in the documentation
+ydb_domain: Domain0
+
+# YDB software installation directory
+ydb_dir: /opt/ydb
+
+# Source directory with TLS keys and certificares
+ydb_tls_dir: ../TLS
+
+# YDB server software archive
+#ydb_archive: ../yasubd-24.1.18.2-linux-amd64.tar.xz
+ydb_archive: ../yasubd-24.2.6.1-linux-amd64.tar.xz
+
+# YDB server software release
+#ydb_version: 24.1.18.2
+ydb_version: 24.2.6.1
+
+# Extra options passed to tar for unpack, typically "--strip-component=1"
+ydb_unpack_options: "--strip-component=1"
+
+# Database name for the dynamic nodes
+ydb_dbname: testdb
+
+# YDB default storage pool kind, as specified in the static nodes
+#   configuration file in the storage_pool_types.kind field
+ydb_pool_kind: ssd
+
+# Default number of groups per newly created database
+ydb_default_groups: 9
+
+# Name of YDB cluster configuration file
+ydb_config: config.yaml
+
+# Number of cores for static and dynamic nodes
+ydb_cores_static: 20
+ydb_cores_dynamic: 10
+
+# YDB physical disk device names and labels for static nodes
+ydb_disks:
+    - name: /dev/vdb
+      label: ydb_disk_1
+# Configuration settings for dynamic YDB cluster nodes
+
+# The list of exactly three node brokers (static nodes)
+ydb_brokers:
+  - zeit-1
+  - zeit-2
+  - zeit-3
+
+# The list of dynnodes to run on each host
+#  instance is the service suffix
+#  offset is the integer added to base port numbers
+#  affinity is optional, and is the vCPU mask to run the service
+ydb_dynnodes:
+  - { instance: 'a', offset: 0, affinity: '20-32' }
+
+ydb_affinity_static: '0-19'
+
+# Extra sleep time to allow dynamic nodes to settle up
+dynnode_restart_sleep_seconds: 10
+
+unified_agent_binary: ../unified_agent
+unified_agent_home: /opt/ydb/unified_agent
+
+# Optional network congestion control setting, htcp recommended
+ydb_congestion_setting: htcp
+# Optional module to load the congestion control algorithm
+ydb_congestion_module: tcp_htcp

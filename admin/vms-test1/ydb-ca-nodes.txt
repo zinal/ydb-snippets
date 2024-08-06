@@ -1,0 +1,9 @@
+zeit-1 zeit-1.ru-central1.internal zeit-cluster.zonne
+zeit-2 zeit-2.ru-central1.internal zeit-cluster.zonne
+zeit-3 zeit-3.ru-central1.internal zeit-cluster.zonne
+zeit-4 zeit-4.ru-central1.internal zeit-cluster.zonne
+zeit-5 zeit-5.ru-central1.internal zeit-cluster.zonne
+zeit-6 zeit-6.ru-central1.internal zeit-cluster.zonne
+zeit-7 zeit-7.ru-central1.internal zeit-cluster.zonne
+zeit-8 zeit-8.ru-central1.internal zeit-cluster.zonne
+zeit-9 zeit-9.ru-central1.internal zeit-cluster.zonne

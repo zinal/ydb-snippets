@@ -1,0 +1,204 @@
+storage_config_generation: 0
+static_erasure: mirror-3-dc
+host_configs:
+- drive:
+  - path: /dev/disk/by-partlabel/ydb_disk_1
+    type: SSD
+  host_config_id: 1
+hosts:
+- host: zeit-1
+  host_config_id: 1
+  walle_location:
+    body: 1
+    data_center: 'zone-a'
+    rack: '1'
+- host: zeit-2
+  host_config_id: 1
+  walle_location:
+    body: 2
+    data_center: 'zone-a'
+    rack: '2'
+- host: zeit-3
+  host_config_id: 1
+  walle_location:
+    body: 3
+    data_center: 'zone-a'
+    rack: '3'
+- host: zeit-4
+  host_config_id: 1
+  walle_location:
+    body: 4
+    data_center: 'zone-b'
+    rack: '4'
+- host: zeit-5
+  host_config_id: 1
+  walle_location:
+    body: 5
+    data_center: 'zone-b'
+    rack: '5'
+- host: zeit-6
+  host_config_id: 1
+  walle_location:
+    body: 6
+    data_center: 'zone-b'
+    rack: '6'
+- host: zeit-7
+  host_config_id: 1
+  walle_location:
+    body: 7
+    data_center: 'zone-c'
+    rack: '7'
+- host: zeit-8
+  host_config_id: 1
+  walle_location:
+    body: 8
+    data_center: 'zone-c'
+    rack: '8'
+- host: zeit-9
+  host_config_id: 1
+  walle_location:
+    body: 9
+    data_center: 'zone-c'
+    rack: '9'
+
+domains_config:
+  domain:
+  - name: Domain0
+    storage_pool_types:
+    - kind: ssd
+      pool_config:
+        box_id: 1
+        erasure_species: mirror-3-dc
+        kind: ssd
+        pdisk_filter:
+        - property:
+          - type: SSD
+        vdisk_kind: Default
+  state_storage:
+  - ring:
+      node: [1, 2, 3, 4, 5, 6, 7, 8, 9]
+      nto_select: 9
+    ssid: 1
+  security_config:
+    enforce_user_token_requirement: true      # User 'root' with the empty password out of box
+    monitoring_allowed_sids:
+    - "root"
+    - "ADMINS"
+    - "DATABASE-ADMINS"
+    administration_allowed_sids:
+    - "root"
+    - "ADMINS"
+    - "DATABASE-ADMINS"
+    viewer_allowed_sids:
+    - "root"
+    - "ADMINS"
+    - "DATABASE-ADMINS"
+
+blob_storage_config:
+  service_set:
+    groups:
+    - erasure_species: mirror-3-dc
+      rings:
+      - fail_domains:
+        - vdisk_locations:
+          - node_id: zeit-1
+            pdisk_category: SSD
+            path: /dev/disk/by-partlabel/ydb_disk_1
+        - vdisk_locations:
+          - node_id: zeit-2
+            pdisk_category: SSD
+            path: /dev/disk/by-partlabel/ydb_disk_1
+        - vdisk_locations:
+          - node_id: zeit-3
+            pdisk_category: SSD
+            path: /dev/disk/by-partlabel/ydb_disk_1
+      - fail_domains:
+        - vdisk_locations:
+          - node_id: zeit-4
+            pdisk_category: SSD
+            path: /dev/disk/by-partlabel/ydb_disk_1
+        - vdisk_locations:
+          - node_id: zeit-5
+            pdisk_category: SSD
+            path: /dev/disk/by-partlabel/ydb_disk_1
+        - vdisk_locations:
+          - node_id: zeit-6
+            pdisk_category: SSD
+            path: /dev/disk/by-partlabel/ydb_disk_1
+      - fail_domains:
+        - vdisk_locations:
+          - node_id: zeit-7
+            pdisk_category: SSD
+            path: /dev/disk/by-partlabel/ydb_disk_1
+        - vdisk_locations:
+          - node_id: zeit-8
+            pdisk_category: SSD
+            path: /dev/disk/by-partlabel/ydb_disk_1
+        - vdisk_locations:
+          - node_id: zeit-9
+            pdisk_category: SSD
+            path: /dev/disk/by-partlabel/ydb_disk_1
+
+channel_profile_config:
+  profile:
+  - channel:
+    - erasure_species: mirror-3-dc
+      pdisk_category: 1   # 0=ROT, 1=SSD, 2=NVME
+      storage_pool_kind: ssd
+    - erasure_species: mirror-3-dc
+      pdisk_category: 1
+      storage_pool_kind: ssd
+    - erasure_species: mirror-3-dc
+      pdisk_category: 1
+      storage_pool_kind: ssd
+    profile_id: 0
+
+interconnect_config:
+    start_tcp: true
+    encryption_mode: OPTIONAL
+    path_to_certificate_file: "/opt/ydb/certs/node.crt"
+    path_to_private_key_file: "/opt/ydb/certs/node.key"
+    path_to_ca_file: "/opt/ydb/certs/ca.crt"
+
+grpc_config:
+  worker_threads: 2
+  workers_per_completion_queue: 1
+  handlers_per_completion_queue: 1000
+  grpc_proxy_count: 2
+  cert: "/opt/ydb/certs/node.crt"
+  key: "/opt/ydb/certs/node.key"
+  ca: "/opt/ydb/certs/ca.crt"
+
+resource_broker_config:
+  queues:
+    - name: "queue_restore"
+      weight: 100
+      limit:
+        cpu: 8
+
+bootstrap_config:
+  shared_cache_config: {memory_limit: '26843545600'}
+
+table_service_config:
+  sql_version: 1
+  index_auto_choose_mode: MAX_USED_PREFIX
+
+feature_flags:
+  enable_grpc_audit: false
+  enable_get_node_labels: false
+  enable_views: true
+
+log_config:
+  default_level: 4
+
+audit_config:
+  file_backend:
+    format: JSON
+    file_path: "ydb-audit.log"
+
+# Actor system config is appended to the configuration file by Ansible task.
+# Provided here in the commented form for reference
+#actor_system_config:
+#  use_auto_config: true
+#  node_type: STORAGE # STORAGE or COMPUTE
+#  cpu_count: 6

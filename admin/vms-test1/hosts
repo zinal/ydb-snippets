@@ -1,0 +1,21 @@
+[ydbd_static]
+zeit-1 ansible_user=yc-user
+zeit-2 ansible_user=yc-user
+zeit-3 ansible_user=yc-user
+zeit-4 ansible_user=yc-user
+zeit-5 ansible_user=yc-user
+zeit-6 ansible_user=yc-user
+zeit-7 ansible_user=yc-user
+zeit-8 ansible_user=yc-user
+zeit-9 ansible_user=yc-user
+
+[ydbd_dynamic]
+zeit-1 ansible_user=yc-user
+zeit-2 ansible_user=yc-user
+zeit-3 ansible_user=yc-user
+zeit-4 ansible_user=yc-user
+zeit-5 ansible_user=yc-user
+zeit-6 ansible_user=yc-user
+zeit-7 ansible_user=yc-user
+zeit-8 ansible_user=yc-user
+zeit-9 ansible_user=yc-user

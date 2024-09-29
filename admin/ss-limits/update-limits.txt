@@ -1,9 +1,15 @@
 
-1. (если включена аутентификация) получаем токен для аутентификации
+Найти ID тенантного SchemeShard. Для этого в Embedded UI:
+- открыть список баз данных
+- для нужной базы данных в списке кликнуть "мышью" на таблетке "SS"
+- в появившемся списке таблеток ещё раз кликнуть "мышью" на таблетке "SS"
+- возле слова "TABLET" будет числовой идентификатор - например 72075186224037889
 
-ydb auth get-token -f >ydb-token
+(а) без аутентификации
 
-2. Применяем изменения
+ydbd -s grpc://localhost:2136 admin tablet 72075186224037889 execute update-limits.mkql
 
-ydbd admin tablet <tenant schemeshard tablet id> execute update-limits.mkql
+(б) с аутентификацией
 
+ydbd -s grpcs://host.domain:2135 --ca-file /opt/ydb/certs/ca.crt --user root \
+  admin tablet 72075186224037889 execute update-limits.mkql

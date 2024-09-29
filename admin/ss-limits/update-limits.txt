@@ -1,0 +1,9 @@
+
+1. (если включена аутентификация) получаем токен для аутентификации
+
+ydb auth get-token -f >ydb-token
+
+2. Применяем изменения
+
+ydbd admin tablet <tenant schemeshard tablet id> execute update-limits.mkql
+

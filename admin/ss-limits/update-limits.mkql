@@ -1,0 +1,6 @@
+(
+  (let key '('('PathId (Uint64 '1))))
+  (let myval '('TableIndicesLimit (Uint64 '50)))
+  (let ret (AsList (UpdateRow 'SubDomains key '(myval))))
+  (return ret)
+)

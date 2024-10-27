@@ -6,9 +6,11 @@ import tech.ydb.core.Result;
 import tech.ydb.core.Status;
 import tech.ydb.query.QueryTransaction;
 import tech.ydb.query.result.QueryInfo;
+import tech.ydb.query.tools.QueryReader;
 import tech.ydb.query.tools.SessionRetryContext;
 import tech.ydb.scheme.SchemeClient;
 import tech.ydb.table.query.Params;
+import tech.ydb.table.result.ResultSetReader;
 import tech.ydb.table.values.ListType;
 import tech.ydb.table.values.PrimitiveType;
 import tech.ydb.table.values.PrimitiveValue;
@@ -169,18 +171,22 @@ public class Main implements Runnable {
         final Params paramsS = Params.of(
                 "$a", PrimitiveValue.newInt32(1),
                 "$b", PrimitiveValue.newInt32(10));
-
-        long nrows[] = new long[1];
-        result = tx.createQueryWithCommit(select1, paramsS)
-                .execute(part -> {
-                    nrows[0] = part.getResultSetReader().getColumn(0).getUint64();
-                })
+        
+        Result<QueryReader> output = QueryReader.readFrom(
+                tx.createQueryWithCommit(select1, paramsS))
                 .join();
-        if (! result.isSuccess()) {
-            return result.getStatus();
+        if (! output.isSuccess()) {
+            return output.getStatus();
         }
+        
+        LOG.info("Statement 4 successful, transaction committed");
 
-        LOG.info("Statement 4 successful (output {}), transaction committed", nrows[0]);
+        ResultSetReader rs = output.getValue().getResultSet(0);
+        rs.next();
+        long nrows = rs.getColumn(0).getUint64();
+        
+        LOG.info("Output rows count: {}", nrows);
+
         return Status.SUCCESS;
     }
 

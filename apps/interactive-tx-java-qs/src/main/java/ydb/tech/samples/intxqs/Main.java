@@ -1,4 +1,4 @@
-package ydb.tech.samples.parameters1;
+package ydb.tech.samples.intxqs;
 
 import java.util.Arrays;
 import tech.ydb.common.transaction.TxMode;

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<comment>Sample properties file for YDB locker</comment>
+<entry key="ydb.url">grpcs://ydb.serverless.yandexcloud.net:2135/?database=/ru-central1/b1gfvslmokutuvt2g019/etn1rvpkogunudtjlmkt</entry>
+<entry key="ydb.auth.mode">SAKEY</entry>
+<entry key="ydb.auth.sakey">/Users/mzinal/Magic/key-ydb-sa1.json</entry>
+<entry key="ydb.poolSize">1000</entry>
+</properties>

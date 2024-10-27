@@ -1,4 +1,4 @@
-package ydb.tech.samples.parameters1;
+package ydb.tech.samples.intxqs;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

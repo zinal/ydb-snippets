@@ -12,7 +12,6 @@ import tech.ydb.core.grpc.GrpcTransportBuilder;
 import tech.ydb.query.QueryClient;
 import tech.ydb.scheme.SchemeClient;
 import tech.ydb.query.tools.SessionRetryContext;
-import tech.ydb.table.TableClient;
 
 /**
  * The helper class which creates the YDB connection from the set of properties.
@@ -25,13 +24,13 @@ public class YdbConnector implements AutoCloseable {
 
     private final GrpcTransport transport;
     private final SchemeClient schemeClient;
-    private final TableClient tableClient;
     private final QueryClient queryClient;
     private final SessionRetryContext retryCtx;
     private final String database;
     private final Config config;
 
     public YdbConnector(Config config) {
+        LOG.info("Connecting to {}...", config.getConnectionString());
         GrpcTransportBuilder builder = GrpcTransport
                 .forConnectionString(config.getConnectionString());
         switch (config.getAuthMode()) {
@@ -69,9 +68,6 @@ public class YdbConnector implements AutoCloseable {
         this.database = tempTransport.getDatabase();
         try {
             this.schemeClient = SchemeClient.newClient(tempTransport).build();
-            this.tableClient = QueryClient.newTableClient(tempTransport)
-                    .sessionPoolSize(0, config.getPoolSize())
-                    .build();
             this.queryClient = QueryClient.newClient(tempTransport)
                     .sessionPoolMinSize(1)
                     .sessionPoolMaxSize(config.getPoolSize())
@@ -105,10 +101,6 @@ public class YdbConnector implements AutoCloseable {
         return schemeClient;
     }
 
-    public TableClient getTableClient() {
-        return tableClient;
-    }
-
     public QueryClient getQueryClient() {
         return queryClient;
     }
@@ -123,6 +115,7 @@ public class YdbConnector implements AutoCloseable {
 
     @Override
     public void close() {
+        LOG.info("Closing YDB connections...");
         if (schemeClient != null) {
             try {
                 schemeClient.close();

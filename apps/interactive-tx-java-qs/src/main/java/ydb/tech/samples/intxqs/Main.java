@@ -156,8 +156,31 @@ public class Main implements Runnable {
         if (! result.isSuccess()) {
             return result.getStatus();
         }
+        
+        LOG.info("Statement 3 successful, transaction continues");
+        
+        final String select1 = "SELECT COUNT(1) AS cnt "
+                + "FROM `interactive-tx/table-a` AS a "
+                + "INNER JOIN `interactive-tx/table-b` AS b "
+                + "  ON a.b=b.b "
+                + "INNER JOIN `interactive-tx/table-c` AS c "
+                + "  ON a.b=c.b "
+                + "WHERE a.a=$a AND a.b=$b";
+        final Params paramsS = Params.of(
+                "$a", PrimitiveValue.newInt32(1),
+                "$b", PrimitiveValue.newInt32(10));
 
-        LOG.info("Statement 3 successful, transaction committed");
+        long nrows[] = new long[1];
+        result = tx.createQueryWithCommit(select1, paramsS)
+                .execute(part -> {
+                    nrows[0] = part.getResultSetReader().getColumn(0).getUint64();
+                })
+                .join();
+        if (! result.isSuccess()) {
+            return result.getStatus();
+        }
+
+        LOG.info("Statement 4 successful (output {}), transaction committed", nrows[0]);
         return Status.SUCCESS;
     }
 

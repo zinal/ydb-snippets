@@ -8,3 +8,4 @@
 <entry key="ydb.auth.username">root</entry>
 <entry key="ydb.auth.password">???</entry>
 <entry key="ydb.poolSize">1000</entry>
+</properties>

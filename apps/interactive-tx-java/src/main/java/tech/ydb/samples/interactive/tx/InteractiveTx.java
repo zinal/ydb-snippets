@@ -163,7 +163,8 @@ public class InteractiveTx implements Runnable {
         }
         LOG.info("Statement 3 successful, transaction continues");
 
-        final String select1 = "SELECT COUNT(1) AS cnt "
+        final String select1 = "DECLARE $a AS Int32; DECLARE $b AS Int32; "
+                + "SELECT COUNT(1) AS cnt "
                 + "FROM `interactive-tx/table-a` AS a "
                 + "INNER JOIN `interactive-tx/table-b` AS b "
                 + "  ON a.b=b.b "

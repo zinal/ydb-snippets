@@ -201,10 +201,8 @@ public class Main implements Runnable {
                 lastReported = diff;
             }
         }
-        try {
-            es.awaitTermination(1L, TimeUnit.DAYS);
-        } catch(InterruptedException ix) {}
-        es.shutdownNow();
+        LOG.info("Timer reached, waiting for remaining {} task(s) to complete...", taskCounter.get());
+        es.shutdown();
     }
 
     private Status taskBody() {

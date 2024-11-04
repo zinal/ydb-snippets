@@ -249,19 +249,23 @@ public class Main implements Runnable {
 
         LOG.info("Empty tx created");
 
-        for (TableInfo ts : tableInfo) {
-            // Query execution
-            String sql = ts.insertOperator;
-            Params params = ts.makeParams(ts, getBatchSize());
-            Result<QueryInfo> result = tx.createQuery(sql, params).execute().join();
-            LOG.info("Insert query for table {} executed, status {}", ts.name, result.getStatus());
-            // Statistics
-            tvCur = System.currentTimeMillis();
-            tvPrev = reportTime(tvCur, tvPrev, result.isSuccess(), ts);
-            // Error reporting
-            if (! result.isSuccess()) {
-                return result.getStatus();
+        try {
+            for (TableInfo ts : tableInfo) {
+                // Query execution
+                String sql = ts.insertOperator;
+                Params params = ts.makeParams(ts, getBatchSize());
+                Result<QueryInfo> result = tx.createQuery(sql, params).execute().join();
+                LOG.info("Insert query for table {} executed, status {}", ts.name, result.getStatus());
+                // Statistics
+                tvCur = System.currentTimeMillis();
+                tvPrev = reportTime(tvCur, tvPrev, result.isSuccess(), ts);
+                // Error reporting
+                if (! result.isSuccess()) {
+                    return result.getStatus();
+                }
             }
+        } catch(Throwable x) {
+            LOG.error("", x);
         }
 
         LOG.info("Before commit");

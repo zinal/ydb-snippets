@@ -251,7 +251,6 @@ public class Main implements Runnable {
             String sql = ts.insertOperator;
             Params params = ts.makeParams(ts, getBatchSize());
             Result<QueryInfo> result = tx.createQuery(sql, params).execute().join();
-            LOG.info("Insert query for table {} executed, status {}", ts.name, result.getStatus());
             // Statistics
             tvCur = System.currentTimeMillis();
             tvPrev = reportTime(tvCur, tvPrev, result.isSuccess(), ts);

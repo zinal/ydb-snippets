@@ -485,7 +485,7 @@ public class Main implements Runnable {
         }
 
         private StructType makeParamType() {
-            Map<String, Type> m = Stream.iterate(0, i -> i).limit(columns + 1)
+            Map<String, Type> m = Stream.iterate(0, i -> i+1).limit(columns + 1)
                     .collect(Collectors.toMap(
                             num -> collectName(num),
                             num -> collectType(num)));
@@ -493,7 +493,7 @@ public class Main implements Runnable {
         }
 
         private StructValue makeParamValue(StructType st) {
-            Map<String, Value<?>> m = Stream.iterate(0, i -> i).limit(columns + 1)
+            Map<String, Value<?>> m = Stream.iterate(0, i -> i+1).limit(columns + 1)
                     .collect(Collectors.toMap(
                             num -> collectName(num),
                             num -> collectValue(num)));

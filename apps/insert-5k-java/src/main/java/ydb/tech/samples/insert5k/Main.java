@@ -229,7 +229,12 @@ public class Main implements Runnable {
     }
 
     private CompletableFuture<Status> transactionAsync(QuerySession session) {
-        return CompletableFuture.completedFuture(transactionBody(session));
+        try {
+            return CompletableFuture.completedFuture(transactionBody(session));
+        } catch(Exception ex) {
+            LOG.warn("Unexpected exception in async transaction body", ex);
+            return CompletableFuture.completedFuture(Status.of(StatusCode.CLIENT_INTERNAL_ERROR, ex));
+        }
     }
 
     private Status transactionBody(QuerySession session) {

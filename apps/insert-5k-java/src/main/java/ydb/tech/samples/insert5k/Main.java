@@ -153,8 +153,10 @@ public class Main implements Runnable {
             LOG.info("Tables creation skipped.");
             return;
         }
+        LOG.info("Tables creation started.");
         for (TableInfo ts : tableInfo) {
             runDdl(ts.makeTableDdl());
+            LOG.info("\tCreated table: {}", ts.name);
         }
         LOG.info("Tables created.");
     }
@@ -164,8 +166,10 @@ public class Main implements Runnable {
             LOG.info("Tables dropping skipped.");
             return;
         }
+        LOG.info("Tables dropping started.");
         for (TableInfo ts : tableInfo) {
             runDdl("DROP TABLE `example-insert5k/" + ts.name + "`");
+            LOG.info("\tDropped table: {}", ts.name);
         }
         LOG.info("Tables dropped.");
         getSchemeClient().removeDirectory("example-insert5k");

@@ -9,6 +9,7 @@ import tech.ydb.auth.iam.CloudAuthHelper;
 import tech.ydb.core.auth.StaticCredentials;
 import tech.ydb.core.grpc.GrpcTransport;
 import tech.ydb.core.grpc.GrpcTransportBuilder;
+import tech.ydb.query.QueryClient;
 import tech.ydb.scheme.SchemeClient;
 import tech.ydb.table.SessionRetryContext;
 import tech.ydb.table.TableClient;
@@ -30,6 +31,7 @@ public class YdbConnector implements AutoCloseable {
     private final Config config;
 
     public YdbConnector(Config config) {
+        LOG.info("Connecting to {}...", config.getConnectionString());
         GrpcTransportBuilder builder = GrpcTransport
                 .forConnectionString(config.getConnectionString());
         switch (config.getAuthMode()) {
@@ -66,8 +68,8 @@ public class YdbConnector implements AutoCloseable {
         GrpcTransport tempTransport = builder.build();
         this.database = tempTransport.getDatabase();
         try {
-            this.tableClient = TableClient.newClient(tempTransport)
-                    .sessionPoolSize(0, config.getPoolSize())
+            this.tableClient = QueryClient.newTableClient(tempTransport)
+                    .sessionPoolSize(1, config.getPoolSize())
                     .build();
             this.retryCtx = SessionRetryContext
                     .create(tableClient)

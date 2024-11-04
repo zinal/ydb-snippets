@@ -339,7 +339,7 @@ public class Main implements Runnable {
         ThreadLocalRandom r = ThreadLocalRandom.current();
         int len = r.nextInt(minLen, maxLen+1);
         final StringBuilder sb = new StringBuilder(len);
-        while (len > 0) {
+        while (len-- > 0) {
             sb.append(SYMBOLS.charAt(r.nextInt(SYMBOLS.length())));
         }
         return sb.toString();

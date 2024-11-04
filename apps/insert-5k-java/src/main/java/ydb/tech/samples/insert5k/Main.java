@@ -188,9 +188,7 @@ public class Main implements Runnable {
                 taskCounter.incrementAndGet();
                 es.submit(() -> taskBody());
             }
-            try {
-                Thread.sleep(50L);
-            } catch(InterruptedException ix) {}
+            sleepSome();
             long tvFinish = System.currentTimeMillis();
             long diff = tvFinish - tvStart;
             if (diff >= 1000L * ((long)getRunSeconds())) {
@@ -201,8 +199,18 @@ public class Main implements Runnable {
                 lastReported = diff;
             }
         }
-        LOG.info("Timer reached, waiting for remaining {} task(s) to complete...", taskCounter.get());
+        LOG.info("Timer reached, waiting for remaining {} task(s) to complete...", 
+                taskCounter.get());
+        while ( taskCounter.get() > 0L ) {
+            sleepSome();
+        }
         es.shutdown();
+    }
+    
+    private void sleepSome() {
+        try {
+            Thread.sleep(73L);
+        } catch(InterruptedException ix) {}
     }
 
     private Status taskBody() {
@@ -273,7 +281,8 @@ public class Main implements Runnable {
     }
 
     private void printProgress() {
-        LOG.info("Currently {} transactions, including {} failures.", numTotal.get(), numFail.get());
+        LOG.info("Progress: {} completed transactions, including {} failures.",
+                numTotal.get(), numFail.get());
     }
 
     private void printResults() {
@@ -291,7 +300,7 @@ public class Main implements Runnable {
     }
 
     private void printStats(String name, TableInfo ti) {
-        LOG.info("*** {} statistics");
+        LOG.info("*** {} statistics", name);
         LOG.info("*** \tCounts: {} total, {} failed", ti.numTotal.get(), ti.numFail.get());
         LOG.info("*** \tTiming: {} max, {} avg (msec)", ti.maxTime.get(),
                 ti.sumTime.get() / ti.numTotal.get());

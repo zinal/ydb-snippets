@@ -230,7 +230,6 @@ public class Main implements Runnable {
     }
 
     private CompletableFuture<Status> transactionAsync(QuerySession session) {
-        LOG.info("Enter...");
         try {
             return CompletableFuture.completedFuture(transactionBody(session));
         } catch(Exception ex) {
@@ -240,6 +239,7 @@ public class Main implements Runnable {
     }
 
     private Status transactionBody(QuerySession session) {
+        LOG.info("Enter body...");
         numEnter.incrementAndGet();
 
         long tvStart = System.currentTimeMillis();
@@ -247,11 +247,14 @@ public class Main implements Runnable {
 
         QueryTransaction tx = session.createNewTransaction(TxMode.SERIALIZABLE_RW);
 
+        LOG.info("Empty tx created");
+
         for (TableInfo ts : tableInfo) {
             // Query execution
             String sql = ts.insertOperator;
             Params params = ts.makeParams(ts, getBatchSize());
             Result<QueryInfo> result = tx.createQuery(sql, params).execute().join();
+            LOG.info("Insert query for table {} executed, status {}", ts.name, result.getStatus());
             // Statistics
             tvCur = System.currentTimeMillis();
             tvPrev = reportTime(tvCur, tvPrev, result.isSuccess(), ts);
@@ -261,8 +264,13 @@ public class Main implements Runnable {
             }
         }
 
+        LOG.info("Before commit");
+
         // Commit execution
         Result<QueryInfo> result = tx.commit().join();
+
+        LOG.info("Commit executed, status {}", result.getStatus());
+
         // Statistics
         tvCur = System.currentTimeMillis();
         reportTime(tvCur, tvPrev, result.isSuccess(), commitStats);

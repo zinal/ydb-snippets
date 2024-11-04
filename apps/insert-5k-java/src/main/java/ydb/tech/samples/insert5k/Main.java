@@ -205,7 +205,7 @@ public class Main implements Runnable {
         while ( taskCounter.get() > 0L ) {
             sleepSome();
         }
-        es.shutdown();
+        es.shutdownNow();
     }
     
     private void sleepSome() {

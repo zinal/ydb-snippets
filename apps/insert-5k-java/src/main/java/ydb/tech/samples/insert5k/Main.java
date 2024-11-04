@@ -239,6 +239,52 @@ public class Main implements Runnable {
         return sb.toString();
     }
 
+    private static void addShardingOptions(StringBuilder sb) {
+        sb.append("WITH (")
+                .append("AUTO_PARTITIONING_BY_LOAD = ENABLED,")
+                .append("AUTO_PARTITIONING_BY_SIZE = ENABLED,")
+                .append("AUTO_PARTITIONING_MIN_PARTITIONS_COUNT = 800,")
+                .append("AUTO_PARTITIONING_MAX_PARTITIONS_COUNT = 1000,")
+                .append("PARTITION_AT_KEYS = (");
+        sb.append("'-4','-A','-F','-L','-R','-X','-d','-j','-p','-v','0-','04','0A','0F','0L','0R','0X','0d','0j','0p',");
+        sb.append("'0v','1-','14','1A','1F','1L','1R','1X','1d','1j','1p','1v','2-','24','2A','2F','2L','2R','2X','2d',");
+        sb.append("'2j','2p','2v','3-','34','3A','3F','3L','3R','3X','3d','3j','3p','3v','4-','44','4A','4F','4L','4R',");
+        sb.append("'4X','4d','4j','4p','4v','5-','54','5A','5F','5L','5R','5X','5d','5j','5p','5v','6-','64','6A','6F',");
+        sb.append("'6L','6R','6X','6d','6j','6p','6v','7-','74','7A','7F','7L','7R','7X','7d','7j','7p','7v','8-','84',");
+        sb.append("'8A','8F','8L','8R','8X','8d','8j','8p','8v','9-','94','9A','9F','9L','9R','9X','9d','9j','9p','9v',");
+        sb.append("'A-','A4','AA','AF','AL','AR','AX','Ad','Aj','Ap','Av','B-','B4','BA','BF','BL','BR','BX','Bd','Bj',");
+        sb.append("'Bp','Bv','C-','C4','CA','CF','CL','CR','CX','Cd','Cj','Cp','Cv','D-','D4','DA','DF','DL','DR','DX',");
+        sb.append("'Dd','Dj','Dp','Dv','E-','E4','EA','EF','EL','ER','EX','Ed','Ej','Ep','Ev','F-','F4','FA','FF','FL',");
+        sb.append("'FR','FX','Fd','Fj','Fp','Fv','G-','G4','GA','GF','GL','GR','GX','Gd','Gj','Gp','Gv','H-','H4','HA',");
+        sb.append("'HF','HL','HR','HX','Hd','Hj','Hp','Hv','I-','I4','IA','IF','IL','IR','IX','Id','Ij','Ip','Iv','J-',");
+        sb.append("'J4','JA','JF','JL','JR','JX','Jd','Jj','Jp','Jv','K-','K4','KA','KF','KL','KR','KX','Kd','Kj','Kp',");
+        sb.append("'Kv','L-','L4','LA','LF','LL','LR','LX','Ld','Lj','Lp','Lv','M-','M4','MA','MF','ML','MR','MX','Md',");
+        sb.append("'Mj','Mp','Mv','N-','N4','NA','NF','NL','NR','NX','Nd','Nj','Np','Nv','O-','O4','OA','OF','OL','OR',");
+        sb.append("'OX','Od','Oj','Op','Ov','P-','P4','PA','PF','PL','PR','PX','Pd','Pj','Pp','Pv','Q-','Q4','QA','QF',");
+        sb.append("'QL','QR','QX','Qd','Qj','Qp','Qv','R-','R4','RA','RF','RL','RR','RX','Rd','Rj','Rp','Rv','S-','S4',");
+        sb.append("'SA','SF','SL','SR','SX','Sd','Sj','Sp','Sv','T-','T4','TA','TF','TL','TR','TX','Td','Tj','Tp','Tv',");
+        sb.append("'U-','U4','UA','UF','UL','UR','UX','Ud','Uj','Up','Uv','V-','V4','VA','VF','VL','VR','VX','Vd','Vj',");
+        sb.append("'Vp','Vv','W-','W4','WA','WF','WL','WR','WX','Wd','Wj','Wp','Wv','X-','X4','XA','XF','XL','XR','XX',");
+        sb.append("'Xd','Xj','Xp','Xv','Y-','Y4','YA','YF','YL','YR','YX','Yd','Yj','Yp','Yv','Z-','Z4','ZA','ZF','ZL',");
+        sb.append("'ZR','ZX','Zd','Zj','Zp','Zv','_-','_4','_A','_F','_L','_R','_X','_d','_j','_p','_v','a-','a4','aA',");
+        sb.append("'aF','aL','aR','aX','ad','aj','ap','av','b-','b4','bA','bF','bL','bR','bX','bd','bj','bp','bv','c-',");
+        sb.append("'c4','cA','cF','cL','cR','cX','cd','cj','cp','cv','d-','d4','dA','dF','dL','dR','dX','dd','dj','dp',");
+        sb.append("'dv','e-','e4','eA','eF','eL','eR','eX','ed','ej','ep','ev','f-','f4','fA','fF','fL','fR','fX','fd',");
+        sb.append("'fj','fp','fv','g-','g4','gA','gF','gL','gR','gX','gd','gj','gp','gv','h-','h4','hA','hF','hL','hR',");
+        sb.append("'hX','hd','hj','hp','hv','i-','i4','iA','iF','iL','iR','iX','id','ij','ip','iv','j-','j4','jA','jF',");
+        sb.append("'jL','jR','jX','jd','jj','jp','jv','k-','k4','kA','kF','kL','kR','kX','kd','kj','kp','kv','l-','l4',");
+        sb.append("'lA','lF','lL','lR','lX','ld','lj','lp','lv','m-','m4','mA','mF','mL','mR','mX','md','mj','mp','mv',");
+        sb.append("'n-','n4','nA','nF','nL','nR','nX','nd','nj','np','nv','o-','o4','oA','oF','oL','oR','oX','od','oj',");
+        sb.append("'op','ov','p-','p4','pA','pF','pL','pR','pX','pd','pj','pp','pv','q-','q4','qA','qF','qL','qR','qX',");
+        sb.append("'qd','qj','qp','qv','r-','r4','rA','rF','rL','rR','rX','rd','rj','rp','rv','s-','s4','sA','sF','sL',");
+        sb.append("'sR','sX','sd','sj','sp','sv','t-','t4','tA','tF','tL','tR','tX','td','tj','tp','tv','u-','u4','uA',");
+        sb.append("'uF','uL','uR','uX','ud','uj','up','uv','v-','v4','vA','vF','vL','vR','vX','vd','vj','vp','vv','w-',");
+        sb.append("'w4','wA','wF','wL','wR','wX','wd','wj','wp','wv','x-','x4','xA','xF','xL','xR','xX','xd','xj','xp',");
+        sb.append("'xv','y-','y4','yA','yF','yL','yR','yX','yd','yj','yp','yv','z-','z4','zA','zF','zL','zR','zX','zd',");
+        sb.append("'zj','zp','zv'");
+        sb.append("))");
+    }
+
     public static void main(String[] args) {
         LOG.info("YDB Insert 5K Example");
         String configFile = "example1.xml";
@@ -286,14 +332,15 @@ public class Main implements Runnable {
             sb.append("CREATE TABLE `example-insert5k/").append(name).append("` (");
             sb.append("id Text NOT NULL, ");
             for (int i=0; i<columns; ++i) {
-                String type = ((i%2)==0) ? "Text" : "Int64";
-                sb.append("c").append(i).append(" ").append(type).append(", ");
+                sb.append("c").append(i).append(" ")
+                        .append(collectTypeName(i)).append(", ");
             }
             for (int i=0; i<indexes; ++i) {
                 sb.append("INDEX ix").append(i)
                         .append(" GLOBAL ON (").append("c").append(i).append("), ");
             }
-            sb.append("PRIMARY KEY (id))");
+            sb.append("PRIMARY KEY (id)) ");
+            addShardingOptions(sb);
             return sb.toString();
         }
 
@@ -302,6 +349,14 @@ public class Main implements Runnable {
                 return "c" + String.valueOf(num);
             } else {
                 return "id";
+            }
+        }
+
+        private String collectTypeName(int num) {
+            if (num >=0 && num < columns) {
+                return ((num%2)==0) ? "Text" : "Int64";
+            } else {
+                return "Text";
             }
         }
 
@@ -369,7 +424,16 @@ public class Main implements Runnable {
         }
 
         private String makeInsertStatement() {
-            return "INSERT INTO `example-insert5k/" + name + "` SELECT * FROM AS_TABLE($input);";
+            final StringBuilder sb = new StringBuilder();
+            sb.append("DECLARE $input AS List<Struct<id:Text,");
+            for (int i=0; i<columns; ++i) {
+                sb.append("c").append(i).append(":")
+                        .append(collectTypeName(i)).append("?, ");
+            }
+            sb.append(">>;");
+            sb.append("INSERT INTO `example-insert5k/").append(name)
+                    .append("` SELECT * FROM AS_TABLE($input);");
+            return  sb.toString();
         }
 
     }

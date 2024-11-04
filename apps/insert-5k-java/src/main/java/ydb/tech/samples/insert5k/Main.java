@@ -171,6 +171,7 @@ public class Main implements Runnable {
     }
 
     private void runTasks() {
+        LOG.info("Running tasks in {} thread(s).", getNumThreads());
         ExecutorService es = Executors.newFixedThreadPool(getNumThreads());
         long tvStart = System.currentTimeMillis();
         long lastReported = 0L;
@@ -189,6 +190,7 @@ public class Main implements Runnable {
             }
             if (diff - lastReported >= 10000L) {
                 printProgress();
+                lastReported = diff;
             }
         }
         try {

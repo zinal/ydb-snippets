@@ -52,6 +52,7 @@ public class Main implements Runnable {
 
     private final YdbConnector connector;
     private final AtomicInteger taskCounter = new AtomicInteger(0);
+    private ExecutorService asyncTasksWorker = null;
 
     private final TableInfo[] tableInfo = {
         new TableInfo("table-a", 80, 15),

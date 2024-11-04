@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Properties;
+import java.util.concurrent.Executors;
 import tech.ydb.auth.iam.CloudAuthHelper;
 import tech.ydb.core.auth.StaticCredentials;
 import tech.ydb.core.grpc.GrpcTransport;
@@ -74,6 +75,7 @@ public class YdbConnector implements AutoCloseable {
                     .build();
             this.retryCtx = SessionRetryContext.create(this.queryClient)
                     .idempotent(true)
+                    .executor(Executors.newCachedThreadPool())
                     .build();
             this.transport = tempTransport;
             tempTransport = null; // to avoid closing below

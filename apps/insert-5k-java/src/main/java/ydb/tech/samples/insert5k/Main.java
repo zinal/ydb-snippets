@@ -212,7 +212,7 @@ public class Main implements Runnable {
         Status status;
         try {
             status = getRetryCtx().supplyStatus(session -> transactionAsync(session)).join();
-        } catch(Exception ex) {
+        } catch(Throwable ex) {
             LOG.info("Unexpected exception on transaction execution", ex);
             status = Status.of(StatusCode.CLIENT_INTERNAL_ERROR, ex);
         }
@@ -232,14 +232,13 @@ public class Main implements Runnable {
     private CompletableFuture<Status> transactionAsync(QuerySession session) {
         try {
             return CompletableFuture.completedFuture(transactionBody(session));
-        } catch(Exception ex) {
+        } catch(Throwable ex) {
             LOG.warn("Unexpected exception in async transaction body", ex);
             return CompletableFuture.completedFuture(Status.of(StatusCode.CLIENT_INTERNAL_ERROR, ex));
         }
     }
 
     private Status transactionBody(QuerySession session) {
-        LOG.info("Enter body...");
         numEnter.incrementAndGet();
 
         long tvStart = System.currentTimeMillis();
@@ -247,33 +246,23 @@ public class Main implements Runnable {
 
         QueryTransaction tx = session.createNewTransaction(TxMode.SERIALIZABLE_RW);
 
-        LOG.info("Empty tx created");
-
-        try {
-            for (TableInfo ts : tableInfo) {
-                // Query execution
-                String sql = ts.insertOperator;
-                Params params = ts.makeParams(ts, getBatchSize());
-                Result<QueryInfo> result = tx.createQuery(sql, params).execute().join();
-                LOG.info("Insert query for table {} executed, status {}", ts.name, result.getStatus());
-                // Statistics
-                tvCur = System.currentTimeMillis();
-                tvPrev = reportTime(tvCur, tvPrev, result.isSuccess(), ts);
-                // Error reporting
-                if (! result.isSuccess()) {
-                    return result.getStatus();
-                }
+        for (TableInfo ts : tableInfo) {
+            // Query execution
+            String sql = ts.insertOperator;
+            Params params = ts.makeParams(ts, getBatchSize());
+            Result<QueryInfo> result = tx.createQuery(sql, params).execute().join();
+            LOG.info("Insert query for table {} executed, status {}", ts.name, result.getStatus());
+            // Statistics
+            tvCur = System.currentTimeMillis();
+            tvPrev = reportTime(tvCur, tvPrev, result.isSuccess(), ts);
+            // Error reporting
+            if (! result.isSuccess()) {
+                return result.getStatus();
             }
-        } catch(Throwable x) {
-            LOG.error("", x);
         }
-
-        LOG.info("Before commit");
 
         // Commit execution
         Result<QueryInfo> result = tx.commit().join();
-
-        LOG.info("Commit executed, status {}", result.getStatus());
 
         // Statistics
         tvCur = System.currentTimeMillis();

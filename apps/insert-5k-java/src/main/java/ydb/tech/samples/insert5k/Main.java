@@ -199,6 +199,7 @@ public class Main implements Runnable {
                 lastReported = diff;
             }
         }
+        printProgress();
         LOG.info("Timer reached, waiting for remaining {} task(s) to complete...", 
                 taskCounter.get());
         while ( taskCounter.get() > 0L ) {

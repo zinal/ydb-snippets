@@ -18,6 +18,7 @@ import java.util.stream.Stream;
 import tech.ydb.common.transaction.TxMode;
 import tech.ydb.core.Result;
 import tech.ydb.core.Status;
+import tech.ydb.core.StatusCode;
 import tech.ydb.query.QuerySession;
 import tech.ydb.query.QueryTransaction;
 import tech.ydb.query.result.QueryInfo;
@@ -207,7 +208,13 @@ public class Main implements Runnable {
 
     private Status taskBody() {
         long tvStart = System.currentTimeMillis();
-        Status status = getRetryCtx().supplyStatus(session -> transactionAsync(session)).join();
+        Status status;
+        try {
+            status = getRetryCtx().supplyStatus(session -> transactionAsync(session)).join();
+        } catch(Exception ex) {
+            LOG.info("Unexpected exception on transaction execution", ex);
+            status = Status.of(StatusCode.CLIENT_INTERNAL_ERROR, ex);
+        }
         long tvDiff = System.currentTimeMillis() - tvStart;
         numTotal.incrementAndGet();
         if (status.isSuccess()) {

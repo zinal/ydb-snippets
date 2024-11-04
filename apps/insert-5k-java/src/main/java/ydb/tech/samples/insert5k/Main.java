@@ -62,10 +62,14 @@ public class Main implements Runnable {
     private final AtomicLong numTotal = new AtomicLong(0);
     private final AtomicLong numFail = new AtomicLong(0);
     private final AtomicLong numEnter = new AtomicLong(0);
+    private final AtomicLong timeSuccess = new AtomicLong(0);
+    private final AtomicLong timeFail = new AtomicLong(0);
 
     private int propNumThreads = -1;
     private int propBatchSize = -1;
     private int propRunSeconds = -1;
+    private boolean propEnableCreate = false;
+    private boolean propEnableDrop = false;
 
     public Main(YdbConnector connector) {
         this.connector = connector;
@@ -91,6 +95,14 @@ public class Main implements Runnable {
         return propRunSeconds;
     }
 
+    private boolean isCreateEnabled() {
+        return propEnableCreate;
+    }
+
+    private boolean isDropEnabled() {
+        return propEnableDrop;
+    }
+
     private int parseIntProperty(String name, int defval) {
         String s = connector.getConfig().getProperties().getProperty(name, String.valueOf(defval));
         int v;
@@ -106,10 +118,17 @@ public class Main implements Runnable {
         return v;
     }
 
+    private boolean parseBoolProperty(String name, boolean defval) {
+        String s = connector.getConfig().getProperties().getProperty(name, String.valueOf(defval));
+        return Boolean.parseBoolean(s);
+    }
+
     private void parseProperties() {
         propNumThreads = parseIntProperty("numThreads", 10);
         propBatchSize = parseIntProperty("batchSize", 1000);
         propRunSeconds = parseIntProperty("runSeconds", 600);
+        propEnableCreate = parseBoolProperty("enableCreate", true);
+        propEnableDrop = parseBoolProperty("enableDrop", false);
     }
 
     @Override
@@ -117,6 +136,7 @@ public class Main implements Runnable {
         parseProperties();
         createTables();
         runTasks();
+        printResults();
         dropTables();
     }
 
@@ -127,6 +147,10 @@ public class Main implements Runnable {
     }
 
     private void createTables() {
+        if (! isCreateEnabled()) {
+            LOG.info("Tables creation skipped.");
+            return;
+        }
         for (TableInfo ts : tableInfo) {
             runDdl(ts.makeTableDdl());
         }
@@ -134,6 +158,10 @@ public class Main implements Runnable {
     }
 
     private void dropTables() {
+        if (! isDropEnabled()) {
+            LOG.info("Tables dropping skipped.");
+            return;
+        }
         for (TableInfo ts : tableInfo) {
             runDdl("DROP TABLE `example-insert5k/" + ts.name + "`");
         }
@@ -145,17 +173,22 @@ public class Main implements Runnable {
     private void runTasks() {
         ExecutorService es = Executors.newFixedThreadPool(getNumThreads());
         long tvStart = System.currentTimeMillis();
+        long lastReported = 0L;
         while (true) {
             while (taskCounter.get() < 1 + getNumThreads()) {
                 taskCounter.incrementAndGet();
-                es.submit(() -> insertTransaction());
+                es.submit(() -> taskBody());
             }
             try {
                 Thread.sleep(50L);
             } catch(InterruptedException ix) {}
             long tvFinish = System.currentTimeMillis();
-            if ((tvFinish - tvStart) >= 1000L * ((long)getRunSeconds())) {
+            long diff = tvFinish - tvStart;
+            if (diff >= 1000L * ((long)getRunSeconds())) {
                 break;
+            }
+            if (diff - lastReported >= 10000L) {
+                printProgress();
             }
         }
         try {
@@ -164,21 +197,26 @@ public class Main implements Runnable {
         es.shutdownNow();
     }
 
-    private Status insertTransaction() {
+    private Status taskBody() {
+        long tvStart = System.currentTimeMillis();
         Status status = getRetryCtx().supplyStatus(session ->
                 session.beginTransaction(TxMode.SERIALIZABLE_RW)
-                    .thenApply(r -> insertBody(r.getValue())))
+                    .thenApply(r -> transactionBody(r.getValue())))
                 .join();
+        long tvDiff = System.currentTimeMillis() - tvStart;
         numTotal.incrementAndGet();
-        if (! status.isSuccess()) {
+        if (status.isSuccess()) {
+            timeSuccess.addAndGet(tvDiff);
+        } else {
             numFail.incrementAndGet();
+            timeFail.addAndGet(tvDiff);
             LOG.warn("Transaction failed with {}", status);
         }
         taskCounter.decrementAndGet();
         return status;
     }
 
-    private Status insertBody(QueryTransaction tx) {
+    private Status transactionBody(QueryTransaction tx) {
         numEnter.incrementAndGet();
 
         long tvStart = System.currentTimeMillis();
@@ -186,7 +224,7 @@ public class Main implements Runnable {
 
         for (TableInfo ts : tableInfo) {
             // Query execution
-            String sql = ts.makeInsertStatement();
+            String sql = ts.insertOperator;
             Params params = ts.makeParams(ts, getBatchSize());
             Result<QueryInfo> result = tx.createQuery(sql, params).execute().join();
             // Statistics
@@ -209,6 +247,37 @@ public class Main implements Runnable {
         }
 
         return Status.SUCCESS;
+    }
+
+    private void printProgress() {
+        LOG.info("Currently {} transactions, including {} failures.", numTotal.get(), numFail.get());
+    }
+
+    private void printResults() {
+        LOG.info("Total {} transactions, including {} failures.", numTotal.get(), numFail.get());
+        LOG.info("Transaction retries: {} total, average rate {}",
+                numEnter.get() - numTotal.get(), formatRetryRate());
+        LOG.info("Average success time, msec: {} (including retries)",
+                timeSuccess.get() / (numTotal.get() - numFail.get()));
+        LOG.info("Average failure time, msec: {} (including retries)",
+                timeFail.get() / (numTotal.get() - numFail.get()));
+        printStats("COMMIT", commitStats);
+        for (TableInfo ti : tableInfo) {
+            printStats(ti.name, ti);
+        }
+    }
+
+    private void printStats(String name, TableInfo ti) {
+        LOG.info("*** {} statistics");
+        LOG.info("*** \tCounts: {} total, {} failed", ti.numTotal.get(), ti.numFail.get());
+        LOG.info("*** \tTiming: {} max, {} avg (msec)", ti.maxTime.get(),
+                ti.sumTime.get() / ti.numTotal.get());
+    }
+
+    private String formatRetryRate() {
+        double retries = numEnter.get() - numTotal.get();
+        double trans = numTotal.get();
+        return String.format("%1.2f", 100.0 * retries / trans) + "%";
     }
 
     private long reportTime(long tvCur, long tvPrev, boolean success, TableInfo ts) {
@@ -312,6 +381,8 @@ public class Main implements Runnable {
         final AtomicLong numTotal = new AtomicLong(0L);
         final AtomicLong numFail = new AtomicLong(0L);
 
+        final String insertOperator;
+
         TableInfo(String name, int columns, int indexes) {
             this.name = name;
             if (columns < 1) {
@@ -325,6 +396,7 @@ public class Main implements Runnable {
             }
             this.columns = columns;
             this.indexes = indexes;
+            this.insertOperator = makeInsertStatement();
         }
 
         String makeTableDdl() {
@@ -424,6 +496,9 @@ public class Main implements Runnable {
         }
 
         private String makeInsertStatement() {
+            if (name==null || name.length()==0) {
+                return "";
+            }
             final StringBuilder sb = new StringBuilder();
             sb.append("DECLARE $input AS List<Struct<id:Text,");
             for (int i=0; i<columns; ++i) {

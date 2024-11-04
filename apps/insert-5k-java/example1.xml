@@ -11,4 +11,6 @@
 <entry key="runSeconds">600</entry>
 <entry key="batchSize">1000</entry>
 <entry key="numThreads">10</entry>
+<entry key="enableCreate">true</entry>
+<entry key="enableDrop">false</entry>
 </properties>

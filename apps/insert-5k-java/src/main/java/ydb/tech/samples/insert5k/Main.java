@@ -230,6 +230,7 @@ public class Main implements Runnable {
     }
 
     private CompletableFuture<Status> transactionAsync(QuerySession session) {
+        LOG.info("Enter...");
         try {
             return CompletableFuture.completedFuture(transactionBody(session));
         } catch(Exception ex) {

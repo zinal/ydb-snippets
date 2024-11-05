@@ -22,6 +22,7 @@ import tech.ydb.core.StatusCode;
 import tech.ydb.query.QuerySession;
 import tech.ydb.query.QueryTransaction;
 import tech.ydb.query.result.QueryInfo;
+import tech.ydb.query.settings.ExecuteQuerySettings;
 import tech.ydb.query.tools.SessionRetryContext;
 import tech.ydb.scheme.SchemeClient;
 import tech.ydb.table.query.Params;
@@ -76,6 +77,7 @@ public class Main implements Runnable {
     private int propRunSeconds = -1;
     private boolean propEnableCreate = false;
     private boolean propEnableDrop = false;
+    private boolean propIntegratedCommit = false;
 
     public Main(YdbConnector connector) {
         this.connector = connector;
@@ -109,6 +111,10 @@ public class Main implements Runnable {
         return propEnableDrop;
     }
 
+    private boolean isIntegratedCommit() {
+        return propIntegratedCommit;
+    }
+
     private int parseIntProperty(String name, int defval) {
         String s = connector.getConfig().getProperties().getProperty(name, String.valueOf(defval));
         int v;
@@ -135,6 +141,7 @@ public class Main implements Runnable {
         propRunSeconds = parseIntProperty("runSeconds", 600);
         propEnableCreate = parseBoolProperty("enableCreate", true);
         propEnableDrop = parseBoolProperty("enableDrop", false);
+        propIntegratedCommit = parseBoolProperty("integratedCommit", false);
     }
 
     @Override
@@ -244,7 +251,11 @@ public class Main implements Runnable {
         EXEC_STEP.set("ENTRY");
         Status status;
         try {
-            status = transactionBody(session, input);
+            if (isIntegratedCommit()) {
+                status = bodyWithIntegratedCommit(session, input);
+            } else {
+                status = bodyWithSeparateCommit(session, input);
+            }
         } catch(Throwable ex) {
             status = Status.of(StatusCode.CLIENT_INTERNAL_ERROR, ex);
         }
@@ -255,7 +266,7 @@ public class Main implements Runnable {
         return CompletableFuture.completedFuture(status);
     }
 
-    private Status transactionBody(QuerySession session, TaskInput input) {
+    private Status bodyWithSeparateCommit(QuerySession session, TaskInput input) {
         numEnter.incrementAndGet();
         EXEC_STEP.set("BODY");
 
@@ -292,6 +303,43 @@ public class Main implements Runnable {
         // Error reporting
         if (! result.isSuccess()) {
             return result.getStatus();
+        }
+
+        EXEC_STEP.set("SUCCESS");
+
+        return Status.SUCCESS;
+    }
+
+    private Status bodyWithIntegratedCommit(QuerySession session, TaskInput input) {
+        numEnter.incrementAndGet();
+        EXEC_STEP.set("BODY");
+
+        long tvStart = System.currentTimeMillis();
+        long tvCur, tvPrev = tvStart;
+
+        QueryTransaction tx = session.createNewTransaction(TxMode.SERIALIZABLE_RW);
+
+        EXEC_STEP.set("TX");
+
+        for (int i=0; i<tableInfo.length; ++i) {
+            EXEC_STEP.set("TABLE:" + tableInfo[i].name);
+            // Query execution
+            String sql = tableInfo[i].insertOperator;
+            Params params = input.params[i];
+            Result<QueryInfo> result;
+            if (i+1==tableInfo.length) {
+                result = tx.createQuery(sql, true, params, ExecuteQuerySettings.newBuilder().build())
+                        .execute().join();
+            } else {
+                result = tx.createQuery(sql, params).execute().join();
+            }
+            // Statistics
+            tvCur = System.currentTimeMillis();
+            tvPrev = reportTime(tvCur, tvPrev, result.isSuccess(), tableInfo[i]);
+            // Error reporting
+            if (! result.isSuccess()) {
+                return result.getStatus();
+            }
         }
 
         EXEC_STEP.set("SUCCESS");

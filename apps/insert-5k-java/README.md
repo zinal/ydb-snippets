@@ -14,6 +14,13 @@ ydb scheme rmdir -r example-insert5k
 mvn exec:java
 ```
 
+## Отладка
+
+```
+export MAVEN_OPTS='-Xdebug -Xrunjdwp:transport=dt_socket,server=y,address=8888,suspend=n'
+mvn exec:java
+```
+
 ## Прогоны на 10k строк
 
 Первоначальная конфигурация: ydbd 24.3.9.yasubd.1

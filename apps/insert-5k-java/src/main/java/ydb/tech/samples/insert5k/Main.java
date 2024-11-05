@@ -231,7 +231,7 @@ public class Main implements Runnable {
         try {
             status = getRetryCtx().supplyStatus(session -> transactionAsync(session, input)).join();
         } catch(Throwable ex) {
-            LOG.info("Unexpected exception on transaction {} execution", input.inputId, ex);
+            LOG.info("Unexpected exception on task {}", input.inputId, ex);
             status = Status.of(StatusCode.CLIENT_INTERNAL_ERROR, ex);
         }
         long tvDiff = System.currentTimeMillis() - tvStart;
@@ -241,7 +241,7 @@ public class Main implements Runnable {
         } else {
             numFail.incrementAndGet();
             timeFail.addAndGet(tvDiff);
-            LOG.warn("Transaction {} finally failed with {}", input.inputId, status);
+            LOG.warn("Task {} finally failed with {}", input.inputId, status);
         }
         taskCounter.decrementAndGet();
         return status;
@@ -260,7 +260,7 @@ public class Main implements Runnable {
             status = Status.of(StatusCode.CLIENT_INTERNAL_ERROR, ex);
         }
         if (! status.isSuccess()) {
-            LOG.warn("Transaction {} preliminarily failed on step {} with {}",
+            LOG.warn("Task {} preliminarily failed on step {} with {}",
                     input.inputId, EXEC_STEP.get(), status);
         }
         return CompletableFuture.completedFuture(status);
@@ -367,10 +367,12 @@ public class Main implements Runnable {
     }
 
     private void printStats(String name, TableInfo ti) {
-        LOG.info("*** {} statistics", name);
-        LOG.info("*** \tCounts: {} total, {} failed", ti.numTotal.get(), ti.numFail.get());
-        LOG.info("*** \tTiming: {} max, {} avg (msec)", ti.maxTime.get(),
-                ti.sumTime.get() / ti.numTotal.get());
+        if (ti.numTotal.get() > 0) {
+            LOG.info("*** {} statistics", name);
+            LOG.info("*** \tCounts: {} total, {} failed", ti.numTotal.get(), ti.numFail.get());
+            LOG.info("*** \tTiming: {} max, {} avg (msec)", ti.maxTime.get(),
+                    ti.sumTime.get() / ti.numTotal.get());
+        }
     }
 
     private String formatRetryRate() {

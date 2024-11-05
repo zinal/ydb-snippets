@@ -12,6 +12,7 @@
 mvn clean package
 ydb scheme rmdir -r example-insert5k
 mvn exec:java
+mvn exec:java -Dexec.args=example2.xml
 ```
 
 ## Отладка

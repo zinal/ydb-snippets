@@ -13,4 +13,5 @@
 <entry key="numThreads">10</entry>
 <entry key="enableCreate">true</entry>
 <entry key="enableDrop">false</entry>
+<entry key="integratedCommit">false</entry>
 </properties>

@@ -49,9 +49,10 @@ public class Main implements Runnable {
             + "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"
             + "абвгдеёжзийклмнопрстуфхцчшщъыьэюя";
 
+    private static final ThreadLocal<String> EXEC_STEP = new ThreadLocal<>();
+
     private final YdbConnector connector;
     private final AtomicInteger taskCounter = new AtomicInteger(0);
-    private ExecutorService asyncTasksWorker = null;
 
     private final TableInfo[] tableInfo = {
         new TableInfo("table-a", 80, 15),
@@ -221,7 +222,7 @@ public class Main implements Runnable {
         try {
             status = getRetryCtx().supplyStatus(session -> transactionAsync(session, input)).join();
         } catch(Throwable ex) {
-            LOG.info("Unexpected exception on transaction execution", ex);
+            LOG.info("Unexpected exception on transaction {} execution", input.inputId, ex);
             status = Status.of(StatusCode.CLIENT_INTERNAL_ERROR, ex);
         }
         long tvDiff = System.currentTimeMillis() - tvStart;
@@ -231,13 +232,14 @@ public class Main implements Runnable {
         } else {
             numFail.incrementAndGet();
             timeFail.addAndGet(tvDiff);
-            LOG.warn("Transaction finally failed with {}", status);
+            LOG.warn("Transaction {} finally failed with {}", input.inputId, status);
         }
         taskCounter.decrementAndGet();
         return status;
     }
 
     private CompletableFuture<Status> transactionAsync(QuerySession session, TaskInput input) {
+        EXEC_STEP.set("ENTRY");
         Status status;
         try {
             status = transactionBody(session, input);
@@ -245,20 +247,25 @@ public class Main implements Runnable {
             status = Status.of(StatusCode.CLIENT_INTERNAL_ERROR, ex);
         }
         if (! status.isSuccess()) {
-            LOG.warn("Transaction preliminarily failed with {}", status);
+            LOG.warn("Transaction {} preliminarily failed on step {} with {}",
+                    input.inputId, EXEC_STEP.get(), status);
         }
         return CompletableFuture.completedFuture(status);
     }
 
     private Status transactionBody(QuerySession session, TaskInput input) {
         numEnter.incrementAndGet();
+        EXEC_STEP.set("BODY");
 
         long tvStart = System.currentTimeMillis();
         long tvCur, tvPrev = tvStart;
 
         QueryTransaction tx = session.createNewTransaction(TxMode.SERIALIZABLE_RW);
 
+        EXEC_STEP.set("TX");
+
         for (int i=0; i<tableInfo.length; ++i) {
+            EXEC_STEP.set("TABLE:" + tableInfo[i].name);
             // Query execution
             String sql = tableInfo[i].insertOperator;
             Params params = input.params[i];
@@ -272,6 +279,8 @@ public class Main implements Runnable {
             }
         }
 
+        EXEC_STEP.set("COMMIT");
+
         // Commit execution
         Result<QueryInfo> result = tx.commit().join();
 
@@ -282,6 +291,8 @@ public class Main implements Runnable {
         if (! result.isSuccess()) {
             return result.getStatus();
         }
+
+        EXEC_STEP.set("SUCCESS");
 
         return Status.SUCCESS;
     }
@@ -410,9 +421,11 @@ public class Main implements Runnable {
     }
 
     final class TaskInput {
+        final String inputId;
         final Params params[];
 
         TaskInput() {
+            this.inputId = formatUuid(UUID.randomUUID());
             this.params = new Params[tableInfo.length];
             for (int i=0; i<tableInfo.length; ++i) {
                 this.params[i] = tableInfo[i].makeParams(getBatchSize());

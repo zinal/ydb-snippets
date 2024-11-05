@@ -150,3 +150,39 @@ Manual          0	0
 Storage         0	0
 ```
 
+### 5 потоков, 10 минут
+
+Включен режим интегрированного COMMIT (флажком на последнем операторе вставки).
+
+```
+2024-11-05 08:27:56 INFO  Main:356 - Total 51 transactions, including 0 failures.
+2024-11-05 08:27:56 INFO  Main:357 - Transaction retries: 14 total, average rate 27.45%
+2024-11-05 08:27:56 INFO  Main:359 - Average success time, msec: 30013 (including retries)
+2024-11-05 08:27:56 INFO  Main:361 - Average failure time, msec: 0 (including retries)
+2024-11-05 08:27:56 INFO  Main:371 - *** table-a statistics
+2024-11-05 08:27:56 INFO  Main:372 - *** 	Counts: 65 total, 0 failed
+2024-11-05 08:27:56 INFO  Main:373 - *** 	Timing: 9878 max, 3729 avg (msec)
+2024-11-05 08:27:56 INFO  Main:371 - *** table-b statistics
+2024-11-05 08:27:56 INFO  Main:372 - *** 	Counts: 65 total, 0 failed
+2024-11-05 08:27:56 INFO  Main:373 - *** 	Timing: 6796 max, 2427 avg (msec)
+2024-11-05 08:27:56 INFO  Main:371 - *** table-c statistics
+2024-11-05 08:27:56 INFO  Main:372 - *** 	Counts: 65 total, 0 failed
+2024-11-05 08:27:56 INFO  Main:373 - *** 	Timing: 7009 max, 2048 avg (msec)
+2024-11-05 08:27:56 INFO  Main:371 - *** table-d statistics
+2024-11-05 08:27:56 INFO  Main:372 - *** 	Counts: 65 total, 0 failed
+2024-11-05 08:27:56 INFO  Main:373 - *** 	Timing: 8412 max, 2698 avg (msec)
+2024-11-05 08:27:56 INFO  Main:371 - *** table-e statistics
+2024-11-05 08:27:56 INFO  Main:372 - *** 	Counts: 65 total, 14 failed
+2024-11-05 08:27:56 INFO  Main:373 - *** 	Timing: 26604 max, 12244 avg (msec)
+```
+
+Виды сообщений об ошибках, вызывающих повторы транзакций:
+
+```
+2024-11-05 08:24:26 WARN  Main:263 - Task W1TrwnzNTlazWQIQ9sLNhw preliminarily failed on step TABLE:table-e with Status{code = UNAVAILABLE(code=400050), issues = [#2005 Kikimr cluster or one of its subsystems was unavailable. (S_ERROR)
+  Could not deliver program to shard 72075186224041693 (S_ERROR)]}
+
+2024-11-05 08:24:31 WARN  Main:263 - Task I23m4y8ERVij1MmF4B7g_g preliminarily failed on step TABLE:table-e with Status{code = ABORTED(code=400040), issues = [#2001 Transaction locks invalidated. Table: /cluster1/testdb/example-insert5k/table-a (S_ERROR)]}
+```
+
+Все ошибки выявляются на последнем операторе (в момент COMMIT).

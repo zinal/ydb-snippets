@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadLocalRandom;
@@ -53,6 +54,7 @@ public class Main implements Runnable {
 
     private final YdbConnector connector;
     private final AtomicInteger taskCounter = new AtomicInteger(0);
+    private final ConcurrentHashMap<String, Boolean> knownIds = new ConcurrentHashMap<>();
 
     private final TableInfo[] tableInfo = {
         new TableInfo("table-a", 80, 15),
@@ -340,6 +342,15 @@ public class Main implements Runnable {
         return tvCur;
     }
 
+    private String makeUuid() {
+        String id = formatUuid(UUID.randomUUID());
+        while (knownIds.put(id, Boolean.TRUE) != null) {
+            LOG.warn("Duplicate id generated: {}", id);
+            id = formatUuid(UUID.randomUUID());
+        }
+        return id;
+    }
+
     private static String formatUuid(UUID uuid) {
         ByteBuffer bb = ByteBuffer.allocate(16);
         bb.putLong(uuid.getMostSignificantBits());
@@ -425,7 +436,7 @@ public class Main implements Runnable {
         final Params params[];
 
         TaskInput() {
-            this.inputId = formatUuid(UUID.randomUUID());
+            this.inputId = makeUuid();
             this.params = new Params[tableInfo.length];
             for (int i=0; i<tableInfo.length; ++i) {
                 this.params[i] = tableInfo[i].makeParams(getBatchSize());
@@ -433,7 +444,7 @@ public class Main implements Runnable {
         }
     }
 
-    static final class TableInfo {
+    final class TableInfo {
         final String name;
         final int columns;
         final int indexes;
@@ -524,7 +535,7 @@ public class Main implements Runnable {
                     return OptionalValue.of(v);
                 }
             } else {
-                return PrimitiveValue.newText(formatUuid(UUID.randomUUID()));
+                return PrimitiveValue.newText(makeUuid());
             }
         }
 

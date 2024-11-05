@@ -95,3 +95,50 @@ resource_broker_config:
 ```
 
 Причина повторов - TLI (KIKIMR_LOCKS_INVALIDATED).
+
+Полношардовых блокировок, судя по метрикам, нет.
+
+### 5 потоков, 5 минут
+
+```
+2024-11-05 06:26:02 INFO  Main:306 - Total 29 transactions, including 0 failures.
+2024-11-05 06:26:02 INFO  Main:307 - Transaction retries: 43 total, average rate 148.28%
+2024-11-05 06:26:02 INFO  Main:309 - Average success time, msec: 53672 (including retries)
+2024-11-05 06:26:02 INFO  Main:311 - Average failure time, msec: 0 (including retries)
+2024-11-05 06:26:02 INFO  Main:320 - *** COMMIT statistics
+2024-11-05 06:26:02 INFO  Main:321 - *** 	Counts: 72 total, 43 failed
+2024-11-05 06:26:02 INFO  Main:322 - *** 	Timing: 22900 max, 9933 avg (msec)
+2024-11-05 06:26:02 INFO  Main:320 - *** table-a statistics
+2024-11-05 06:26:02 INFO  Main:321 - *** 	Counts: 72 total, 0 failed
+2024-11-05 06:26:02 INFO  Main:322 - *** 	Timing: 10547 max, 3413 avg (msec)
+2024-11-05 06:26:02 INFO  Main:320 - *** table-b statistics
+2024-11-05 06:26:02 INFO  Main:321 - *** 	Counts: 72 total, 0 failed
+2024-11-05 06:26:02 INFO  Main:322 - *** 	Timing: 5658 max, 1949 avg (msec)
+2024-11-05 06:26:02 INFO  Main:320 - *** table-c statistics
+2024-11-05 06:26:02 INFO  Main:321 - *** 	Counts: 72 total, 0 failed
+2024-11-05 06:26:02 INFO  Main:322 - *** 	Timing: 4879 max, 1396 avg (msec)
+2024-11-05 06:26:02 INFO  Main:320 - *** table-d statistics
+2024-11-05 06:26:02 INFO  Main:321 - *** 	Counts: 72 total, 0 failed
+2024-11-05 06:26:02 INFO  Main:322 - *** 	Timing: 8022 max, 1903 avg (msec)
+2024-11-05 06:26:02 INFO  Main:320 - *** table-e statistics
+2024-11-05 06:26:02 INFO  Main:321 - *** 	Counts: 72 total, 0 failed
+2024-11-05 06:26:02 INFO  Main:322 - *** 	Timing: 8317 max, 1127 avg (msec)
+```
+
+Причины повторов - TLI (KIKIMR_LOCKS_INVALIDATED) и UNAVAILABLE.
+
+Ненулевая активность Hive по перевозу таблеток в момент исполнения транзакций. Судя по Hive UI, возит из-за неравномерного использования памяти:
+
+```
+Balancer	Runs	Moves	Last run	Last moves	Progress
+Counter         0	0
+CPU             0	0
+Memory          715	715	2024-11-05T06:56:09.239762Z	1
+Network         0	0
+Emergency	0	0
+Spread          0	0
+Scatter         0	0
+Manual          0	0
+Storage         0	0
+```
+

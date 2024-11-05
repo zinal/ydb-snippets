@@ -10,7 +10,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
@@ -215,10 +214,12 @@ public class Main implements Runnable {
     }
 
     private Status taskBody() {
+        // Генерируем порцию данных для последующей вставки
+        final TaskInput input = new TaskInput();
         long tvStart = System.currentTimeMillis();
         Status status;
         try {
-            status = getRetryCtx().supplyStatus(session -> transactionAsync(session)).join();
+            status = getRetryCtx().supplyStatus(session -> transactionAsync(session, input)).join();
         } catch(Throwable ex) {
             LOG.info("Unexpected exception on transaction execution", ex);
             status = Status.of(StatusCode.CLIENT_INTERNAL_ERROR, ex);
@@ -230,22 +231,26 @@ public class Main implements Runnable {
         } else {
             numFail.incrementAndGet();
             timeFail.addAndGet(tvDiff);
-            LOG.warn("Transaction failed with {}", status);
+            LOG.warn("Transaction finally failed with {}", status);
         }
         taskCounter.decrementAndGet();
         return status;
     }
 
-    private CompletableFuture<Status> transactionAsync(QuerySession session) {
+    private CompletableFuture<Status> transactionAsync(QuerySession session, TaskInput input) {
+        Status status;
         try {
-            return CompletableFuture.completedFuture(transactionBody(session));
+            status = transactionBody(session, input);
         } catch(Throwable ex) {
-            LOG.warn("Unexpected exception in async transaction body", ex);
-            return CompletableFuture.completedFuture(Status.of(StatusCode.CLIENT_INTERNAL_ERROR, ex));
+            status = Status.of(StatusCode.CLIENT_INTERNAL_ERROR, ex);
         }
+        if (! status.isSuccess()) {
+            LOG.warn("Transaction preliminarily failed with {}", status);
+        }
+        return CompletableFuture.completedFuture(status);
     }
 
-    private Status transactionBody(QuerySession session) {
+    private Status transactionBody(QuerySession session, TaskInput input) {
         numEnter.incrementAndGet();
 
         long tvStart = System.currentTimeMillis();
@@ -253,14 +258,14 @@ public class Main implements Runnable {
 
         QueryTransaction tx = session.createNewTransaction(TxMode.SERIALIZABLE_RW);
 
-        for (TableInfo ts : tableInfo) {
+        for (int i=0; i<tableInfo.length; ++i) {
             // Query execution
-            String sql = ts.insertOperator;
-            Params params = ts.makeParams(ts, getBatchSize());
+            String sql = tableInfo[i].insertOperator;
+            Params params = input.params[i];
             Result<QueryInfo> result = tx.createQuery(sql, params).execute().join();
             // Statistics
             tvCur = System.currentTimeMillis();
-            tvPrev = reportTime(tvCur, tvPrev, result.isSuccess(), ts);
+            tvPrev = reportTime(tvCur, tvPrev, result.isSuccess(), tableInfo[i]);
             // Error reporting
             if (! result.isSuccess()) {
                 return result.getStatus();
@@ -404,6 +409,17 @@ public class Main implements Runnable {
         }
     }
 
+    final class TaskInput {
+        final Params params[];
+
+        TaskInput() {
+            this.params = new Params[tableInfo.length];
+            for (int i=0; i<tableInfo.length; ++i) {
+                this.params[i] = tableInfo[i].makeParams(getBatchSize());
+            }
+        }
+    }
+
     static final class TableInfo {
         final String name;
         final int columns;
@@ -523,7 +539,7 @@ public class Main implements Runnable {
             return retval;
         }
 
-        private Params makeParams(TableInfo ts, int batchSize) {
+        private Params makeParams(int batchSize) {
             StructType st = makeParamType();
             return Params.of("$input", ListType.of(st).newValue(makeParamValues(st, batchSize)));
         }

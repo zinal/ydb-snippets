@@ -251,3 +251,31 @@ Storage         0	0
 2024-11-07 16:36:13 INFO  Main:372 - *** 	Counts: 65 total, 1 failed
 2024-11-07 16:36:13 INFO  Main:373 - *** 	Timing: 23295 max, 11847 avg (msec)
 ```
+
+## Запуски на 24.3.9.yasubd.2 + волатильные транзакции
+
+### 5 потоков, 5 минут, запуск 1
+
+Не пустая база (осталась после запуска 3 без волатильных транзакций)
+
+```
+2024-11-07 17:26:08 INFO  Main:356 - Total 174 transactions, including 0 failures.
+2024-11-07 17:26:08 INFO  Main:357 - Transaction retries: 0 total, average rate 0.00%
+2024-11-07 17:26:08 INFO  Main:359 - Average success time, msec: 7109 (including retries)
+2024-11-07 17:26:08 INFO  Main:361 - Average failure time, msec: 0 (including retries)
+2024-11-07 17:26:08 INFO  Main:371 - *** table-a statistics
+2024-11-07 17:26:08 INFO  Main:372 - *** 	Counts: 174 total, 0 failed
+2024-11-07 17:26:08 INFO  Main:373 - *** 	Timing: 4828 max, 1789 avg (msec)
+2024-11-07 17:26:08 INFO  Main:371 - *** table-b statistics
+2024-11-07 17:26:08 INFO  Main:372 - *** 	Counts: 174 total, 0 failed
+2024-11-07 17:26:08 INFO  Main:373 - *** 	Timing: 2874 max, 1090 avg (msec)
+2024-11-07 17:26:08 INFO  Main:371 - *** table-c statistics
+2024-11-07 17:26:08 INFO  Main:372 - *** 	Counts: 174 total, 0 failed
+2024-11-07 17:26:08 INFO  Main:373 - *** 	Timing: 2511 max, 481 avg (msec)
+2024-11-07 17:26:08 INFO  Main:371 - *** table-d statistics
+2024-11-07 17:26:08 INFO  Main:372 - *** 	Counts: 174 total, 0 failed
+2024-11-07 17:26:08 INFO  Main:373 - *** 	Timing: 3062 max, 1131 avg (msec)
+2024-11-07 17:26:08 INFO  Main:371 - *** table-e statistics
+2024-11-07 17:26:08 INFO  Main:372 - *** 	Counts: 174 total, 0 failed
+2024-11-07 17:26:08 INFO  Main:373 - *** 	Timing: 11940 max, 2613 avg (msec)
+```

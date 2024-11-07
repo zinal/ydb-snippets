@@ -167,7 +167,11 @@ Storage         0	0
 
 ## Запуски на 24.3.9.yasubd.2
 
-### 5 потоков, 10 минут
+### 5 потоков, 5 минут, запуск 1
+
+Непустые таблицы, после апгрейда (т.е. после рестарта, кеши пустые).
+
+Нет повторов (таблетки не ездят? похоже, дело в равномерном распределении по узлам после рестарта)
 
 ```
 2024-11-07 16:11:01 INFO  Main:356 - Total 64 transactions, including 0 failures.
@@ -191,4 +195,59 @@ Storage         0	0
 2024-11-07 16:11:01 INFO  Main:373 - *** 	Timing: 25456 max, 11438 avg (msec)
 ```
 
-Изменения: исчезли повторы (таблетки не ездят?)
+### 5 потоков, 5 минут, запуск 2
+
+На пустых таблицах.
+
+На старте - ездили таблетки, сколько-то вызванных этим ошибок (неравномерное распределение по узлам?).
+
+```
+2024-11-07 16:29:21 INFO  Main:356 - Total 49 transactions, including 3 failures.
+2024-11-07 16:29:21 INFO  Main:357 - Transaction retries: 23 total, average rate 46.94%
+2024-11-07 16:29:21 INFO  Main:359 - Average success time, msec: 30556 (including retries)
+2024-11-07 16:29:21 INFO  Main:361 - Average failure time, msec: 2410 (including retries)
+2024-11-07 16:29:21 INFO  Main:371 - *** table-a statistics
+2024-11-07 16:29:21 INFO  Main:372 - *** 	Counts: 72 total, 3 failed
+2024-11-07 16:29:21 INFO  Main:373 - *** 	Timing: 9667 max, 3544 avg (msec)
+2024-11-07 16:29:21 INFO  Main:371 - *** table-b statistics
+2024-11-07 16:29:21 INFO  Main:372 - *** 	Counts: 69 total, 0 failed
+2024-11-07 16:29:21 INFO  Main:373 - *** 	Timing: 6212 max, 2482 avg (msec)
+2024-11-07 16:29:21 INFO  Main:371 - *** table-c statistics
+2024-11-07 16:29:21 INFO  Main:372 - *** 	Counts: 69 total, 0 failed
+2024-11-07 16:29:21 INFO  Main:373 - *** 	Timing: 5425 max, 1542 avg (msec)
+2024-11-07 16:29:21 INFO  Main:371 - *** table-d statistics
+2024-11-07 16:29:21 INFO  Main:372 - *** 	Counts: 69 total, 0 failed
+2024-11-07 16:29:21 INFO  Main:373 - *** 	Timing: 7151 max, 2386 avg (msec)
+2024-11-07 16:29:21 INFO  Main:371 - *** table-e statistics
+2024-11-07 16:29:21 INFO  Main:372 - *** 	Counts: 69 total, 23 failed
+2024-11-07 16:29:21 INFO  Main:373 - *** 	Timing: 31378 max, 11377 avg (msec)
+```
+
+
+### 5 потоков, 5 минут, запуск 3
+
+На таблицах от запуска 2, без рестарта (кеши заполнены).
+
+Один ABORTED/TLI в середине, на средние тайминги не повлиял (по сравнению с запуском 1).
+
+```
+2024-11-07 16:36:13 INFO  Main:356 - Total 64 transactions, including 0 failures.
+2024-11-07 16:36:13 INFO  Main:357 - Transaction retries: 1 total, average rate 1.56%
+2024-11-07 16:36:13 INFO  Main:359 - Average success time, msec: 23475 (including retries)
+2024-11-07 16:36:13 INFO  Main:361 - Average failure time, msec: 0 (including retries)
+2024-11-07 16:36:13 INFO  Main:371 - *** table-a statistics
+2024-11-07 16:36:13 INFO  Main:372 - *** 	Counts: 65 total, 0 failed
+2024-11-07 16:36:13 INFO  Main:373 - *** 	Timing: 10827 max, 4324 avg (msec)
+2024-11-07 16:36:13 INFO  Main:371 - *** table-b statistics
+2024-11-07 16:36:13 INFO  Main:372 - *** 	Counts: 65 total, 0 failed
+2024-11-07 16:36:13 INFO  Main:373 - *** 	Timing: 6993 max, 2587 avg (msec)
+2024-11-07 16:36:13 INFO  Main:371 - *** table-c statistics
+2024-11-07 16:36:13 INFO  Main:372 - *** 	Counts: 65 total, 0 failed
+2024-11-07 16:36:13 INFO  Main:373 - *** 	Timing: 7927 max, 1971 avg (msec)
+2024-11-07 16:36:13 INFO  Main:371 - *** table-d statistics
+2024-11-07 16:36:13 INFO  Main:372 - *** 	Counts: 65 total, 0 failed
+2024-11-07 16:36:13 INFO  Main:373 - *** 	Timing: 8005 max, 2377 avg (msec)
+2024-11-07 16:36:13 INFO  Main:371 - *** table-e statistics
+2024-11-07 16:36:13 INFO  Main:372 - *** 	Counts: 65 total, 1 failed
+2024-11-07 16:36:13 INFO  Main:373 - *** 	Timing: 23295 max, 11847 avg (msec)
+```

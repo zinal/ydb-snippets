@@ -1,16 +1,16 @@
 # Настройки процесса создания виртуальных машин под кластер YDB
 
 # Имя промежуточного "хоста подскока", с которого видны создаваемые виртуалки
-host_gw=gw1
+host_gw=gw0
 # Базовое имя хоста, создаваемые виртуалки называются по шаблону ${host_base}-s{host_number}
-host_base=ydbs-
+host_base=ydbd-
 # Имя пользователя на виртуалках с правом на беспарольный sudo.
 # Необходим беспарольный ssh-доступ с "хоста подскока".
 host_user=yc-user
 
 # Имя файла публичного ключа на "хосте подскока",
 # который нужно прописать при создании виртуалок для беспарольного входа.
-keyfile_gw=.ssh/id_ecdsa.pub
+keyfile_gw=.ssh/id_ed25519.pub
 
 # AZ Яндекс Облака, в которой создаются виртуалки
 yc_zone=ru-central1-d
@@ -31,12 +31,13 @@ yc_vm_mem=32
 # Размер диска для данных YDB на одну виртуалку, Гбайт
 yc_data_disk_size=372G
 yc_data_disk_type=network-ssd-nonreplicated
-yc_boot_disk_size=300G
+yc_boot_disk_size=200G
 yc_boot_disk_type=network-ssd
 
 # Количество узлов в кластере
 ydb_nodes=18
 # Количество дисков для данных YDB в каждом узле кластера
 ydb_disk_count=3
+ydb_create_disks=Y
 
 # End Of File

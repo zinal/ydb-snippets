@@ -10,8 +10,8 @@ import tech.ydb.core.auth.StaticCredentials;
 import tech.ydb.core.grpc.GrpcTransport;
 import tech.ydb.core.grpc.GrpcTransportBuilder;
 import tech.ydb.query.QueryClient;
-import tech.ydb.scheme.SchemeClient;
 import tech.ydb.query.tools.SessionRetryContext;
+import tech.ydb.scheme.SchemeClient;
 
 /**
  * The helper class which creates the YDB connection from the set of properties.

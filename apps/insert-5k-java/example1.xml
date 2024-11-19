@@ -8,4 +8,10 @@
 <entry key="ydb.auth.username">root</entry>
 <entry key="ydb.auth.password">???</entry>
 <entry key="ydb.poolSize">1000</entry>
+<entry key="runSeconds">600</entry>
+<entry key="batchSize">1000</entry>
+<entry key="numThreads">10</entry>
+<entry key="enableCreate">true</entry>
+<entry key="enableDrop">false</entry>
+<entry key="integratedCommit">false</entry>
 </properties>

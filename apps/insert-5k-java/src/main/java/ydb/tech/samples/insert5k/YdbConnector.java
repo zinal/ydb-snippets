@@ -1,18 +1,18 @@
-package tech.ydb.samples.interactive.tx;
+package ydb.tech.samples.insert5k;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Properties;
+//import java.util.concurrent.Executors;
 import tech.ydb.auth.iam.CloudAuthHelper;
 import tech.ydb.core.auth.StaticCredentials;
 import tech.ydb.core.grpc.GrpcTransport;
 import tech.ydb.core.grpc.GrpcTransportBuilder;
 import tech.ydb.query.QueryClient;
+import tech.ydb.query.tools.SessionRetryContext;
 import tech.ydb.scheme.SchemeClient;
-import tech.ydb.table.SessionRetryContext;
-import tech.ydb.table.TableClient;
 
 /**
  * The helper class which creates the YDB connection from the set of properties.
@@ -24,8 +24,8 @@ public class YdbConnector implements AutoCloseable {
     private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(YdbConnector.class);
 
     private final GrpcTransport transport;
-    private final TableClient tableClient;
     private final SchemeClient schemeClient;
+    private final QueryClient queryClient;
     private final SessionRetryContext retryCtx;
     private final String database;
     private final Config config;
@@ -68,14 +68,15 @@ public class YdbConnector implements AutoCloseable {
         GrpcTransport tempTransport = builder.build();
         this.database = tempTransport.getDatabase();
         try {
-            this.tableClient = QueryClient.newTableClient(tempTransport)
-                    .sessionPoolSize(1, config.getPoolSize())
-                    .build();
-            this.retryCtx = SessionRetryContext
-                    .create(tableClient)
-                    .idempotent(true)
-                    .build();
             this.schemeClient = SchemeClient.newClient(tempTransport).build();
+            this.queryClient = QueryClient.newClient(tempTransport)
+                    .sessionPoolMinSize(1)
+                    .sessionPoolMaxSize(config.getPoolSize())
+                    .build();
+            this.retryCtx = SessionRetryContext.create(this.queryClient)
+                    .idempotent(true)
+//                    .executor(Executors.newCachedThreadPool())
+                    .build();
             this.transport = tempTransport;
             tempTransport = null; // to avoid closing below
         } finally {
@@ -98,16 +99,16 @@ public class YdbConnector implements AutoCloseable {
         return config;
     }
 
-    public TableClient getTableClient() {
-        return tableClient;
+    public SchemeClient getSchemeClient() {
+        return schemeClient;
+    }
+
+    public QueryClient getQueryClient() {
+        return queryClient;
     }
 
     public SessionRetryContext getRetryCtx() {
         return retryCtx;
-    }
-
-    public SchemeClient getSchemeClient() {
-        return schemeClient;
     }
 
     public String getDatabase() {
@@ -116,18 +117,19 @@ public class YdbConnector implements AutoCloseable {
 
     @Override
     public void close() {
-        if (tableClient != null) {
-            try {
-                tableClient.close();
-            } catch (Exception ex) {
-                LOG.warn("TableClient closing threw an exception", ex);
-            }
-        }
+        LOG.info("Closing YDB connections...");
         if (schemeClient != null) {
             try {
                 schemeClient.close();
             } catch (Exception ex) {
                 LOG.warn("SchemeClient closing threw an exception", ex);
+            }
+        }
+        if (queryClient != null) {
+            try {
+                queryClient.close();
+            } catch (Exception ex) {
+                LOG.warn("QueryClient closing threw an exception", ex);
             }
         }
         if (transport != null) {

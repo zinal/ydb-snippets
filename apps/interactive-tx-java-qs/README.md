@@ -8,7 +8,7 @@ table_service_config:
   enable_implicit_query_parameter_types: true
 ```
 
-Для сборки и запуска требуется JDK 21 и Maven.
+Для сборки и запуска требуется JDK 17+ и Maven.
 
 Параметры подключения к БД прописываются в `example1.xml`.
 

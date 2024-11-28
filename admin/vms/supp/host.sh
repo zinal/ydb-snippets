@@ -5,11 +5,13 @@ echo "Configuring host names and timezones..."
 for i in `seq ${ydb_nodes_begin} ${ydb_nodes_end}`; do
   vm_name="${host_base}${i}${yc_dns_suffix}"
   assign_hostname=${vm_name}
-  if [ ! -z "${yc_dns_suffix_back}" ]; then
-    if [ ! -z "${host_base_back}" ]; then
-      assign_hostname="${host_base_back}${i}${yc_dns_suffix_back}"
-    else
-      assign_hostname="${host_base}${i}${yc_dns_suffix_back}"
+  if [ "Y" == "${ydb_use_back_hostnames}" ]; then
+    if [ ! -z "${yc_dns_suffix_back}" ]; then
+      if [ ! -z "${host_base_back}" ]; then
+        assign_hostname="${host_base_back}${i}${yc_dns_suffix_back}"
+      else
+        assign_hostname="${host_base}${i}${yc_dns_suffix_back}"
+      fi
     fi
   fi
   echo "  -> ${vm_name}"

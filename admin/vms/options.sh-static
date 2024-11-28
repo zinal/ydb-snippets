@@ -50,5 +50,7 @@ ydb_disk_count=3
 ydb_create_disks=Y
 # Установить в Y для перезапуска в конце
 ydb_restart_hosts=Y
+# Установить в Y, если хосты должны называться по второй сети
+ydb_use_back_hostnames=N
 
 # End Of File

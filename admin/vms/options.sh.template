@@ -19,6 +19,9 @@ yc_zone=ru-central1-d
 yc_subnet=zinal-ru-central1-d
 # Опционально: существующая вторая подсеть
 yc_subnet_back=zinal-uber-ru-central1-d
+# Суффиксы DNS
+yc_dns_suffix=.ru-central1.internal.
+yc_dns_suffix_back=-back.ru-central1.internal.
 # Тип платформы виртуалок, standard-v2 или standard-v3
 yc_platform=standard-v3
 # Выбранный образ операционной системы виртуалок

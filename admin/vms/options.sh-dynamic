@@ -4,24 +4,32 @@
 host_gw=gw0
 # Базовое имя хоста, создаваемые виртуалки называются по шаблону ${host_base}-s{host_number}
 host_base=ydbx-
+# Опционально - имя хоста для второй сети
+host_base_back=b-ydbx-
 # Имя пользователя на виртуалках с правом на беспарольный sudo.
 # Необходим беспарольный ssh-доступ с "хоста подскока".
 host_user=yc-user
-
 # Имя файла публичного ключа на "хосте подскока",
 # который нужно прописать при создании виртуалок для беспарольного входа.
 keyfile_gw=.ssh/id_ed25519.pub
+#keyfile_gw=.ssh/id_ecdsa.pub
 
 # AZ Яндекс Облака, в которой создаются виртуалки
 yc_zone=ru-central1-d
-# Существующая подсеть в Яндекс Облаке
+# Существующая подсеть
 yc_subnet=zinal-ru-central1-d
+# Опционально: существующая вторая подсеть
+yc_subnet_back=zinal-uber-ru-central1-d
+# Суффиксы DNS
+yc_dns_suffix=.front.private.
+yc_dns_suffix_back=.back.private.
+
 # Тип платформы виртуалок, standard-v2 или standard-v3
 yc_platform=standard-v3
 # Выбранный образ операционной системы виртуалок
-yc_vm_image="image-folder-id=standard-images,image-family=ubuntu-2204-lts"
+#yc_vm_image="image-folder-id=standard-images,image-family=ubuntu-2204-lts"
 #yc_vm_image="image-folder-id=standard-images,image-name=astralinux-alse-v20230215"
-#yc_vm_image="image-folder-id=standard-images,image-name=redsoft-red-os-standart-server-7-3-v20220810"
+yc_vm_image="image-folder-id=standard-images,image-name=redsoft-red-os-standart-server-7-3-v20220810"
 #yc_vm_image="image-folder-id=standard-images,image-name=almalinux-9-v20230417"
 #yc_vm_image="image-folder-id=standard-images,image-name=almalinux-v20230417"
 # Количество vCPU каждой виртуалки
@@ -29,15 +37,18 @@ yc_vm_cores=24
 # Объем оперативной памяти на одну виртуалку, Гбайт
 yc_vm_mem=96
 # Размер диска для данных YDB на одну виртуалку, Гбайт
-yc_data_disk_size=372G
+yc_data_disk_size=465G
 yc_data_disk_type=network-ssd-nonreplicated
 yc_boot_disk_size=200G
 yc_boot_disk_type=network-ssd
 
 # Количество узлов в кластере
-ydb_nodes=18
+ydb_nodes=15
 # Количество дисков для данных YDB в каждом узле кластера
 ydb_disk_count=0
-ydb_create_disks=N
+# Установить в N, чтобы пропустить создание дисков
+ydb_create_disks=Y
+# Установить в Y для перезапуска в конце
+ydb_restart_hosts=Y
 
 # End Of File

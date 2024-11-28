@@ -54,10 +54,14 @@ echo "Creating VMs..."
 for i in `seq ${ydb_nodes_begin} ${ydb_nodes_end}`; do
   vm_name="${host_base}${i}"
   vm_disk_boot="${host_base}${i}-boot"
-  vm_iface1='--network-interface subnet-name='${yc_subnet}',dns-record-spec='"{name=${vm_name}.ru-central1.internal.}"
+  vm_iface1='--network-interface subnet-name='${yc_subnet}',dns-record-spec='"{name=${vm_name}${yc_dns_suffix}}"
   vm_iface2=''
   if [ ! -z ${yc_subnet_back} ]; then
-    vm_iface2='--network-interface subnet-name='${yc_subnet_back}',dns-record-spec='"{name=back-${vm_name}.ru-central1.internal.}"
+    if [ ! -z "${host_base_back}" ]; then
+      vm_iface2='--network-interface subnet-name='${yc_subnet_back}',dns-record-spec='"{name=${host_base_back}${i}${yc_dns_suffix_back}}"
+    else
+      vm_iface2='--network-interface subnet-name='${yc_subnet_back}',dns-record-spec='"{name=${host_base}${i}${yc_dns_suffix_back}}"
+    fi
   fi
   disk_datum=""
   if [ ${ydb_disk_count} -gt 0 ]; then
@@ -102,7 +106,7 @@ while true; do
   num_fail=0
   t=s
   for i in `seq ${ydb_nodes_begin} ${ydb_nodes_end}`; do
-    vm_name="${host_base}${i}"
+    vm_name="${host_base}${i}${yc_dns_suffix}"
     ZODAK_TEST=`ssh ${host_gw} ssh -o StrictHostKeyChecking=no ${host_user}@${vm_name} echo ZODAK 2>/dev/null`
     if [ "$ZODAK_TEST" == "ZODAK" ]; then
       echo "Host ${vm_name} is available."

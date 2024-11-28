@@ -43,7 +43,7 @@ yc_boot_disk_size=200G
 yc_boot_disk_type=network-ssd
 
 # Количество узлов в кластере
-ydb_nodes=12
+ydb_nodes=15
 # Количество дисков для данных YDB в каждом узле кластера
 ydb_disk_count=3
 # Установить в N, чтобы пропустить создание дисков

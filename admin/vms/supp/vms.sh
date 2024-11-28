@@ -50,11 +50,15 @@ done
 fi # end disks creation
 fi
 
-echo "Creating static node VMs..."
+echo "Creating VMs..."
 for i in `seq ${ydb_nodes_begin} ${ydb_nodes_end}`; do
   vm_name="${host_base}${i}"
   vm_disk_boot="${host_base}${i}-boot"
-
+  vm_iface1='--network-interface subnet-name='${yc_subnet}',dns-record-spec='"{name=${vm_name}.ru-central1.internal.}"
+  vm_iface2=''
+  if [ ! -z ${yc_subnet_back} ]; then
+    vm_iface2='--network-interface subnet-name='${yc_subnet_back}',dns-record-spec='"{name=back-${vm_name}.ru-central1.internal.}"
+  fi
   disk_datum=""
   if [ ${ydb_disk_count} -gt 0 ]; then
     for j in `seq 1 ${ydb_disk_count}`; do
@@ -67,8 +71,7 @@ for i in `seq ${ydb_nodes_begin} ${ydb_nodes_end}`; do
       --platform ${yc_platform} \
       --ssh-key keyfile.tmp \
       --create-boot-disk ${yc_vm_image},name=${vm_disk_boot},type=${yc_boot_disk_type},size=${yc_boot_disk_size},auto-delete=true \
-      ${disk_datum} --network-settings type=software-accelerated \
-      --network-interface subnet-name=${yc_subnet},dns-record-spec="{name=${vm_name}.ru-central1.internal.}" \
+      ${disk_datum} --network-settings type=software-accelerated ${vm_iface1} ${vm_iface2} \
       --memory ${yc_vm_mem} --cores ${yc_vm_cores} --async >mkinst.tmp 2>&1
     cnt=`checkLimit`
     if [ "$cnt" == "0" ]; then break; else sleep 10; fi
@@ -106,10 +109,12 @@ while true; do
     else
       echo "Host ${vm_name} IS NOT AVAILABLE!"
       num_fail=`echo "$num_fail + 1" | bc`
+      break
     fi
   done
   if [ $num_fail -gt 0 ]; then
     echo "*** Cannot move forward, $num_fail hosts unavailable!"
+    sleep 5
   else
     echo "*** VMs are ready, moving forward..."
     break

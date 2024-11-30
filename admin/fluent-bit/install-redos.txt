@@ -1,0 +1,31 @@
+REDOS 7.3
+
+****
+
+# https://docs.fluentbit.io/manual/installation/sources/build-and-install
+sudo dnf update rpm
+sudo yum install cmake gcc g++ flex bison openssl-devel libyaml-devel systemd-devel
+
+wget https://github.com/fluent/fluent-bit/archive/refs/tags/v3.2.2.tar.gz
+tar xfz v3.2.2.tar.gz
+cd fluent-bit-3.2.2/build/
+cmake ..
+make
+sudo make install
+# files in /usr/local/bin, /usr/local/etc, /usr/local/lib64
+
+****
+
+wget https://go.dev/dl/go1.23.3.linux-amd64.tar.gz
+tar -C /usr/local -xzf go1.23.3.linux-amd64.tar.gz
+export PATH=/usr/local/go/bin:$PATH
+go version
+git clone https://github.com/ydb-platform/fluent-bit-ydb.git src
+cd src
+BIN=out_ydb.so make build
+
+tar --owner root --group bin -cf - fluent-bit-ydb | xz -v >fluent-bit-ydb.tar.xz
+
+****
+
+# https://github.com/ydb-platform/demo-logging/tree/main/fluentbit

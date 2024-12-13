@@ -1,9 +1,8 @@
 #! /usr/bin/python3
+# Скрипт для генерации равномерных границ партиций под ключ типа "base64-кодированное UUID".
 
 # Количество партиций
 NUMPARTS=500
-# Допустимое максимальное отклонение количества партиций
-VAR_MAX=0.1
 
 BASE64SYMBOLS="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/"
 SYMBOLS="".join(sorted(BASE64SYMBOLS))

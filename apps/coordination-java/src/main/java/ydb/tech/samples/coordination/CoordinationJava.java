@@ -25,7 +25,7 @@ public class CoordinationJava {
             LOG.info("Opening session...");
             CoordinationSession session = yc.newCoordinationSession("coordination");
             ArrayList<SemaphoreLease> leases = new ArrayList<>();
-            for (int i=0; i<10; ++i) {
+            for (int i=0; i<3; ++i) {
                 String semaName = "sema-" + String.valueOf(i);
                 LOG.info("Acquiring semaphore {}...", semaName);
                 var result = session

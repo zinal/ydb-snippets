@@ -25,8 +25,8 @@ public class CoordinationJava {
             String coordPath = yc.getDatabase() + "/coordination";
             var descResult = yc.getSchemeClient().describePath(coordPath).join();
             if (!descResult.isSuccess()) {
-                LOG.info("Creating directory {}...", coordPath);
-                yc.getSchemeClient().makeDirectory(coordPath).join().expectSuccess();
+                LOG.info("Creating coordination node {}...", coordPath);
+                yc.getCoordinationClient().createNode(coordPath).join().expectSuccess();
             }
             LOG.info("Opening session...");
             CoordinationSession session = yc.newCoordinationSession(coordPath);

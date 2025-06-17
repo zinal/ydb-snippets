@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<comment>Пример файла настроек подключения</comment>
+
+<entry key="ydb.url">grpcs://ydb01.localdomain:2135/cluster1/testdb</entry>
+<entry key="ydb.cafile">/home/ydbadmin/Work/cluster1/tls/ca.crt</entry>
+<entry key="ydb.auth.mode">STATIC</entry>
+<entry key="ydb.auth.username">root</entry>
+<entry key="ydb.auth.password">???</entry>
+<entry key="ydb.poolSize">1000</entry>
+
+</properties>

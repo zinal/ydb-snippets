@@ -14,6 +14,7 @@ import tech.ydb.core.grpc.GrpcTransportBuilder;
 import tech.ydb.coordination.CoordinationClient;
 import tech.ydb.coordination.CoordinationSession;
 import tech.ydb.core.Status;
+import tech.ydb.scheme.SchemeClient;
 
 /**
  * The helper class which creates the YDB connection from the set of properties.
@@ -25,6 +26,7 @@ public class YdbConnector implements AutoCloseable {
     private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(YdbConnector.class);
 
     private final GrpcTransport transport;
+    private final SchemeClient schemeClient;
     private final CoordinationClient coordinationClient;
     private final HashMap<Long, CoordinationSession> coordinationSessions = new HashMap<>();
     private final String database;
@@ -68,6 +70,7 @@ public class YdbConnector implements AutoCloseable {
         GrpcTransport tempTransport = builder.build();
         this.database = tempTransport.getDatabase();
         try {
+            this.schemeClient = SchemeClient.newClient(tempTransport).build();
             this.coordinationClient = CoordinationClient.newClient(tempTransport);
             this.transport = tempTransport;
             tempTransport = null; // to avoid closing below
@@ -99,10 +102,14 @@ public class YdbConnector implements AutoCloseable {
         return config;
     }
 
+    public SchemeClient getSchemeClient() {
+        return schemeClient;
+    }
+
     public CoordinationClient getCoordinationClient() {
         return coordinationClient;
     }
-    
+
     public CoordinationSession newCoordinationSession(String path) {
         CoordinationSession session = coordinationClient.createSession(path);
         coordinationSessions.put(session.getId(), session);

@@ -32,6 +32,10 @@
             <artifactId>ydb-sdk-coordination</artifactId>
         </dependency>
         <dependency>
+            <groupId>tech.ydb</groupId>
+            <artifactId>ydb-sdk-scheme</artifactId>
+        </dependency>
+        <dependency>
             <groupId>tech.ydb.auth</groupId>
             <artifactId>yc-auth-provider</artifactId>
             <type>jar</type>

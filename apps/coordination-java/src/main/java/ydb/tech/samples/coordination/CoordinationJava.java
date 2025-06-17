@@ -22,8 +22,14 @@ public class CoordinationJava {
         }
         LOG.info("Initializing...");
         try (YdbConnector yc = new YdbConnector(fname)) {
+            String coordPath = "coordination";
+            var descResult = yc.getSchemeClient().describePath(coordPath).join();
+            if (!descResult.isSuccess()) {
+                LOG.info("Creating directory {}...", coordPath);
+                yc.getSchemeClient().makeDirectory(coordPath).join().expectSuccess();
+            }
             LOG.info("Opening session...");
-            CoordinationSession session = yc.newCoordinationSession("coordination");
+            CoordinationSession session = yc.newCoordinationSession(coordPath);
             LOG.info("Connecting session...");
             session.connect().join().expectSuccess();
             ArrayList<SemaphoreLease> leases = new ArrayList<>();

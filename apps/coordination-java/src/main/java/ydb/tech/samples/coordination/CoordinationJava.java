@@ -24,6 +24,8 @@ public class CoordinationJava {
         try (YdbConnector yc = new YdbConnector(fname)) {
             LOG.info("Opening session...");
             CoordinationSession session = yc.newCoordinationSession("coordination");
+            LOG.info("Connecting session...");
+            session.connect().join().expectSuccess();
             ArrayList<SemaphoreLease> leases = new ArrayList<>();
             for (int i=0; i<3; ++i) {
                 String semaName = "sema-" + String.valueOf(i);

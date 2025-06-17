@@ -22,7 +22,7 @@ public class CoordinationJava {
         }
         LOG.info("Initializing...");
         try (YdbConnector yc = new YdbConnector(fname)) {
-            String coordPath = "coordination";
+            String coordPath = yc.getDatabase() + "/coordination";
             var descResult = yc.getSchemeClient().describePath(coordPath).join();
             if (!descResult.isSuccess()) {
                 LOG.info("Creating directory {}...", coordPath);

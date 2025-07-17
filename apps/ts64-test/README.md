@@ -2,12 +2,12 @@
 
 Для сборки и запуска требуется JDK 8+ и Maven.
 
-Параметры подключения к БД прописываются в `example1.xml`.
+Параметры подключения к БД прописываются в `example1.xml`, либо в его копии.
 
 При успешном выполнении рабочие таблички и схема удаляются.
 
 ```bash
 mvn clean package
 ydb scheme rmdir -r ts64-test
-mvn exec:java
+mvn exec:java -Dexec.args="example1.xml"
 ```

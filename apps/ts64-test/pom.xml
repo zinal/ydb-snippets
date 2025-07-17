@@ -9,7 +9,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
-        <exec.mainClass>ydb.tech.samples.intxqs.Main</exec.mainClass>
+        <exec.mainClass>ydb.tech.samples.ts64.Main</exec.mainClass>
     </properties>
     <dependencyManagement>
         <dependencies>

@@ -81,8 +81,9 @@ public class Main implements Runnable {
     private Status interactiveBody(QueryTransaction tx) {
         LOG.info("Start of transaction body");
 
-        final String insertA = "UPSERT INTO `ts64-test/table-a` "
-                + "SELECT * FROM AS_TABLE($input);";
+        final String insertA = "DECLARE $input AS List<Struct<"
+                + "a:Int32,b:Timestamp64,c:Date32>>; "
+                + "UPSERT INTO `ts64-test/table-a` SELECT * FROM AS_TABLE($input);";
         final StructType structA = StructType.of(
                 "a", PrimitiveType.Int32,
                 "b", PrimitiveType.Timestamp64,

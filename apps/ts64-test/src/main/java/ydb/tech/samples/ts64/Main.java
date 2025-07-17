@@ -124,9 +124,9 @@ public class Main implements Runnable {
 
         ResultSetReader rs = output.getValue().getResultSet(0);
         while (rs.next()) {
-            int a = rs.getColumn(1).getInt32();
-            Instant b = rs.getColumn(2).getTimestamp64();
-            LocalDate c = rs.getColumn(3).getDate32();
+            int a = rs.getColumn(0).getInt32();
+            Instant b = rs.getColumn(1).getTimestamp64();
+            LocalDate c = rs.getColumn(2).getDate32();
             LOG.info("row: {}\t{}\t{}", a, b, c);
         }
 

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<comment>Sample properties file for YDB interactive TX example</comment>
+<entry key="ydb.url">grpcs://singler1.front.private:2135/?database=/singler1/testdb</entry>
+<entry key="ydb.cafile">/home/demo/Work/singler1/tls/ca.crt</entry>
+<entry key="ydb.auth.mode">STATIC</entry>
+<entry key="ydb.auth.username">root</entry>
+<entry key="ydb.auth.password">???</entry>
+<entry key="ydb.poolSize">10</entry>
+</properties>

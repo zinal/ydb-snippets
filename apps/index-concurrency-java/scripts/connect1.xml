@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<comment>YDB index concurrency connection settings</comment>
+
+<!-- *** Connection parameters *** -->
+
+<entry key="ydb.url">grpcs://ydb01.localdomain:2135/cluster1/testdb</entry>
+<entry key="ydb.cafile">/home/ydbadmin/Work/cluster1/tls/ca.crt</entry>
+<entry key="ydb.poolSize">1000</entry>
+<entry key="ydb.preferLocalDc">false</entry>
+
+<!--
+    NONE        No authentication (anonymous)
+    ENV         Authentication configured via environment variables
+    STATIC      Authentication via static credentials, e.g. login+password
+    METADATA    Authentication via virtual machine metadata
+    SAKEY       Authentication via service account key file
+-->
+<entry key="ydb.auth.mode">STATIC</entry>
+<entry key="ydb.auth.username">root</entry>
+<entry key="ydb.auth.password">???</entry>
+
+<!-- SAKEY
+<entry key="ydb.auth.sakey">/home/ydbadmin/ydb-sa1.json</entry>
+-->
+
+<!--
+    FILE        read input statements from file
+    TABLE       read input statements from database table
+-->
+
+</properties>

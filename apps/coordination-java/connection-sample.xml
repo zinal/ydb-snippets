@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<comment>Пример файла настроек подключения</comment>
+
+<entry key="ydb.url">grpc://localhost:2136/local</entry>
+<entry key="ydb.auth.mode">NONE</entry>
+
+</properties>

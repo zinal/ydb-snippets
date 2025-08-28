@@ -56,6 +56,7 @@ for i in `seq ${ydb_nodes_begin} ${ydb_nodes_end}`; do
   vm_disk_boot="${host_base}${i}-boot"
   vm_iface1='--network-interface subnet-name='${yc_subnet}',dns-record-spec='"{name=${vm_name}${yc_dns_suffix}}"
   vm_iface2=''
+  set +u
   if [ ! -z ${yc_subnet_back} ]; then
     if [ ! -z "${host_base_back}" ]; then
       vm_iface2='--network-interface subnet-name='${yc_subnet_back}',dns-record-spec='"{name=${host_base_back}${i}${yc_dns_suffix_back}}"
@@ -63,6 +64,7 @@ for i in `seq ${ydb_nodes_begin} ${ydb_nodes_end}`; do
       vm_iface2='--network-interface subnet-name='${yc_subnet_back}',dns-record-spec='"{name=${host_base}${i}${yc_dns_suffix_back}}"
     fi
   fi
+  set -u
   disk_datum=""
   if [ ${ydb_disk_count} -gt 0 ]; then
     for j in `seq 1 ${ydb_disk_count}`; do

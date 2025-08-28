@@ -1,0 +1,62 @@
+apiVersion: 1
+groups:
+    - orgId: 1
+      name: YDB Alerting
+      folder: YDB
+      interval: 30s
+      rules:
+        - uid: beav8jstj0hkwe
+          title: HealthCheck
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 120
+                to: 0
+              datasourceUid: prometheus
+              model:
+                editorMode: code
+                exemplar: false
+                expr: sum(ydb_healthcheck{TYPE="ALL", STATUS!="GOOD"})
+                instant: true
+                intervalMs: 1000
+                legendFormat: __auto
+                maxDataPoints: 43200
+                range: false
+                refId: A
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          noDataState: Alerting
+          execErrState: Alerting
+          for: 1m
+          annotations:
+            summary: HealthCheck Alert CRIT
+          labels: {}
+          isPaused: false
+          notification_settings:
+            receiver: Telegram Test
+            group_interval: 1m
+            repeat_interval: 1m

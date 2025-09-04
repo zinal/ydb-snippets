@@ -17,5 +17,5 @@ table_service_config:
 ```bash
 mvn clean package
 ydb scheme rmdir -r interactive-tx
-mvn exec:java
+mvn exec:java -Dexec.args=example1.xml
 ```

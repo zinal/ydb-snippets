@@ -24,4 +24,6 @@
 <entry key="ydb.auth.sakey">/home/ydbadmin/ydb-sa1.json</entry>
 -->
 
+<entry key="test.seconds">10</entry>
+
 </properties>

@@ -27,9 +27,10 @@ public class YdbKilobyter {
     }
 
     private static void run(YdbConnector conn) {
+        int numSeconds = conn.getProperty("test.seconds", 10);
         String kilo = makeKilo();
         var start = Instant.now();
-        var end = start.plusSeconds(10);
+        var end = start.plusSeconds(numSeconds);
         var step = start;
         int count = 0;
         while (step.compareTo(end) < 0) {

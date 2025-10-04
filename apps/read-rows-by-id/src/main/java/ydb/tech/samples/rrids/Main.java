@@ -133,8 +133,8 @@ public class Main implements Runnable {
     }
 
     private Status simpleBody(QueryTransaction tx, List<Value<?>> portion) {
-        // unsorted, part size is 10k
-        for (var part : Lists.partition(portion, 10000)) {
+        // unsorted, part size is 12k
+        for (var part : Lists.partition(portion, 12000)) {
             var status = runSelect(tx, part);
             if (!status.isSuccess()) {
                 return status;

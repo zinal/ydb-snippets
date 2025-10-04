@@ -29,6 +29,8 @@ public class Main implements Runnable {
     private final YdbConnector connector;
     private final Random random;
 
+    private volatile int counter = 0;
+
     public Main(YdbConnector connector) {
         this.connector = connector;
         this.random = new Random();
@@ -45,20 +47,25 @@ public class Main implements Runnable {
         final int rounds = 100;
         final int portionSize = 50000;
         LOG.info("Running simple test...");
+        counter = 0;
         final long tvStart1 = System.currentTimeMillis();
         for (int i = 0; i < rounds; ++i) {
             List<Value<?>> portion = makePortion(portionSize, ids);
             simpleSelect(portion);
         }
-        LOG.info("Running optimized test...");
         final long tvFinish1 = System.currentTimeMillis();
+        LOG.info("Ready, counter {}", counter);
+        LOG.info("Running optimized test...");
+        counter = 0;
+        final long tvStart2 = System.currentTimeMillis();
         for (int i = 0; i < rounds; ++i) {
             List<Value<?>> portion = makePortion(portionSize, ids);
             optimizedSelect(portion);
         }
         final long tvFinish2 = System.currentTimeMillis();
+        LOG.info("Ready, counter {}", counter);
         LOG.info("Simple time: {}", (tvFinish1 - tvStart1));
-        LOG.info("Optimized time: {}", (tvFinish2 - tvFinish1));
+        LOG.info("Optimized time: {}", (tvFinish2 - tvStart2));
     }
 
     private List<Value<?>> loadIds() {
@@ -113,12 +120,15 @@ public class Main implements Runnable {
     }
 
     private Status runSelect(QueryTransaction tx, List<Value<?>> portion) {
-        final String statement = "DECLARE $ids AS List<String>; "
+        final String statement = "DECLARE $ids AS List<Text>; "
                 + "SELECT * FROM `work0/bank_document` WHERE id IN $ids;";
         Params params = Params.of("$ids", ListValue.of(portion.toArray(Value<?>[]::new)));
         Result<QueryReader> output = QueryReader.readFrom(
                 tx.createQuery(statement, params))
                 .join();
+        if (output.isSuccess()) {
+            counter += output.getValue().getResultSet(0).getRowCount();
+        }
         return output.getStatus();
     }
 

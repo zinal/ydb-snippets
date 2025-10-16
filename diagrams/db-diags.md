@@ -46,7 +46,7 @@ flowchart LR
 
   %% Сеть интерконнекта справа
   subgraph NET[Сеть интерконнекта]
-    direction TB
+    direction LR
     IC((Интерконнект))
   end
 

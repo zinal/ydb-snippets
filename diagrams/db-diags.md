@@ -1,4 +1,35 @@
 ```mermaid
+erDiagram
+    YDBCluster ||--|{ Database : contains
+    Database   ||--|{ StorageGroup : has
+    Database   ||--|{ ComputeNode  : has
+
+    YDBCluster {
+      string cluster_id
+      string name
+    }
+
+    Database {
+      string database_id
+      string name
+      string tenant_id
+    }
+
+    StorageGroup {
+      string storage_group_id
+      string tier
+    }
+
+    ComputeNode {
+      string node_id
+      string zone
+    }
+
+```
+
+********************
+
+```mermaid
 flowchart TB
   IC((Интерконнект))
 

@@ -1,12 +1,8 @@
 ```mermaid
 flowchart LR
-  %% Серверы слева
-  subgraph CL[Серверы кластера]
-    direction LR
-
     %% Сервер 1
     subgraph S1[Сервер 1]
-      direction TB
+      direction LR
       S1DB[Сервис БД]
       S1ST[Сервис хранения]
       S1D1[(Диск 1)]
@@ -19,7 +15,7 @@ flowchart LR
 
     %% Сервер 2
     subgraph S2[Сервер 2]
-      direction TB
+      direction LR
       S2DB[Сервис БД]
       S2ST[Сервис хранения]
       S2D1[(Диск 1)]
@@ -32,7 +28,7 @@ flowchart LR
 
     %% Сервер 3
     subgraph S3[Сервер 3]
-      direction TB
+      direction LR
       S3DB[Сервис БД]
       S3ST[Сервис хранения]
       S3D1[(Диск 1)]
@@ -42,11 +38,10 @@ flowchart LR
       S3ST --- S3D2
       S3ST --- S3D3
     end
-  end
 
   %% Сеть интерконнекта справа
   subgraph NET[Сеть интерконнекта]
-    direction LR
+    direction RL
     IC((Интерконнект))
   end
 

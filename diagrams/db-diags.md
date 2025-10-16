@@ -1,57 +1,62 @@
 ```mermaid
 flowchart LR
-  %% Сервер 1
-  subgraph S1[Сервер 1]
-    direction TB
-    S1DB[Сервис БД]
-    S1ST[Сервис хранения]
-    S1D1[(Диск 1)]
-    S1D2[(Диск 2)]
-    S1D3[(Диск 3)]
-    S1ST --- S1D1
-    S1ST --- S1D2
-    S1ST --- S1D3
-  end
-
-  %% Сервер 2
-  subgraph S2[Сервер 2]
-    direction TB
-    S2DB[Сервис БД]
-    S2ST[Сервис хранения]
-    S2D1[(Диск 1)]
-    S2D2[(Диск 2)]
-    S2D3[(Диск 3)]
-    S2ST --- S2D1
-    S2ST --- S2D2
-    S2ST --- S2D3
-  end
-
-  %% Сервер 3
-  subgraph S3[Сервер 3]
-    direction TB
-    S3DB[Сервис БД]
-    S3ST[Сервис хранения]
-    S3D1[(Диск 1)]
-    S3D2[(Диск 2)]
-    S3D3[(Диск 3)]
-    S3ST --- S3D1
-    S3ST --- S3D2
-    S3ST --- S3D3
-  end
-
-  %% Сеть интерконнекта
-  subgraph NET[Сеть интерконнекта]
+  %% Серверы слева
+  subgraph CL[Серверы кластера]
     direction LR
+
+    %% Сервер 1
+    subgraph S1[Сервер 1]
+      direction TB
+      S1DB[Сервис БД]
+      S1ST[Сервис хранения]
+      S1D1[(Диск 1)]
+      S1D2[(Диск 2)]
+      S1D3[(Диск 3)]
+      S1ST --- S1D1
+      S1ST --- S1D2
+      S1ST --- S1D3
+    end
+
+    %% Сервер 2
+    subgraph S2[Сервер 2]
+      direction TB
+      S2DB[Сервис БД]
+      S2ST[Сервис хранения]
+      S2D1[(Диск 1)]
+      S2D2[(Диск 2)]
+      S2D3[(Диск 3)]
+      S2ST --- S2D1
+      S2ST --- S2D2
+      S2ST --- S2D3
+    end
+
+    %% Сервер 3
+    subgraph S3[Сервер 3]
+      direction TB
+      S3DB[Сервис БД]
+      S3ST[Сервис хранения]
+      S3D1[(Диск 1)]
+      S3D2[(Диск 2)]
+      S3D3[(Диск 3)]
+      S3ST --- S3D1
+      S3ST --- S3D2
+      S3ST --- S3D3
+    end
+  end
+
+  %% Сеть интерконнекта справа
+  subgraph NET[Сеть интерконнекта]
+    direction TB
     IC((Интерконнект))
   end
 
-  %% Подключение всех сервисов к интерконнекту
-  S1DB -.-> IC
-  S1ST -.-> IC
-  S2DB -.-> IC
-  S2ST -.-> IC
-  S3DB -.-> IC
-  S3ST -.-> IC
+  %% Соединения слева направо, чтобы зафиксировать NET справа
+  S1DB --> IC
+  S1ST --> IC
+  S2DB --> IC
+  S2ST --> IC
+  S3DB --> IC
+  S3ST --> IC
 ```
 
 ********************

@@ -24,3 +24,43 @@ flowchart LR
   P -- Репликация WAL --> S
 
 ```
+
+************
+
+```mermaid
+flowchart LR
+  %% Сервер с primary-узлом
+  subgraph S1[Сервер БД 1]
+    direction TB
+    P[PostgreSQL Primary]
+    D1[(Диск данных)]
+    W1[(Диск WAL)]
+    P --- D1
+    P --- W1
+  end
+
+  %% Сервер со standby-узлом 1
+  subgraph S2[Сервер БД 2]
+    direction TB
+    S[PostgreSQL Standby]
+    D2[(Диск данных)]
+    W2[(Диск WAL)]
+    S --- D2
+    S --- W2
+  end
+
+  %% Сервер со standby-узлом 2
+  subgraph S3[Сервер БД 3]
+    direction TB
+    S3N[PostgreSQL Standby]
+    D3[(Диск данных)]
+    W3[(Диск WAL)]
+    S3N --- D3
+    S3N --- W3
+  end
+
+  %% Направление репликации
+  P -- Репликация WAL --> S
+  P -- Репликация WAL --> S3N
+
+```

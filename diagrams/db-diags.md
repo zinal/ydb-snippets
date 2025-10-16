@@ -1,4 +1,29 @@
 ```mermaid
+flowchart TB
+  %% Узлы кластера
+  subgraph S1[Сервер 1]
+    direction TB
+    I1[Экземпляр Oracle Database 1]
+  end
+
+  subgraph S2[Сервер 2]
+    direction TB
+    I2[Экземпляр Oracle Database 2]
+  end
+
+  %% Общая СХД с файлами единой БД
+  SA[(Общий дисковый массив<br/>(файлы единой логической БД))]
+
+  %% Доступ экземпляров к общему диску
+  I1 -->|I/O| SA
+  I2 -->|I/O| SA
+
+  %% Межузловое взаимодействие (RAC interconnect / Cache Fusion)
+  I1 -. Кластерный интерконнект .- I2
+```
+
+
+```mermaid
 flowchart LR
   %% Сервер с primary-узлом
   subgraph S1[Сервер БД 1]

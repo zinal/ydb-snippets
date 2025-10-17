@@ -67,6 +67,7 @@ public class JdbcConcurrent {
 
     private static void tliDemo() throws Exception {
         Connection con2 = null;
+        System.out.println("(main) Connecting...");
         try (var con1 = getConnection()) {
             con1.setAutoCommit(false);
             System.out.println("(main) Reading...");
@@ -78,6 +79,7 @@ public class JdbcConcurrent {
                     }
                 }
             }
+            System.out.println("(sub) Connecting...");
             con2 = getConnection();
             con2.setAutoCommit(false);
             System.out.println("(sub) Writing...");

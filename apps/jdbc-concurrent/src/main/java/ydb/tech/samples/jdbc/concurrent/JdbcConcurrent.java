@@ -12,6 +12,7 @@ public class JdbcConcurrent {
     public static void main(String[] args) {
         long tvStart = System.currentTimeMillis();
         try {
+            System.out.println("Creating tables!");
             prepareTables();
             System.out.println("Tables created!");
             try {
@@ -20,6 +21,7 @@ public class JdbcConcurrent {
             } catch (Exception ex) {
                 System.out.println("Error: " + ex.toString());
             }
+            System.out.println("Dropping tables!");
             dropTables();
             System.out.println("Tables dropped!");
         } catch (Exception ex) {

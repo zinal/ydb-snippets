@@ -77,7 +77,7 @@ public class JdbcConcurrent {
                     }
                 }
             }
-            try (var ps = con1.prepareStatement("UPDATE test1 SET file_name=? WHERE id=? RETURNING file_name, id")) {
+            try (var ps = con2.prepareStatement("UPDATE test1 SET file_name=? WHERE id=? RETURNING file_name, id")) {
                 ps.setString(1, "file1-up.txt");
                 ps.setString(2, "test1-1");
                 try (var rs = ps.executeQuery()) {

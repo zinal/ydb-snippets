@@ -13,8 +13,9 @@
                 <exec.vmArgs></exec.vmArgs>
                 <exec.args>${exec.vmArgs} -classpath %classpath ${exec.mainClass} ${exec.appArgs}</exec.args>
                 <exec.appArgs></exec.appArgs>
-                <exec.mainClass>ydb.tech.samples.jdbc.basic.JdbcBasic</exec.mainClass>
+                <exec.mainClass>ydb.tech.samples.jdbc.concurrent.JdbcConcurrent</exec.mainClass>
                 <exec.executable>java</exec.executable>
+                <Env.YDB_URL>jdbc:ydb:grpc://localhost:2136?/Root/test</Env.YDB_URL>
             </properties>
         </action>
         <action>
@@ -30,9 +31,10 @@
                 <exec.vmArgs>-agentlib:jdwp=transport=dt_socket,server=n,address=${jpda.address}</exec.vmArgs>
                 <exec.args>${exec.vmArgs} -classpath %classpath ${exec.mainClass} ${exec.appArgs}</exec.args>
                 <exec.appArgs></exec.appArgs>
-                <exec.mainClass>ydb.tech.samples.jdbc.basic.JdbcBasic</exec.mainClass>
+                <exec.mainClass>ydb.tech.samples.jdbc.concurrent.JdbcConcurrent</exec.mainClass>
                 <exec.executable>java</exec.executable>
                 <jpda.listen>true</jpda.listen>
+                <Env.YDB_URL>jdbc:ydb:grpc://localhost:2136?/Root/test</Env.YDB_URL>
             </properties>
         </action>
         <action>
@@ -47,7 +49,7 @@
             <properties>
                 <exec.vmArgs></exec.vmArgs>
                 <exec.args>${exec.vmArgs} -classpath %classpath ${exec.mainClass} ${exec.appArgs}</exec.args>
-                <exec.mainClass>ydb.tech.samples.jdbc.basic.JdbcBasic</exec.mainClass>
+                <exec.mainClass>ydb.tech.samples.jdbc.concurrent.JdbcConcurrent</exec.mainClass>
                 <exec.executable>java</exec.executable>
                 <exec.appArgs></exec.appArgs>
             </properties>

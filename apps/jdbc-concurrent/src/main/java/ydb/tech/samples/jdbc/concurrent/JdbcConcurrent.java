@@ -34,6 +34,7 @@ public class JdbcConcurrent {
         if (url == null || url.length() == 0) {
             throw new Exception("Missing JDBC URL, has to be specified in YDB_URL env");
         }
+        System.out.println("Connecting to " + url + " ...");
         String user = System.getenv("YDB_USER");
         if (user == null) {
             return DriverManager.getConnection(url);

@@ -66,9 +66,9 @@ public class JdbcConcurrent {
     }
 
     private static void tliDemo() throws Exception {
-        try (var con1 = getConnection(); var con2 = getConnection()) {
+        Connection con2 = null;
+        try (var con1 = getConnection()) {
             con1.setAutoCommit(false);
-            con2.setAutoCommit(false);
             System.out.println("(main) Reading...");
             try (var ps = con1.prepareStatement("SELECT file_name, id FROM test1 WHERE id=?")) {
                 ps.setString(1, "test1-1");
@@ -78,6 +78,8 @@ public class JdbcConcurrent {
                     }
                 }
             }
+            con2 = getConnection();
+            con2.setAutoCommit(false);
             System.out.println("(sub) Writing...");
             try (var ps = con2.prepareStatement("UPDATE test1 SET file_name=? WHERE id=? RETURNING file_name, id")) {
                 ps.setString(1, "file1-up.txt");
@@ -102,6 +104,10 @@ public class JdbcConcurrent {
             }
             System.out.println("(main) Committing...");
             con1.commit();
+        } finally {
+            if (con2 != null) {
+                con2.close();
+            }
         }
     }
 }

@@ -69,6 +69,7 @@ public class JdbcConcurrent {
         try (var con1 = getConnection(); var con2 = getConnection()) {
             con1.setAutoCommit(false);
             con2.setAutoCommit(false);
+            System.out.println("(main) Reading...");
             try (var ps = con1.prepareStatement("SELECT file_name, id FROM test1 WHERE id=?")) {
                 ps.setString(1, "test1-1");
                 try (var rs = ps.executeQuery()) {
@@ -77,6 +78,7 @@ public class JdbcConcurrent {
                     }
                 }
             }
+            System.out.println("(sub) Writing...");
             try (var ps = con2.prepareStatement("UPDATE test1 SET file_name=? WHERE id=? RETURNING file_name, id")) {
                 ps.setString(1, "file1-up.txt");
                 ps.setString(2, "test1-1");
@@ -86,7 +88,9 @@ public class JdbcConcurrent {
                     }
                 }
             }
+            System.out.println("(sub) Committing...");
             con2.commit();
+            System.out.println("(main) Writing...");
             try (var ps = con1.prepareStatement("UPDATE test2 SET message_id=? WHERE id=? RETURNING message_id, id")) {
                 ps.setString(1, "message1-up");
                 ps.setString(2, "test2-1");
@@ -96,6 +100,7 @@ public class JdbcConcurrent {
                     }
                 }
             }
+            System.out.println("(main) Committing...");
             con1.commit();
         }
     }

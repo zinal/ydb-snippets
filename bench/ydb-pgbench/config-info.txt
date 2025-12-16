@@ -1,0 +1,9 @@
+9 physical hosts in the following setup:
+    2 x Intel(R) Xeon(R) Gold 6230 CPU @ 2.10GHz
+        40 physical cores
+        80 threads
+    512 GB RAM
+    4 x NVMe 2.9 TB
+YDB version: 25.1.4.ent.4
+    9 storage nodes
+    27 database nodes (3 database nodes per host)

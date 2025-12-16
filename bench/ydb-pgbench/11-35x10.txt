@@ -1,0 +1,2 @@
+ydb-bench run --file workload/wd01.sql@3 --file workload/wd02.sql@1 --processes 35 --jobs 10
+

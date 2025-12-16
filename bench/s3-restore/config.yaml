@@ -1,0 +1,254 @@
+metadata:
+  kind: MainConfig
+  cluster: ""
+  version: 3
+
+config:
+  yaml_config_enabled: true
+
+  erasure: mirror-3-dc
+  fail_domain_type: rack
+  self_management_config:
+    enabled: true
+
+  default_disk_type: SSD
+
+  host_configs:
+  - drive:
+    - path: /dev/disk/by-partlabel/kikimr_nvme_01
+      type: SSD
+    - path: /dev/disk/by-partlabel/kikimr_nvme_02
+      type: SSD
+    - path: /dev/disk/by-partlabel/kikimr_nvme_03
+      type: SSD
+    - path: /dev/disk/by-partlabel/kikimr_nvme_04
+      type: SSD
+    host_config_id: 1
+
+  hosts:
+  - host: myt0-7487.search.yandex.net
+    host_config_id: 1
+    location:
+      body: 1
+      data_center: 'zone-a'
+      rack: '1'
+  - host: myt0-7639.search.yandex.net
+    host_config_id: 1
+    location:
+      body: 2
+      data_center: 'zone-a'
+      rack: '2'
+  - host: myt0-7571.search.yandex.net
+    host_config_id: 1
+    location:
+      body: 3
+      data_center: 'zone-a'
+      rack: '3'
+  - host: myt0-7573.search.yandex.net
+    host_config_id: 1
+    location:
+      body: 4
+      data_center: 'zone-b'
+      rack: '4'
+  - host: myt0-7584.search.yandex.net
+    host_config_id: 1
+    location:
+      body: 5
+      data_center: 'zone-b'
+      rack: '5'
+  - host: myt0-7603.search.yandex.net
+    host_config_id: 1
+    location:
+      body: 6
+      data_center: 'zone-b'
+      rack: '6'
+  - host: myt0-7662.search.yandex.net
+    host_config_id: 1
+    location:
+      body: 7
+      data_center: 'zone-c'
+      rack: '7'
+  - host: myt0-7665.search.yandex.net
+    host_config_id: 1
+    location:
+      body: 8
+      data_center: 'zone-c'
+      rack: '8'
+  - host: myt0-7625.search.yandex.net
+    host_config_id: 1
+    location:
+      body: 9
+      data_center: 'zone-c'
+      rack: '9'
+
+#  actor_system_config:
+#    use_auto_config: true
+#    cpu_count: 15
+
+  actor_system_config:
+    executor:
+    - name: System
+      spin_threshold: '10'
+      threads: 8
+      max_threads: 14
+      type: BASIC
+    - name: User
+      spin_threshold: '1'
+      threads: 1
+      max_threads: 5
+      type: BASIC
+    - name: Batch
+      spin_threshold: '1'
+      threads: 1
+      max_threads: 14
+      type: BASIC
+    - name: IO
+      threads: 1
+      type: IO
+    - name: IC
+      spin_threshold: '10'
+      threads: 5
+      max_threads: 14
+      time_per_mailbox_micro_secs: 100
+      max_avg_ping_deviation: 500
+      type: BASIC
+    scheduler:
+      progress_threshold: '10000'
+      resolution: '64'
+      spin_threshold: '0'
+    sys_executor: 0
+    user_executor: 1
+    batch_executor: 2
+    io_executor: 3
+    service_executor:
+    - executor_id: 4
+      service_name: Interconnect
+
+  interconnect_config:
+    start_tcp: true
+#    encryption_mode: OPTIONAL
+#    path_to_certificate_file: "/opt/ydb/certs/node.crt"
+#    path_to_private_key_file: "/opt/ydb/certs/node.key"
+#    path_to_ca_file: "/opt/ydb/certs/ca.crt"
+
+  grpc_config:
+#    cert: "/opt/ydb/certs/node.crt"
+#    key: "/opt/ydb/certs/node.key"
+#    ca: "/opt/ydb/certs/ca.crt"
+    services_enabled:
+    - legacy
+
+  feature_flags:
+    enable_backup_service: true
+    enable_vector_index: true
+    enable_topic_autopartitioning_for_cdc: true
+    enable_views: true
+    enable_data_shard_volatile_transactions: true
+
+  security_config:
+    # настройка режима аутентификации
+    enforce_user_token_requirement: false
+    enforce_user_token_check_requirement: false
+
+  table_profiles_config:
+    table_profiles:
+    - name: default
+      compaction_policy: default
+      execution_policy: default
+      partitioning_policy: default
+      storage_policy: default
+      replication_policy: default
+      caching_policy: default
+    compaction_policies:
+    - name: default
+    execution_policies:
+    - name: default
+    partitioning_policies:
+    - name: default
+      auto_split: true
+      auto_merge: true
+      size_to_split: 2147483648
+    storage_policies:
+    - name: default
+      column_families:
+      - storage_config:
+          sys_log:
+            preferred_pool_kind: ssd
+          log:
+            preferred_pool_kind: ssd
+          data:
+            preferred_pool_kind: ssd
+    replication_policies:
+    - name: default
+    caching_policies:
+    - name: default
+
+allowed_labels:
+  node_id:
+    type: string
+  host:
+    type: string
+  tenant:
+    type: string
+
+
+selector_config:
+
+- description: cookie=dynnodes
+  selector:
+    dynamic: true
+  config:
+    memory_controller_config:
+      hard_limit_bytes: 107374182400
+
+#    resource_broker_config:
+#      queues:
+#      - name: queue_restore
+#        limit:
+#          cpu: 13
+#      - name: queue_backup
+#        limit:
+#          cpu: 13
+#      - name: queue_build_index
+#        limit:
+#          cpu: 13
+
+    actor_system_config:
+      executor:
+      - name: System
+        spin_threshold: '10'
+        threads: 1
+        max_threads: 12
+        type: BASIC
+      - name: User
+        spin_threshold: '1'
+        threads: 8
+        max_threads: 14
+        type: BASIC
+      - name: Batch
+        spin_threshold: '1'
+        threads: 2
+        max_threads: 14
+        type: BASIC
+      - name: IO
+        threads: 1
+        type: IO
+      - name: IC
+        spin_threshold: '10'
+        threads: 4
+        max_threads: 14
+        time_per_mailbox_micro_secs: 100
+        max_avg_ping_deviation: 500
+        type: BASIC
+      scheduler:
+        progress_threshold: '10000'
+        resolution: '64'
+        spin_threshold: '0'
+      sys_executor: 0
+      user_executor: 1
+      batch_executor: 2
+      io_executor: 3
+      service_executor:
+      - executor_id: 4
+        service_name: Interconnect
+

@@ -1,0 +1,20 @@
+┌───────────────────────────────────────────┬───────┬─────────┬──────────┬─────────────────────────────────┬─────────────────┐
+│ id                                        │ ready │ status  │ progress │ endpoint                        │ bucket          │
+├───────────────────────────────────────────┼───────┼─────────┼──────────┼─────────────────────────────────┼─────────────────┤
+│ ydb://import/8?id=844424930447007&kind=s3 │ true  │ SUCCESS │ Done     │ https://storage.yandexcloud.net │ ydb-build-demo1 │
+├╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴┴╴╴╴╴╴╴╴┴╴╴╴╴╴╴╴╴╴┴╴╴╴╴╴╴╴╴╴╴┴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴┴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴╴┤
+│ Items:                                                                                                                     │
+│   - source: gpb_aud/aud_event                                                                                              │
+│     destination: /Root/db1/aud_event                                                                                       │
+│   - source: gpb_aud/bank_document_1                                                                                        │
+│     destination: /Root/db1/bank_document_1                                                                                 │
+│   - source: gpb_aud/bank_document_2                                                                                        │
+│     destination: /Root/db1/bank_document_2                                                                                 │
+│   - source: gpb_aud/bank_document_3                                                                                        │
+│     destination: /Root/db1/bank_document_3                                                                                 │
+│ Description:                                                                                                               │
+│ Number of retries: 10                                                                                                      │
+│ Create time: 2025-12-15T11:38:33Z                                                                                          │
+│ End time: 2025-12-15T12:25:59Z                                                                                             │
+└────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+

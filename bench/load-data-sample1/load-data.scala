@@ -109,3 +109,10 @@ spark.time(df1.write.mode("append")
   .option("write.retry.count","20")
   .option("batch.rows", "2000")
   .saveAsTable("my_ydb.bigtab2"))
+
+
+spark.time(df1.write.mode("append")
+  .option("method", "BULK_UPSERT")
+  .option("write.retry.count","20")
+  .option("batch.rows", "2000")
+  .saveAsTable("my_ydb.bigtab3"))

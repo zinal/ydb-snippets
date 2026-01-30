@@ -106,3 +106,43 @@ CREATE TABLE bigtab2 (
       'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
       'u', 'v', 'w', 'x', 'y', 'z')
 );
+
+CREATE TABLE bigtab3 (
+	id	Utf8 NOT NULL,
+	c1	Utf8,
+	dt	Utf8,
+	creation_dt	Timestamp64,
+	value_dt	Timestamp64,
+	exec_dt	Timestamp64,
+	processing_dt	Timestamp64,
+	sys_crt_dttm	Timestamp64,
+	sys_upd_dttm	Timestamp64,
+	num	Utf8,
+	acc_dt_id	Utf8,
+	acc_kt_id	Utf8,
+	xx_dt_acc_id	Utf8,
+	xx_dt_acc_num	Utf8,
+	xx_dt_bank_id	Utf8,
+	amount	Decimal(20,2),
+	amount_kt	Decimal(20,2),
+	amount_nt	Decimal(20,2),
+	sys_state	Utf8,
+	buh_state	Utf8,
+	bank_direction	Utf8,
+	branch_id	Utf8,
+	depart_id	Utf8,
+	xxx_channel_id	Utf8,
+	xxx_contract_id	Utf8,
+	kind_id	Utf8,
+	cur	Utf8,
+	cur_kt	Utf8,
+	src_part	Utf8,
+	dst_part	Utf8,
+  dst_type Utf8,
+  in_file_name Utf8,
+  purpose Utf8,
+  base_data Utf8,
+  PRIMARY KEY(id)
+) WITH (
+    STORE = COLUMN
+);

@@ -1,0 +1,121 @@
+all:
+  children:
+    ydb:
+      hosts:
+        udb-3.front.private:
+        udb-2.front.private:
+        udb-1.front.private:
+
+      vars:
+        ansible_user: yc-user
+        # ansible_ssh_common_args: "-o ProxyJump=ubuntu@static-node-1.ydb-cluster.com"
+        # ansible_ssh_private_key_file: "/home/vlad/.ssh/id_ed25519"
+
+        system_timezone: Europe/Moscow
+        system_ntp_servers: [time.cloudflare.com, time.google.com, ntp.ripe.net, pool.ntp.org]
+
+
+        # ydb_config - path to YDB config for static and dynamic nodes. 
+        # It will be placed as it is. Only actor settings will be added.
+        # This file must has empty line at the end
+        ydb_config: "{{ ansible_config_file | dirname }}/files/config.yaml"
+
+        # ydb_tls_dir- path to a folder with sets of certificates
+        # Required structure of folders and files:
+        # 
+        # ca.crt
+        # inventory_hostname1
+        # inventory_hostname1/node.crt
+        # inventory_hostname1/01.pem
+        # inventory_hostname1/options.cnf
+        # inventory_hostname1/node.key
+        # inventory_hostname1/web.pem
+        # inventory_hostname1/node.csr
+        ydb_tls_dir: "{{ ansible_config_file | dirname }}/certs"
+#        ydb_skip_connectivity_check: true
+        # ydb_archive - path to TAR.GZ archive with required binaries (ydb, ydbd). The structure of the archive is strict,
+        # it must contain bin folder on the second level. 
+        #     $> tar -ztf ydbd-24.2.7-linux-amd64.tar.gz
+        #       ydbd-24.2.7-linux-amd64/
+        #       ydbd-24.2.7-linux-amd64/bin/
+        #       ydbd-24.2.7-linux-amd64/bin/ydbd
+        #       ydbd-24.2.7-linux-amd64/bin/ydb
+        ydb_archive: "/home/demo/Work/yasubd/25.1.4.7/ydbd-enterpise-25.1.4.ent.7-stable-linux-amd64.tar.xz"
+
+        # ydb_version - version of YDB we want to install. This version will be taken 
+        # from official repository if no other options are defined
+        # ydb_version: "25.2.1.10-rc" #"24.4.4.12" # "24.1.18" # 24.2.7
+
+        # ydbd_binary - path to the YDB server binary file. `ydb_version`,`ydb_cli_binary` are required to be defined with this option
+        # Example:
+        # ydbd_binary: "{{ ansible_config_file | dirname }}/files/ydbd"
+
+        # ydb_cli_binary - path to the YDB CLI binary file. `ydb_version`,`ydbd_binary` are required to be defined with this option
+        # Example:
+        # ydb_cli_binary: "{{ ansible_config_file | dirname }}/files/ydb"
+
+        # ydbops_binary - path to YDBOps binary file
+        # ydbops_binary: "{{ ansible_config_file | dirname }}/files/ydbops"
+
+        # ydb_dstool_binary - path to YDB DSTool binary file
+        # ydb_dstool_binary: "{{ ansible_config_file | dirname }}/files/ydb-dstool"
+
+        # Set of settings for isolated mode
+        # ydb_version
+        # ydbd_binary
+        # ydb_cli_binary
+        # ydbops_binary
+        # ydb_dstool_binary
+        
+        # ydb_install_fq_connector - install fq-connector-go.
+        # See https://ydb.tech/docs/ru/devops/manual/federated-queries/connector-deployment
+        ydb_install_fq_connector: false
+
+        # ydb_fq_connector_version - version of fq-connector-go we want to install.
+        # This version will be taken from official repository
+        # See https://github.com/ydb-platform/fq-connector-go/releases
+        ydb_fq_connector_version: "v0.7.2-rc.5"
+
+        # ydb_fq_connector_archive - path to TAR.GZ archive with binary.
+        # ydb_fq_connector_archive: "{{ ansible_config_file | dirname }}/../fq-connector-go-v0.7.2-rc.5-linux-amd64.tar.gz"
+
+        # ydb_fq_connector_binary - path to the fq-connector-go binary file.
+        # ydb_fq_connector_binary: "{{ ansible_config_file | dirname }}/files/fq-connector-go"
+        
+        # ydb_fq_connector_config - path to fq-connector-go config. 
+        # It will be placed as it is.
+        ydb_fq_connector_config: "{{ ansible_config_file | dirname + '/files/fq-connector-go/config.yaml' }}"
+
+        ydb_user: root
+        ydb_disks:
+          - name: /dev/vdb
+            label: ydb_disk_1
+#          - name: /dev/vdc
+#            label: ydb_disk_2
+#          - name: /dev/vdd
+#            label: ydb_disk_3
+        ydb_allow_format_drives: true
+        ydb_skip_data_loss_confirmation_prompt: false
+        ydb_enforce_user_token_requirement: true
+        # ydb_request_client_certificate - control dynamic nodes authentication in cluster
+        # values: false - Do not require specific TLS certificate
+        #         true  - Require specific TLS certificate to join the cluster
+        # Default value: true
+        ydb_request_client_certificate: true
+        ydb_domain: Root
+        ydb_dbname: database
+        ydb_pool_kind: ssd
+        ydb_database_groups: 3
+        ydb_cores_static: 3
+        ydb_cores_dynamic: 5
+        ydb_dynnodes:
+          - { instance: 'a', offset: 0 }
+        ydb_brokers:
+          - udb-3.front.private
+          - udb-2.front.private
+          - udb-1.front.private
+        # ydbops_local - control cluster from localhost
+        # values: false - use any static host for cluster control
+        #         true  - use localhost for cluster control
+        # Default value: true
+        ydbops_local: true

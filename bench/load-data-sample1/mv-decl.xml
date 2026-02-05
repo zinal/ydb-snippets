@@ -53,4 +53,6 @@
 <entry key="job.default.batch.select">1000</entry>
 <entry key="job.default.batch.upsert">500</entry>
 
+<entry key="metrics.enabled">true</entry>
+
 </properties>

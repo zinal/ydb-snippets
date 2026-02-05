@@ -42,7 +42,7 @@ WITH t(a) AS (VALUES
      q(a) AS (VALUES(0),(1),(2),(3),(4),(5),(6),(7),(8),(9)),
      qq(a) AS (SELECT q2.a*10 + q1.a FROM q q1, q q2),
      qqq(a) AS (SELECT q3.a*100 + q2.a*10 + q1.a FROM q q1, q q2, q q3),
-     qqqqqq(a) AS (SELECT q2.a*1000 + q1.a FROM qqq q1, qqq q2 LIMIT 100000),
+     qqqqqq(a) AS (SELECT q2.a*1000 + q1.a FROM qqq q1, qqq q2 LIMIT 300000),
      q2k(a) AS (SELECT t.a*10000000 + q.a*1000000 + qqqqqq.a FROM t, q, qqqqqq)
 SELECT
   substring(base64(unhex(replace(uuid(),'-',''))),1,22) AS id,

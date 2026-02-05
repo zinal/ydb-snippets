@@ -30,11 +30,11 @@ CREATE TABLE bigtab1 (
 	cur_kt	Utf8,
 	src_part	Utf8,
 	dst_part	Utf8,
-  dst_type Utf8,
-  in_file_name Utf8,
-  purpose Utf8,
-  base_data Utf8,
-  PRIMARY KEY(id)
+    dst_type Utf8,
+    in_file_name Utf8,
+    purpose Utf8,
+    base_data Utf8,
+    PRIMARY KEY(id)
 ) WITH (
     AUTO_PARTITIONING_BY_LOAD = ENABLED,
     AUTO_PARTITIONING_BY_SIZE = ENABLED,

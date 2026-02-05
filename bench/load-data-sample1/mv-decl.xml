@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<comment>YDB Materializer sample configuration</comment>
+
+<!-- *** Connection parameters *** -->
+
+<entry key="ydb.url">grpcs://udb-1.front.private:2135/Root/database</entry>
+<entry key="ydb.cafile">/home/demo/Work/micron1/deployment/certs/ca.crt</entry>
+<entry key="ydb.poolSize">1000</entry>
+<entry key="ydb.preferLocalDc">false</entry>
+
+<!--
+    NONE        No authentication (anonymous)
+    ENV         Authentication configured via environment variables
+    STATIC      Authentication via static credentials, e.g. login+password
+    METADATA    Authentication via virtual machine metadata
+    SAKEY       Authentication via service account key file
+-->
+<entry key="ydb.auth.mode">STATIC</entry>
+<entry key="ydb.auth.username">root</entry>
+<entry key="ydb.auth.password">???</entry>
+
+<!-- SAKEY
+<entry key="ydb.auth.sakey">/home/ydbadmin/ydb-sa1.json</entry>
+-->
+
+<!--
+    FILE        read input statements from file
+    TABLE       read input statements from database table
+-->
+<entry key="job.input.mode">FILE</entry>
+<!-- Path to file, in case FILE mode is chosen -->
+<entry key="job.input.file">mv-decl.sql</entry>
+<!-- TABLE
+<entry key="job.input.table">mv/statements</entry>
+-->
+
+<!-- HASH or RANGE -->
+<entry key="job.apply.partitioning">HASH</entry>
+
+<!-- Path to scan feeder position table -->
+<entry key="job.scan.table">mv/scans_state</entry>
+<!-- Path to coordination service node -->
+<entry key="job.coordination.path">mv/coordination</entry>
+<!-- Comma-separated list of handler names to be activated on RUN action -->
+<entry key="job.handlers"></entry>
+
+<!-- Default handler settings, see MvHandlerSettings -->
+<entry key="job.default.cdc.threads">4</entry>
+<entry key="job.default.apply.threads">4</entry>
+<entry key="job.default.apply.queue">10000</entry>
+<entry key="job.default.batch.select">1000</entry>
+<entry key="job.default.batch.upsert">500</entry>
+
+</properties>

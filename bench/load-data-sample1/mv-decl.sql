@@ -18,7 +18,7 @@ CREATE ASYNC MATERIALIZED VIEW mv2 AS
       dict.name AS dst_name
   FROM `bigtab1` AS main
   INNER JOIN `dict_doctype` AS dict
-    ON main.dst_type = dict.code;
+    ON main.dst_type = dict.code
   WHERE COMPUTE ON main.id #[ 0 = (Digest::CityHash(main.id) % 2) ]#;
 
 CREATE ASYNC MATERIALIZED VIEW mv3 AS
@@ -33,7 +33,7 @@ CREATE ASYNC MATERIALIZED VIEW mv3 AS
       dict.name AS dst_name
   FROM `bigtab1` AS main
   INNER JOIN `dict_doctype` AS dict
-    ON main.dst_type = dict.code;
+    ON main.dst_type = dict.code
   WHERE COMPUTE ON main.id #[ 1 = (Digest::CityHash(main.id) % 2) ]#;
 
 CREATE ASYNC HANDLER h1 CONSUMER h1_consumer

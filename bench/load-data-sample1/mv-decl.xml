@@ -43,6 +43,7 @@
 <entry key="job.scan.table">mv/scans_state</entry>
 <!-- Path to coordination service node -->
 <entry key="job.coordination.path">mv/coordination</entry>
+<entry key="job.dict.hist.table">mv/dict_hist</entry>
 <!-- Comma-separated list of handler names to be activated on RUN action -->
 <entry key="job.handlers"></entry>
 
@@ -52,6 +53,12 @@
 <entry key="job.default.apply.queue">10000</entry>
 <entry key="job.default.batch.select">1000</entry>
 <entry key="job.default.batch.upsert">500</entry>
+
+<entry key="mv.jobs.table">mv/jobs</entry>
+<entry key="mv.scans.table">mv/job_scans</entry>
+<entry key="mv.runners.table">mv/runners</entry>
+<entry key="mv.runner.jobs.table">mv/runner_jobs</entry>
+<entry key="mv.commands.table">mv/commands</entry>
 
 <entry key="metrics.enabled">true</entry>
 

@@ -168,3 +168,4 @@ CREATE TABLE `mv/commands` (
 );
 
 UPSERT INTO `mv/jobs`(job_name, should_run) VALUES ('h1', true), ('h2', true);
+UPSERT INTO `mv/jobs`(job_name, should_run) VALUES ('ydbmv$dictionary', true);

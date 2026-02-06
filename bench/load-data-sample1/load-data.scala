@@ -88,14 +88,14 @@ FROM (
     'PROV' AS buh_state,
     udf_dt1(DIV(a,1000000)) AS dt,
     a, div(a,1000000) AS b, mod(a,1000000) AS c
-  FROM (SELECT /*+ REPARTITION(24) */ a FROM q2k) AS y) AS x
+  FROM (SELECT /*+ REPARTITION(10) */ a FROM q2k) AS y) AS x
 );
 """)
 
 spark.time(df1.write.mode("append")
   .option("method", "BULK_UPSERT")
   .option("write.retry.count","20")
-  .option("batch.rows", "2000")
+  .option("batch.rows", "30000")
   .saveAsTable("my_ydb.bigtab1"))
 
 spark.time(df1.write.mode("append")
@@ -114,5 +114,5 @@ spark.time(df1.write.mode("append")
 spark.time(df1.write.mode("append")
   .option("method", "BULK_UPSERT")
   .option("write.retry.count","20")
-  .option("batch.rows", "2000")
+  .option("batch.rows", "25000")
   .saveAsTable("my_ydb.bigtab3"))

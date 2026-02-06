@@ -36,30 +36,49 @@
 <entry key="job.input.table">mv/statements</entry>
 -->
 
-<!-- HASH or RANGE -->
-<entry key="job.apply.partitioning">HASH</entry>
-
+<!-- Handler configuration -->
+<!-- Comma-separated list of handler names to be activated on RUN action -->
+<entry key="job.handlers">h1</entry>
+<!-- Scan rate limiter, rows per second -->
+<entry key="job.scan.rate">10000</entry>
 <!-- Path to scan feeder position table -->
 <entry key="job.scan.table">mv/scans_state</entry>
 <!-- Path to coordination service node -->
 <entry key="job.coordination.path">mv/coordination</entry>
+<!-- Lock timeout for job coordination in seconds -->
+<entry key="job.coordination.timeout">10</entry>
+
+<!-- Dictionary scanner configuration -->
+<entry key="job.dict.consumer">ydbmv$dictionary</entry>
 <entry key="job.dict.hist.table">mv/dict_hist</entry>
-<!-- Comma-separated list of handler names to be activated on RUN action -->
-<entry key="job.handlers"></entry>
+<entry key="job.dict.scan.seconds">28800</entry>
 
-<!-- Default handler settings, see MvHandlerSettings -->
-<entry key="job.default.cdc.threads">4</entry>
-<entry key="job.default.apply.threads">4</entry>
-<entry key="job.default.apply.queue">10000</entry>
-<entry key="job.default.batch.select">1000</entry>
-<entry key="job.default.batch.upsert">500</entry>
+<!-- Performance tuning -->
+<!-- HASH or RANGE -->
+<entry key="job.apply.partitioning">HASH</entry>
+<entry key="job.cdc.threads">4</entry>
+<entry key="job.apply.threads">4</entry>
+<entry key="job.apply.queue">10000</entry>
+<entry key="job.batch.select">1000</entry>
+<entry key="job.batch.upsert">500</entry>
+<entry key="job.max.row.changes">100000</entry>
+<entry key="job.query.seconds">30</entry>
 
+<!-- Management settings -->
 <entry key="mv.jobs.table">mv/jobs</entry>
 <entry key="mv.scans.table">mv/job_scans</entry>
 <entry key="mv.runners.table">mv/runners</entry>
 <entry key="mv.runner.jobs.table">mv/runner_jobs</entry>
 <entry key="mv.commands.table">mv/commands</entry>
+<entry key="mv.scan.period.ms">5000</entry>
+<entry key="mv.report.period.ms">10000</entry>
+<entry key="mv.runner.timeout.ms">30000</entry>
+<entry key="mv.coord.startup.ms">10000</entry>
+<entry key="mv.coord.runners.count">0</entry>
 
+<!-- Metrics -->
 <entry key="metrics.enabled">true</entry>
+<entry key="metrics.port">7311</entry>
+<entry key="metrics.host">0.0.0.0</entry>
 
 </properties>

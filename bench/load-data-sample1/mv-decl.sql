@@ -10,7 +10,7 @@ CREATE ASYNC MATERIALIZED VIEW mv1 AS
     ON main0.c1 = main1.c1
   WHERE COMPUTE ON main0.id #[ 3 = (Digest::CityHash(main0.id) % 10) ]#;
 
-CREATE ASYNC MATERIALIZED VIEW mv2 AS
+CREATE ASYNC MATERIALIZED VIEW mv2
   DESTINATION `destination1` AS
   SELECT
       main1.id AS id,

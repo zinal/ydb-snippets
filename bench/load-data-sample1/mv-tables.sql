@@ -11,6 +11,8 @@ CREATE TABLE mv1 (
 	id	Utf8 NOT NULL,
 	c1	Utf8,
 	dt	Utf8,
+    in_file_name_2 Utf8,
+    purpose_2 Utf8,
     PRIMARY KEY(id),
     INDEX ix_c1 GLOBAL SYNC ON (c1) COVER (dt),
     INDEX ix_dt GLOBAL SYNC ON (dt) COVER (c1)
@@ -65,6 +67,8 @@ CREATE TABLE mv3 (
 	dst_part	Utf8,
     dst_type Utf8,
     dst_name Utf8,
+    in_file_name_2 Utf8,
+    purpose_2 Utf8,
     PRIMARY KEY(id)
 ) WITH (
     AUTO_PARTITIONING_BY_LOAD = ENABLED,

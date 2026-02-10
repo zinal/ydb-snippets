@@ -25,6 +25,13 @@
 <entry key="ydb.auth.sakey">/home/ydbadmin/ydb-sa1.json</entry>
 -->
 
+<entry key="destination1.ydb.url">grpcs://udb-1.front.private:2135/Root/destination</entry>
+<entry key="destination1.ydb.cafile">/home/demo/Work/micron1/deployment/certs/ca.crt</entry>
+<entry key="destination1.ydb.poolSize">1000</entry>
+<entry key="destination1.ydb.auth.mode">STATIC</entry>
+<entry key="destination1.ydb.auth.username">root</entry>
+<entry key="destination1.ydb.auth.password">???</entry>
+
 <!--
     FILE        read input statements from file
     TABLE       read input statements from database table

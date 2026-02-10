@@ -41,7 +41,7 @@ CREATE ASYNC MATERIALIZED VIEW mv3
       main1.purpose AS purpose_2
   FROM `bigtab1` AS main2
   INNER JOIN `bigtab2` AS main1
-    ON main0.c1 = main1.c1
+    ON main2.c1 = main1.c1
   INNER JOIN `dict_doctype` AS dict2
     ON main2.dst_type = dict2.code
   WHERE COMPUTE ON main2.id #[ 1 = (Digest::CityHash(main2.id) % 2) ]#;

@@ -1,0 +1,17 @@
+Command {
+  DefineStoragePool {
+    BoxId: 1
+    StoragePoolId: 1
+    Name: "/local:ssd"
+    ErasureSpecies: "none"
+    VDiskKind: "Default"
+    Kind: "ssd"
+    NumGroups: 2
+    PDiskFilter {
+      Property {
+        Type: SSD
+      }
+    }
+    ItemConfigGeneration: 0
+  }
+}

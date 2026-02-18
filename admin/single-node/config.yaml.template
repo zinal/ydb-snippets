@@ -19,7 +19,9 @@ hosts:
 
 domains_config:
   domain:
-  - name: local
+  - domain_id: 1
+    name: local
+    scheme_root: 72075186232723360
     storage_pool_types:
     - kind: ssd
       pool_config:
@@ -34,6 +36,7 @@ domains_config:
   - ring:
       node: [1]
       nto_select: 1
+      use_ring_specific_node_selection: true
     ssid: 1
   security_config:
     enforce_user_token_requirement: true
@@ -58,10 +61,46 @@ domains_config:
     - name: user1
       password: "${YDB_USER1_PASSWORD}"
 
+table_profiles_config:
+  table_profiles:
+  - name: default
+    compaction_policy: default
+    execution_policy: default
+    partitioning_policy: default
+    storage_policy: default
+    replication_policy: default
+    caching_policy: default
+  compaction_policies:
+  - name: default
+  execution_policies:
+  - name: default
+  partitioning_policies:
+  - name: default
+    auto_split: true
+    auto_merge: true
+    size_to_split: 2147483648
+  storage_policies:
+  - name: default
+    column_families:
+    - storage_config:
+        sys_log:
+          preferred_pool_kind: local
+        log:
+          preferred_pool_kind: local
+        data:
+          preferred_pool_kind: local
+  replication_policies:
+  - name: default
+  caching_policies:
+  - name: default
+
 blob_storage_config:
   service_set:
+    availability_domains: 1
     groups:
     - erasure_species: none
+      group_generation: 1
+      group_id: 0
       rings:
       - fail_domains:
         - vdisk_locations:
@@ -106,19 +145,39 @@ channel_profile_config:
       storage_pool_kind: ssd
     profile_id: 1
 
+system_tablets:
+  default_node:
+  - 1
+  flat_schemeshard:
+  - info:
+      tablet_id: 72075186232723360
+  flat_tx_coordinator:
+  - node:
+    - 1
+  tx_allocator:
+  - node:
+    - 1
+  tx_mediator:
+  - node:
+    - 1
+
 interconnect_config:
-    start_tcp: true
-    encryption_mode: DISABLED
+  start_tcp: true
+  encryption_mode: DISABLED
 
 grpc_config:
-    host: "${YDB_HOST}"
-    cert: "certs/node.crt"
-    key: "certs/node.key"
-    ca: "certs/ca.crt"
-    services_enabled:
-    - legacy
-    - discovery
-    - kesus
+  host: "${YDB_HOST}"
+  cert: "certs/node.crt"
+  key: "certs/node.key"
+  ca: "certs/ca.crt"
+  services_enabled:
+  - legacy
+  - discovery
+  - kesus
+
+kafka_proxy_config:
+  enable_kafka_proxy: true
+  listening_port: 9092
 
 auth_config:
   path_to_root_ca: certs/ca.crt
@@ -136,6 +195,7 @@ feature_flags:
   enable_public_api_external_blobs: false
   enable_external_data_sources: false
   enable_scheme_transactions_at_scheme_shard: true
+  enable_mvcc_snapshot_reads: true
   enable_script_execution_operations: true
   enable_parameterized_decimal: true
   enable_table_datetime64: true
@@ -151,6 +211,9 @@ table_service_config:
 
 column_shard_config:
   disabled_on_scheme_shard: false
+
+pqcluster_discovery_config:
+  enabled: false
 
 actor_system_config:
   use_auto_config: true

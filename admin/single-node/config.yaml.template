@@ -84,11 +84,11 @@ table_profiles_config:
     column_families:
     - storage_config:
         sys_log:
-          preferred_pool_kind: local
+          preferred_pool_kind: ssd
         log:
-          preferred_pool_kind: local
+          preferred_pool_kind: ssd
         data:
-          preferred_pool_kind: local
+          preferred_pool_kind: ssd
   replication_policies:
   - name: default
   caching_policies:

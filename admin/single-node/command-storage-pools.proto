@@ -6,7 +6,7 @@ Command {
     ErasureSpecies: "none"
     VDiskKind: "Default"
     Kind: "ssd"
-    NumGroups: 2
+    NumGroups: 3
     PDiskFilter {
       Property {
         Type: SSD

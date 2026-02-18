@@ -52,5 +52,15 @@ echo "** Storage initialization successful."
 
 ./app/ydbd -s grpcs://localhost:2135 --ca-file certs/ca.crt --token-file ydb-token \
            admin bs config invoke --proto-file=command-storage-pools.proto
+echo "** Storage pool created."
+
+./app/ydbd -s grpcs://localhost:2135 --ca-file certs/ca.crt --token-file ydb-token \
+           db schema execute command-domain.proto
+echo "** Storage pool assigned."
+
+YDB_PASSWORD="${YDB_ROOT_PASSWORD}" ./app/ydb -e grpcs://${YDB_HOST}:2135 \
+            -d /local --ca-file certs/ca.crt --user root sql -s \
+            'ALTER GROUP `ADMINS` ADD USER user1;'
+echo "** User user1 has been granted the admin role."
 
 echo "** Completed, ready to go!"

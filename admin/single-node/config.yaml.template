@@ -1,0 +1,158 @@
+storage_config_generation: 0
+
+static_erasure: none
+
+host_configs:
+- drive:
+  - path: ${YDB_DISK}
+    type: SSD
+  host_config_id: 1
+
+hosts:
+- node_id: 1
+  host_config_id: 1
+  host: ${YDB_HOST}
+  walle_location:
+    body: 1
+    data_center: 'dc'
+    rack: '1'
+
+domains_config:
+  domain:
+  - name: local
+    storage_pool_types:
+    - kind: ssd
+      pool_config:
+        box_id: 1
+        erasure_species: none
+        kind: ssd
+        pdisk_filter:
+        - property:
+          - type: SSD
+        vdisk_kind: Default
+  state_storage:
+  - ring:
+      node: [1]
+      nto_select: 1
+    ssid: 1
+  security_config:
+    enforce_user_token_requirement: true
+    monitoring_allowed_sids:
+    - "root"
+    - "ADMINS"
+    - "DATABASE-ADMINS"
+    administration_allowed_sids:
+    - "root"
+    - "ADMINS"
+    - "DATABASE-ADMINS"
+    viewer_allowed_sids:
+    - "root"
+    - "ADMINS"
+    - "DATABASE-ADMINS"
+    register_dynamic_node_allowed_sids:
+    - databaseNodes@cert
+    - root@builtin
+    default_users:
+    - name: root
+      password: "${YDB_ROOT_PASSWORD}"
+    - name: user1
+      password: "${YDB_USER1_PASSWORD}"
+
+blob_storage_config:
+  service_set:
+    groups:
+    - erasure_species: none
+      rings:
+      - fail_domains:
+        - vdisk_locations:
+          - node_id: 1
+            pdisk_category: SSD
+            path: ${YDB_DISK}
+
+channel_profile_config:
+  profile:
+  - channel:
+    - erasure_species: none
+      pdisk_category: 1
+      storage_pool_kind: ssd
+    - erasure_species: none
+      pdisk_category: 1
+      storage_pool_kind: ssd
+    - erasure_species: none
+      pdisk_category: 1
+      storage_pool_kind: ssd
+    profile_id: 0
+  - channel:
+    - erasure_species: none
+      pdisk_category: 1
+      storage_pool_kind: ssd
+    - erasure_species: none
+      pdisk_category: 1
+      storage_pool_kind: ssd
+    - erasure_species: none
+      pdisk_category: 1
+      storage_pool_kind: ssd
+    - erasure_species: none
+      pdisk_category: 1
+      storage_pool_kind: ssd
+    - erasure_species: none
+      pdisk_category: 1
+      storage_pool_kind: ssd
+    - erasure_species: none
+      pdisk_category: 1
+      storage_pool_kind: ssd
+    - erasure_species: none
+      pdisk_category: 1
+      storage_pool_kind: ssd
+    profile_id: 1
+
+interconnect_config:
+    start_tcp: true
+    encryption_mode: DISABLED
+
+grpc_config:
+    host: "${YDB_HOST}"
+    cert: "certs/node.crt"
+    key: "certs/node.key"
+    ca: "certs/ca.crt"
+    services_enabled:
+    - legacy
+    - discovery
+    - kesus
+
+auth_config:
+  path_to_root_ca: certs/ca.crt
+
+client_certificate_authorization:
+  request_client_certificate: true
+  client_certificate_definitions:
+      - member_groups: ["databaseNodes@cert"]
+        subject_terms:
+        - short_name: "O"
+          values: ["YDB"]
+
+feature_flags:
+  enable_drain_on_shutdown: false
+  enable_public_api_external_blobs: false
+  enable_external_data_sources: false
+  enable_scheme_transactions_at_scheme_shard: true
+  enable_script_execution_operations: true
+  enable_parameterized_decimal: true
+  enable_table_datetime64: true
+  enable_vector_index: true
+
+table_service_config:
+  sql_version: 1
+  enable_batch_updates: true
+  enable_oltp_sink: true
+  allow_olap_data_query: true
+  enable_olap_sink: true
+  enable_create_table_as: true
+
+column_shard_config:
+  disabled_on_scheme_shard: false
+
+actor_system_config:
+  use_auto_config: true
+  node_type: HYBRID
+  cpu_count: ${YDB_CORE_COUNT}

@@ -1,8 +1,10 @@
 #! /bin/sh
 
-set -e
-set -u
+set -euo pipefail
 
+readonly SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+cd "$SCRIPT_DIR"
 set -o allexport
 . ./env.vars
 set +o allexport

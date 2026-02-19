@@ -1,7 +1,9 @@
 #! /bin/sh
 
-set -e
-set -u
+set -euo pipefail
+
+readonly SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$SCRIPT_DIR"
 
 date >>logs/server.log
 echo "****************************************" >>logs/server.log

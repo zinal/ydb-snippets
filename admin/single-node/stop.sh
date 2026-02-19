@@ -11,7 +11,7 @@ if [ -f "logs/server.pid" ]; then
     echo "ydbd stop: Stopping process ${SERVER_PID}..."
     kill -TERM ${SERVER_PID}
     while true; do
-        if kill -0 "$SERVER_PID" >/dev/null 2>&1; then
+        if ! kill -0 "$SERVER_PID" >/dev/null 2>&1; then
             break;
         else
             sleep 1

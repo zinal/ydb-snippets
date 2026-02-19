@@ -14,6 +14,8 @@ echo "** Updating TLS certificates..."
 echo "${YDB_HOST}" >ydb-ca-nodes.txt
 ./ydb-ca-update.sh
 
+mkdir -pv certs
+
 CERT_DIR=`ls CA/certs | grep -E '^2.*' | sort | tail -n 1`
 cp -v CA/certs/${CERT_DIR}/ca.crt certs/
 cp -v CA/certs/${CERT_DIR}/${YDB_HOST}/node.crt certs/
@@ -22,12 +24,14 @@ cp -v CA/certs/${CERT_DIR}/${YDB_HOST}/web.pem certs/
 chmod -v 600 certs/*
 
 echo "** Generating configuration file..."
+mkdir -pv config
 envsubst <config.yaml.template >config/config.yaml
 
 echo "** Cleaning disk..."
 ./app/ydbd admin bs disk obliterate ${YDB_DISK}
 
 echo "** Starting database process..."
+mkdir -pv logs
 ./start.sh
 sleep 5
 

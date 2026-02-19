@@ -1,7 +1,10 @@
-#! /bin/sh
+#! /usr/bin/env bash
 
 set +e
 set -u
+
+readonly SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$SCRIPT_DIR"
 
 if [ -f "logs/server.pid" ]; then
     SERVER_PID=`cat logs/server.pid`

@@ -4,6 +4,9 @@ set -euo pipefail
 
 readonly SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
+set -o allexport
+. ./env.vars
+set +o allexport
 
 date >>logs/server.log
 echo "****************************************" >>logs/server.log

@@ -36,6 +36,6 @@ echo "** Export completed successfully: ${backup_id}" >&2
 mksquashfs "${backup_subdir}" "${backup_subdir}.squashfs" -comp zstd
 rm -rf -- "${backup_subdir}"
 
-echo "** Export archived successfully: ${backup_id}.tar.xz" >&2
+echo "** Export archived successfully: ${backup_id}.squashfs" >&2
 
 echo "${backup_id}"

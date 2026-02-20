@@ -65,7 +65,7 @@
 <entry key="job.apply.partitioning">HASH</entry>
 <entry key="job.cdc.threads">4</entry>
 <entry key="job.apply.threads">4</entry>
-<entry key="job.apply.queue">10000</entry>
+<entry key="job.apply.queue">500000</entry>
 <entry key="job.batch.select">1000</entry>
 <entry key="job.batch.upsert">500</entry>
 <entry key="job.max.row.changes">100000</entry>

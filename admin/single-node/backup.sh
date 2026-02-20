@@ -23,9 +23,9 @@ backup_subdir="backups/${backup_id}"
 mkdir -pv "$backup_subdir"
 echo "** Starting export to ${backup_subdir}" >&2
 
-if ! YDB_PASSWORD="${YDB_ROOT_PASSWORD}" ./app/ydb -e "grpcs://${YDB_HOST}:2135" \
-        -d /local --ca-file certs/ca.crt --user root \
-        -vv tools dump --exclude '^/local/[.]sys' -p . -o "${backup_subdir}"; then
+if ! YDB_PASSWORD="${YDB_ROOT_PASSWORD}" ./app/ydb -e "grpcs://${YDB_HOST}:${YDB_PORT_APP}" \
+        -d "/${YDB_DOMAIN_NAME}" --ca-file certs/ca.crt --user root \
+        -vv tools dump --exclude '^/'"${YDB_DOMAIN_NAME}"'/[.]sys' -p . -o "${backup_subdir}"; then
     rm -rf -- "${backup_subdir}"
     echo "** Backup failed" >&2
     exit 1

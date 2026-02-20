@@ -1,0 +1,19 @@
+ModifyScheme {
+    WorkingDir: "/Root/test"
+    OperationType: ESchemeOpCreateTable
+    CreateTable {
+        Name: "temp_mytab1"
+        CopyFromTable: "/Root/test/mytab1"
+        PartitionConfig {
+            ColumnFamilies {
+                Id: 0
+                Name: "default"
+                StorageConfig {
+                    SysLog { PreferredPoolKind: "sdd" }
+                    Log { PreferredPoolKind: "sdd" }
+                    Data { PreferredPoolKind: "sdd" }
+                }
+            }
+        }
+    }
+}

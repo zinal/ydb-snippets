@@ -65,8 +65,8 @@ trap cleanup EXIT
 
 squashfuse "$backup_archive" "$RESTORE_MOUNT"
 
-if ! YDB_PASSWORD="${YDB_ROOT_PASSWORD}" ./app/ydb -e "grpcs://${YDB_HOST}:2135" \
-        -vv -d /local --ca-file certs/ca.crt --user root \
+if ! YDB_PASSWORD="${YDB_ROOT_PASSWORD}" ./app/ydb -e "grpcs://${YDB_HOST}:${YDB_PORT_APP}" \
+        -vv -d "/${YDB_DOMAIN_NAME}" --ca-file certs/ca.crt --user root \
         tools restore -p . -i "${RESTORE_MOUNT}" --import-data; then
     echo "** Restore failed" >&2
     exit 1

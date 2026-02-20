@@ -48,7 +48,7 @@ fi
 set -e
 
 YDB_PASSWORD="${YDB_ROOT_PASSWORD}" ./app/ydb -e grpcs://${YDB_HOST}:2135 \
-            -d /local --ca-file certs/ca.crt --user root auth get-token -f \
+            -d "/${YDB_DOMAIN_NAME}" --ca-file certs/ca.crt --user root auth get-token -f \
             > ydb-token
 echo "** Authentication token obtained."
 
@@ -65,8 +65,8 @@ echo "** Storage pool created."
 echo "** Storage pool assigned."
 
 YDB_PASSWORD="${YDB_ROOT_PASSWORD}" ./app/ydb -e grpcs://${YDB_HOST}:2135 \
-            -d /local --ca-file certs/ca.crt --user root sql -s \
-            'ALTER GROUP `ADMINS` ADD USER user1;'
-echo "** User user1 has been granted the admin role."
+            -d "/${YDB_DOMAIN_NAME}" --ca-file certs/ca.crt --user root sql -s \
+            'ALTER GROUP `ADMINS` ADD USER ${YDB_CUSTOM_LOGIN};'
+echo "** User ${YDB_CUSTOM_LOGIN} has been granted the admin role."
 
 echo "** Completed, ready to go!"

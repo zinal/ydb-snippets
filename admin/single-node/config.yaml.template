@@ -20,7 +20,7 @@ hosts:
 domains_config:
   domain:
   - domain_id: 1
-    name: local
+    name: ${YDB_DOMAIN_NAME}
     scheme_root: 72075186232723360
     storage_pool_types:
     - kind: ssd
@@ -58,7 +58,7 @@ domains_config:
     default_users:
     - name: root
       password: "${YDB_ROOT_PASSWORD}"
-    - name: user1
+    - name: ${YDB_CUSTOM_LOGIN}
       password: "${YDB_USER1_PASSWORD}"
 
 table_profiles_config:

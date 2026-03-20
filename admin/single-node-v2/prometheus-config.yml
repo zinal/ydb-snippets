@@ -19,7 +19,7 @@ scrape_configs:
     - "/etc/alloy/node-exporter.yml"
 
 - job_name: ydb/ydb
-  scheme: https
+  scheme: http
   metric_relabel_configs:
   - regex: (.*)
     replacement: ydb_$1
@@ -43,7 +43,7 @@ scrape_configs:
     - "/etc/alloy/ydbd-database-*.yml"
 
 - job_name: ydb/auth
-  scheme: https
+  scheme: http
   metric_relabel_configs:
   - regex: (.*)
     replacement: auth_$1
@@ -67,7 +67,7 @@ scrape_configs:
     - "/etc/alloy/ydbd-database-*.yml"
 
 - job_name: ydb/coordinator
-  scheme: https
+  scheme: http
   metric_relabel_configs:
   - regex: (.*)
     replacement: coordinator_$1
@@ -91,7 +91,7 @@ scrape_configs:
     - "/etc/alloy/ydbd-database-*.yml"
 
 - job_name: ydb/dsproxy_queue
-  scheme: https
+  scheme: http
   metric_relabel_configs:
   - regex: (.*)
     replacement: dsproxy_queue_$1
@@ -115,7 +115,7 @@ scrape_configs:
     - "/etc/alloy/ydbd-database-*.yml"
 
 - job_name: ydb/dsproxy
-  scheme: https
+  scheme: http
   metric_relabel_configs:
   - regex: (.*)
     replacement: dsproxy_$1
@@ -139,7 +139,7 @@ scrape_configs:
     - "/etc/alloy/ydbd-database-*.yml"
 
 - job_name: ydb/dsproxy_percentile
-  scheme: https
+  scheme: http
   metric_relabel_configs:
   - regex: (.*)
     replacement: dsproxy_percentile_$1
@@ -163,7 +163,7 @@ scrape_configs:
     - "/etc/alloy/ydbd-database-*.yml"
 
 - job_name: ydb/grpc
-  scheme: https
+  scheme: http
   metric_relabel_configs:
   - regex: (.*)
     replacement: grpc_$1
@@ -187,7 +187,7 @@ scrape_configs:
     - "/etc/alloy/ydbd-database-*.yml"
 
 - job_name: ydb/kqp
-  scheme: https
+  scheme: http
   metric_relabel_configs:
   - regex: (.*)
     replacement: kqp_$1
@@ -210,7 +210,7 @@ scrape_configs:
     - "/etc/alloy/ydbd-database-*.yml"
 
 - job_name: ydb/processing
-  scheme: https
+  scheme: http
   metric_relabel_configs:
   - regex: (.*)
     replacement: processing_$1
@@ -234,7 +234,7 @@ scrape_configs:
     - "/etc/alloy/ydbd-database-*.yml"
 
 - job_name: ydb/proxy
-  scheme: https
+  scheme: http
   metric_relabel_configs:
   - regex: (.*)
     replacement: proxy_$1
@@ -258,7 +258,7 @@ scrape_configs:
     - "/etc/alloy/ydbd-database-*.yml"
 
 - job_name: ydb/followers
-  scheme: https
+  scheme: http
   metric_relabel_configs:
   - regex: (.*)
     replacement: followers_$1
@@ -282,7 +282,7 @@ scrape_configs:
     - "/etc/alloy/ydbd-database-*.yml"
 
 - job_name: ydb/storage_pool_stat
-  scheme: https
+  scheme: http
   metric_relabel_configs:
   - regex: (.*)
     replacement: storage_pool_stat_$1
@@ -306,7 +306,7 @@ scrape_configs:
     - "/etc/alloy/ydbd-database-*.yml"
 
 - job_name: ydb/tablets
-  scheme: https
+  scheme: http
   metric_relabel_configs:
   - regex: (.*)
     replacement: tablets_$1
@@ -330,7 +330,7 @@ scrape_configs:
     - "/etc/alloy/ydbd-database-*.yml"
 
 - job_name: ydb/utils
-  scheme: https
+  scheme: http
   metric_relabel_configs:
   - regex: (.*)
     replacement: utils_$1
@@ -354,7 +354,7 @@ scrape_configs:
     - "/etc/alloy/ydbd-database-*.yml"
 
 - job_name: ydb/dsproxynode
-  scheme: https
+  scheme: http
   metric_relabel_configs:
   - regex: (.*)
     replacement: dsproxynode_$1
@@ -378,7 +378,7 @@ scrape_configs:
     - "/etc/alloy/ydbd-database-*.yml"
 
 - job_name: ydb/interconnect
-  scheme: https
+  scheme: http
   metric_relabel_configs:
   - regex: (.*)
     replacement: interconnect_$1
@@ -402,7 +402,7 @@ scrape_configs:
     - "/etc/alloy/ydbd-database-*.yml"
 
 - job_name: ydb/pdisks
-  scheme: https
+  scheme: http
   metric_relabel_configs:
   - regex: (.*)
     replacement: pdisks_$1
@@ -425,7 +425,7 @@ scrape_configs:
     - "/etc/alloy/ydbd-storage.yml"
 
 - job_name: ydb/vdisks
-  scheme: https
+  scheme: http
   metric_relabel_configs:
   - regex: (.*)
     replacement: vdisks_$1
@@ -448,7 +448,7 @@ scrape_configs:
     - "/etc/alloy/ydbd-storage.yml"
 
 - job_name: ydb/healthcheck
-  scheme: https
+  scheme: http
   metrics_path: /healthcheck
   params:
     format:

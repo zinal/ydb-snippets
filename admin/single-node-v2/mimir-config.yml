@@ -22,6 +22,7 @@ distributor:
     health_check_ingesters: true
 
 ingester:
+  native_histograms_ingestion_enabled: true
   ring:
     # The address to advertise for this ingester.  Will be autodiscovered by
     # looking up address on eth0 or en0; can be specified if this fails.
@@ -36,6 +37,9 @@ ingester:
     kvstore:
       store: inmemory
     replication_factor: 1
+
+validation:
+  max_native_histogram_buckets: 160
 
 blocks_storage:
   tsdb:

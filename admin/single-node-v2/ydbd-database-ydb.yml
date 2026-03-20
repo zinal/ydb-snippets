@@ -1,0 +1,4 @@
+- labels:
+    container: ydb-dynamic
+  targets:
+  - "ydb-1c:20002"

@@ -1,0 +1,4 @@
+- labels:
+    container: ydb-static
+  targets:
+  - "ydb-1c:8765"

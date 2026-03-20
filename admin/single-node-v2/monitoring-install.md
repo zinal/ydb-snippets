@@ -1,5 +1,13 @@
 # Установка сервисов мониторинга
 
+## Node exporter
+
+На всех рабочих хостах:
+
+```bash
+sudo apt-get -y install prometheus-node-exporter
+```
+
 ## Mimir
 
 Скачать пакеты:
@@ -50,4 +58,30 @@ sudo chmod -v 0755 /data
 ```bash
 sudo systemctl restart mimir
 sudo systemctl status mimir
+```
+
+## Alloy
+
+```bash
+wget https://github.com/grafana/alloy/releases/download/v1.14.1/alloy-1.14.1-1.amd64.deb
+```
+
+```bash
+sudo dpkg -i $(pwd)/alloy-1.14.1-1.amd64.deb
+```
+
+```bash
+sudo vi /etc/alloy/prometheus-config.yml
+sudo vi /etc/alloy/node-exporter.yml
+sudo vi /etc/alloy/ydbd-storage.yml
+sudo vi /etc/alloy/ydbd-database-ydb.yml
+sudo vi /etc/default/alloy
+# CONFIG_FILE="/etc/alloy/prometheus-config.yml"
+# CUSTOM_ARGS="--config.format=prometheus"
+```
+
+```bash
+sudo systemctl enable alloy
+sudo systemctl start alloy
+sudo systemctl status alloy
 ```

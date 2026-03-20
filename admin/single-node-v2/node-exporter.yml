@@ -1,0 +1,8 @@
+- labels:
+    job: node
+  targets:
+  - "ydb-1c:9100"
+  - "pgsql-1c:9100"
+  - "wrk-1c-node1:9100"
+  - "monit1:9100"
+  - "web-srvr-1c:9100"

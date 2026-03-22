@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <comment>YDB connection for strange-param-java sample</comment>
+
+    <!-- Required -->
+    <entry key="ydb.url">grpcs://localhost:2135/local</entry>
+
+    <!-- Optional -->
+    <entry key="ydb.auth.mode">NONE</entry>
+    <entry key="ydb.poolSize">8</entry>
+</properties>

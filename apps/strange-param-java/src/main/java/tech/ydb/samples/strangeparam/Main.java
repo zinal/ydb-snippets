@@ -1,11 +1,9 @@
 package tech.ydb.samples.strangeparam;
 
-import java.util.Arrays;
 import tech.ydb.common.transaction.TxMode;
 import tech.ydb.table.query.Params;
-import tech.ydb.table.values.PrimitiveType;
 import tech.ydb.table.values.PrimitiveValue;
-import tech.ydb.table.values.StructType;
+import tech.ydb.table.values.StructValue;
 
 public class Main {
 
@@ -21,43 +19,26 @@ public class Main {
             Params params = buildMismatchedParams();
 
             var result = connector.getRetryCtx().supplyResult(session
-                    -> session.createQuery(QUERY, TxMode.NONE, params).execute()).join();
+                    -> session.createQuery(QUERY, TxMode.SERIALIZABLE_RW, params).execute()).join();
 
             System.out.println("Success: " + result.isSuccess());
             System.out.println("Status : " + result.getStatus());
-            if (!result.isSuccess()) {
-                System.out.println("Issues : " + Arrays.toString(result.getStatus().getIssues()));
-            }
         }
     }
 
     private static Params buildMismatchedParams() {
-        StructType level3Actual = StructType.of(
-                "q", PrimitiveType.Int32,
-                "p", PrimitiveType.Uint32
+        return Params.of("$items",
+                StructValue.of(
+                        "x", PrimitiveValue.newInt32(1),
+                        "y", PrimitiveValue.newUint32(2).makeOptional(),
+                        "z", StructValue.of(
+                                "a", PrimitiveValue.newInt32(1),
+                                "b", PrimitiveValue.newInt32(2),
+                                "c", StructValue.of(
+                                        "q", PrimitiveValue.newInt32(1),
+                                        "p", PrimitiveValue.newUint32(1)
+                                )
+                        ))
         );
-        StructType level2Actual = StructType.of(
-                "a", PrimitiveType.Int32,
-                "b", PrimitiveType.Int32,
-                "c", level3Actual
-        );
-        StructType rootActual = StructType.of(
-                "x", PrimitiveType.Int32,
-                "y", PrimitiveType.Uint32.makeOptional(),
-                "z", level2Actual
-        );
-
-        return Params.of("$items", rootActual.newValue(
-                "x", PrimitiveValue.newInt32(1),
-                "y", PrimitiveValue.newUint32(2).makeOptional(),
-                "z", level2Actual.newValue(
-                        "a", PrimitiveValue.newInt32(1),
-                        "b", PrimitiveValue.newInt32(2),
-                        "c", level3Actual.newValue(
-                                "q", PrimitiveValue.newInt32(1),
-                                "p", PrimitiveValue.newUint32(2)
-                        )
-                )
-        ));
     }
 }

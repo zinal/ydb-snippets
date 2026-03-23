@@ -26,8 +26,13 @@ metrics_generator:
   storage:
     path: /data/tempo/generator/wal
     remote_write:
-      - url: http://127.0.0.1:9009/api/v1/write
+      - url: http://127.0.0.1:9009/api/v1/push
         send_exemplars: true
+  processor:
+    span_metrics:
+      dimensions:
+        - query.tag
+
 
 storage:
   trace:

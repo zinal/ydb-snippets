@@ -1,0 +1,27 @@
+[Unit]
+Description=YDB storage node
+StartLimitInterval=10
+StartLimitBurst=15
+After=network-online.target rc-local.service ydb-transparent-hugepages.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=kikimr
+UMask=077
+PermissionsStartOnly=true
+ExecStart=/opt/kikimr/bin/ydbd server \
+    --yaml-config /opt/kikimr/conf/config-database.yaml \
+    --node-broker=grpc://localhost:2135 --tenant /local/pg-data \
+    --grpc-port=21001 --mon-port=20002 --ic-port=21003
+LimitNOFILE=65536
+LimitCORE=0
+LimitMEMLOCK=3221225472
+Restart=always
+RestartSec=1
+SyslogIdentifier=ydbd
+SyslogFacility=daemon
+SyslogLevel=err
+
+[Install]
+WantedBy=multi-user.target

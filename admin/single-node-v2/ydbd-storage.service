@@ -1,0 +1,27 @@
+[Unit]
+Description=YDB storage node
+StartLimitInterval=10
+StartLimitBurst=15
+After=network-online.target rc-local.service ydb-transparent-hugepages.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=kikimr
+UMask=077
+PermissionsStartOnly=true
+ExecStart=/opt/kikimr/bin/ydbd server \
+    --yaml-config /opt/kikimr/conf/config-storage.yaml \
+    --node 1 --node-host=ydb-1c.ru-central1.internal \
+    --grpc-port 2135 --ic-port 19001 --mon-port 8765
+LimitNOFILE=65536
+LimitCORE=0
+LimitMEMLOCK=3221225472
+Restart=always
+RestartSec=1
+SyslogIdentifier=ydbd
+SyslogFacility=daemon
+SyslogLevel=err
+
+[Install]
+WantedBy=multi-user.target

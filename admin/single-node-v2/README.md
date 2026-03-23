@@ -1,4 +1,4 @@
-# Установка сервисов мониторинга
+# Установка YDB и сервисов мониторинга
 
 ## Node exporter
 
@@ -99,5 +99,14 @@ sudo dpkg -i grafana_12.4.1_22846628243_linux_amd64.deb
 ```bash
 wget https://github.com/grafana/tempo/releases/download/v2.10.3/tempo_2.10.3_linux_amd64.deb
 sudo dpkg -i tempo_2.10.3_linux_amd64.deb
+sudo cp -v tempo-config.yml /etc/tempo/config.yml
+chown -v tempo /etc/tempo/config.yml
+chmod -v 0600 /etc/tempo/config.yml
+
+sudo mkdir -pv /data/tempo/blocks
+sudo mkdir -pv /data/tempo/generator/wal
+sudo mkdir -pv /data/tempo/wal/blocks
+sudo chown -Rv tempo /data/tempo
+sudo chmod -v 0660 /data/tempo
 
 ```

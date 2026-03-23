@@ -1,0 +1,50 @@
+server:
+  http_listen_port: 3200
+  grpc_listen_port: 19095
+
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: "0.0.0.0:4317"
+        http:
+          endpoint: "0.0.0.0:4318"
+
+ingester:
+  max_block_duration: 5m
+
+compactor:
+  compaction:
+    block_retention: 48h               # configure total trace retention here
+
+metrics_generator:
+  registry:
+    external_labels:
+      source: tempo
+      cluster: linux-microservices
+  storage:
+    path: /data/tempo/generator/wal
+    remote_write:
+      - url: http://127.0.0.1:9009/api/v1/write
+        send_exemplars: true
+
+storage:
+  trace:
+    backend: s3                        # backend configuration to use
+    s3:
+      endpoint: storage.yandexcloud.net
+      bucket: ydb-1c-traces1
+      forcepathstyle: false
+      enable_dual_stack: false
+      # set to false if endpoint is https
+      insecure: true
+      access_key: "TODO"
+      secret_key: "TODO"
+    wal:
+      path: /data/tempo/wal         # where to store the wal locally
+    local:
+      path: /data/tempo/blocks
+
+overrides:
+  metrics_generator_processors: [service-graphs, span-metrics] # enables metrics generator

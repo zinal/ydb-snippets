@@ -1,5 +1,69 @@
 # Установка YDB и сервисов мониторинга
 
+## Серверная часть YDB
+
+1. Подготовка диска
+
+```bash
+sudo parted -s /dev/vdb mklabel gpt
+sudo parted -s /dev/vdb mkpart primary 1MiB 100%
+sudo parted -s /dev/vdb name 1 ydb_data_1
+sudo partprobe /dev/vdb
+sudo dd if=/dev/zero of=/dev/disk/by-partlabel/ydb_data_1 bs=1M count=1
+```
+
+2. Создание пользователя и каталогов
+
+```bash
+sudo useradd kikimr
+sudo usermod -a -G disk kikimr
+sudo mkdir -pv /opt/kikimr/bin
+sudo mkdir -pv /opt/kikimr/conf
+```
+
+3. Установка бинарников
+
+```bash
+tar xf ydb-server.tar.gz
+sudo install -m 0755 ydbd /opt/kikimr/bin/ydbd
+sudo install -m 0755 ydb  /opt/kikimr/bin/ydb
+```
+
+4. Установка настроечных файлов
+
+```bash
+sudo install -m 0640 ydbd-config-storage.yaml  /opt/kikimr/conf/config-storage.yaml
+sudo install -m 0640 ydbd-config-database.yaml /opt/kikimr/conf/config-database.yaml
+sudo chown -v kikimr:kikimr /opt/kikimr/conf/config-*
+```
+
+В настроечных файлах зашито имя хоста - поправить по мере надобности.
+
+5. Скрипты и systemd-юниты
+
+```bash
+sudo install -m 0755 ydb-transparent-hugepages.sh /usr/local/bin/ydb-transparent-hugepages.sh
+sudo install -m 0755 ydbd-reset-all.sh /usr/local/bin/ydbd-reset-all.sh
+sudo install -m 0644 ydbd-storage.service /etc/systemd/system/ydbd-storage.service
+sudo install -m 0644 ydbd-pgdata.service  /etc/systemd/system/ydbd-pgdata.service
+sudo install -m 0644 ydb-transparent-hugepages.service /etc/systemd/system/ydb-transparent-hugepages.service
+sudo systemctl daemon-reload
+```
+
+6. Запуск
+
+```bash
+sudo systemctl start ydb-transparent-hugepages
+sudo /usr/local/bin/ydbd-reset-all.sh
+```
+
+7. Контроль статуса
+
+```bash
+sudo systemctl status ydbd-storage --no-pager
+sudo systemctl status ydbd-pgdata --no-pager
+```
+
 ## Node exporter
 
 На всех рабочих хостах:

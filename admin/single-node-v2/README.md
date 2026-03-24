@@ -173,4 +173,6 @@ sudo mkdir -pv /data/tempo/wal/blocks
 sudo chown -Rv tempo /data/tempo
 sudo chmod -v 0660 /data/tempo
 
+sudo systemctl enable tempo
+sudo systemctl start tempo
 ```

@@ -201,19 +201,25 @@ def group_tables_by_schema(
 
 
 def print_result(groups: Dict[SchemaFingerprint, List[str]]) -> None:
+    total_tables = sum(len(items) for items in groups.values())
+    single_table_groups = sum(1 for items in groups.values() if len(items) == 1)
     non_trivial_groups = [sorted(items) for items in groups.values() if len(items) > 1]
-    non_trivial_groups.sort(key=lambda group: (len(group), group))
+    non_trivial_groups.sort(key=lambda group: (-len(group), group))
 
-    if not non_trivial_groups:
-        print("No groups with similar structure (size > 1) were found.")
-        return
+    if non_trivial_groups:
+        print("Groups of tables with the same schema structure:\n")
+        for idx, group in enumerate(non_trivial_groups, start=1):
+            print(f"Group {idx} ({len(group)} tables):")
+            for table_name in group:
+                print(f"  - {table_name}")
+            print()
+    else:
+        print("No groups with similar structure (size > 1) were found.\n")
 
-    print("Groups of tables with the same schema structure:\n")
-    for idx, group in enumerate(non_trivial_groups, start=1):
-        print(f"Group {idx} ({len(group)} tables):")
-        for table_name in group:
-            print(f"  - {table_name}")
-        print()
+    print("Statistics:")
+    print(f"  - Total tables analyzed: {total_tables}")
+    print(f"  - Single-table groups: {single_table_groups}")
+    print(f"  - Groups with size >= 2: {len(non_trivial_groups)}")
 
 
 def main() -> None:
@@ -251,5 +257,6 @@ def main() -> None:
     print_result(groups)
 
 
+# ./schema-analyzer.py --endpoint grpc://localhost:2135 --database /local/pg-data --auth-mode none --start-path /local/pg-data
 if __name__ == "__main__":
     main()

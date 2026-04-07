@@ -10,7 +10,8 @@ import tech.ydb.table.query.Params;
 import tech.ydb.table.values.PrimitiveValue;
 
 /**
- * CREATE TABLE bigtab(a Int32, b Text, PRIMARY KEY(a))
+ * CREATE TABLE bigtab(a Int32, b Text, c Int32, PRIMARY KEY(a), INDEX ix_c
+ * GLOBAL ON (c) COVER(b));
  *
  * @author mzinal
  */
@@ -52,10 +53,12 @@ public class App implements Runnable, AutoCloseable {
     }
 
     private int insertSingle(int position, QueryTransaction trans) {
-        var p_b = makeString(ThreadLocalRandom.current().nextInt(2000, 5000));
-        trans.createQuery("UPSERT INTO bigtab(a,b) VALUES($a, $b)",
+        var random = ThreadLocalRandom.current();
+        var p_b = makeString(random.nextInt(2000, 5000));
+        trans.createQuery("UPSERT INTO bigtab(a,b,c) VALUES($a, $b, $c)",
                 Params.of("$a", PrimitiveValue.newInt32(position),
-                        "$b", PrimitiveValue.newText(p_b)))
+                        "$b", PrimitiveValue.newText(p_b),
+                        "$c", PrimitiveValue.newInt32(random.nextInt(1, 1000000000))))
                 .execute().thenApply(res -> res.getStatus())
                 .join().expectSuccess();
         return p_b.length();

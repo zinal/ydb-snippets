@@ -52,7 +52,7 @@ public class App implements Runnable, AutoCloseable {
     }
 
     private int insertSingle(int position, QueryTransaction trans) {
-        var p_b = makeString(ThreadLocalRandom.current().nextInt(500, 900));
+        var p_b = makeString(ThreadLocalRandom.current().nextInt(2000, 5000));
         trans.createQuery("UPSERT INTO bigtab(a,b) VALUES($a, $b)",
                 Params.of("$a", PrimitiveValue.newInt32(position),
                         "$b", PrimitiveValue.newText(p_b)))

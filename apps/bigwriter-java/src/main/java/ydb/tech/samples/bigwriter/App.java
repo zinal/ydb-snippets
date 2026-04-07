@@ -66,7 +66,7 @@ public class App implements Runnable, AutoCloseable {
 
     private void handleSelectResult(QueryResultPart part) {
         var rs = part.getResultSetReader();
-        if (rs.getRowCount() > 0) {
+        if (rs.next()) {
             LOG.info("** Current records count: {}", rs.getColumn(0).getInt64());
         }
     }

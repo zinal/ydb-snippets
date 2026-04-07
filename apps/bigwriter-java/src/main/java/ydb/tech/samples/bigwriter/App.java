@@ -10,6 +10,7 @@ import tech.ydb.table.query.Params;
 import tech.ydb.table.values.PrimitiveValue;
 
 /**
+ * CREATE TABLE bigtab(a Int32, b Text, PRIMARY KEY(a))
  *
  * @author mzinal
  */
@@ -31,15 +32,21 @@ public class App implements Runnable, AutoCloseable {
 
     @Override
     public void run() {
-        yc.getQueryRetryCtx().supplyStatus(qs -> insertMany(qs));
+        LOG.info("Starting...");
+        yc.getQueryRetryCtx().supplyStatus(qs -> insertMany(qs))
+                .join().expectSuccess();
+        LOG.info("Completed!");
     }
 
     private CompletableFuture<Status> insertMany(QuerySession qs) {
         var trans = qs.createNewTransaction(TxMode.SERIALIZABLE_RW);
         int amount = 0;
         final int limit = 128 * 1024 * 1024;
+        LOG.info("Inserting...");
         while (amount < limit) {
-            amount += insertSingle(amount, trans);
+            int step = insertSingle(amount, trans);
+            amount += step;
+            LOG.info("Step {}, total {}", step, amount);
         }
         return trans.commit().thenApply(res -> res.getStatus());
     }

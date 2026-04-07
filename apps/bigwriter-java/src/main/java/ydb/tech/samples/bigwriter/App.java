@@ -6,6 +6,7 @@ import tech.ydb.common.transaction.TxMode;
 import tech.ydb.core.Status;
 import tech.ydb.query.QuerySession;
 import tech.ydb.query.QueryTransaction;
+import tech.ydb.query.result.QueryResultPart;
 import tech.ydb.table.query.Params;
 import tech.ydb.table.values.PrimitiveValue;
 
@@ -45,6 +46,7 @@ public class App implements Runnable, AutoCloseable {
 
     private CompletableFuture<Status> insertMany(QuerySession qs) {
         var trans = qs.createNewTransaction(TxMode.SERIALIZABLE_RW);
+        executeSelect(trans);
         int amount = 0;
         final int limit = 128 * 1024 * 1024;
         LOG.info("Inserting...");
@@ -54,6 +56,19 @@ public class App implements Runnable, AutoCloseable {
             LOG.info("Step {}, total {}", step, amount);
         }
         return trans.commit().thenApply(res -> res.getStatus());
+    }
+
+    private void executeSelect(QueryTransaction trans) {
+        trans.createQuery("SELECT COUNT(*) FROM bigtab")
+                .execute(part -> handleSelectResult(part))
+                .join().getStatus().expectSuccess();
+    }
+
+    private void handleSelectResult(QueryResultPart part) {
+        var rs = part.getResultSetReader();
+        if (rs.getRowCount() > 0) {
+            LOG.info("** Current records count: {}", rs.getColumn(0).getInt64());
+        }
     }
 
     private int insertSingle(int position, QueryTransaction trans) {
@@ -92,4 +107,5 @@ public class App implements Runnable, AutoCloseable {
             System.exit(1);
         }
     }
+
 }

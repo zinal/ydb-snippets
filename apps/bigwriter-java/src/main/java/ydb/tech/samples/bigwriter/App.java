@@ -13,6 +13,10 @@ import tech.ydb.table.values.PrimitiveValue;
  * CREATE TABLE bigtab(a Int32, b Text, c Int32, PRIMARY KEY(a), INDEX ix_c
  * GLOBAL ON (c) COVER(b));
  *
+ * mvn clean package
+ *
+ * mvn exec:java -Dexec.args="connect1.xml"
+ *
  * @author mzinal
  */
 public class App implements Runnable, AutoCloseable {

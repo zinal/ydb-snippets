@@ -1,0 +1,41 @@
+$ ./find_missing_commits.py --remote origin --skip-file skip-prefixes-ydb.txt --file-workers 100 --base stable-25-2-1 /home/zinal/Projects/YDB/core/main stable-25-2-1-enterprise stable-25-3-1-enterprise 2025-01-01
+2025-11-11T10:03:05Z	7f5cc8af780b6ebe94a6be825b59a51f3b9d2986	KIKIMR-24190 SQL query tracing fix v2
+2025-11-16T22:21:52Z	1718f0fcec9f20f5b9e5cbd19414d82886c8e5c6	add tablet id or path id to logs
+2025-11-18T00:00:57Z	a1b90026f0b555d1dbcef212dd50c822f1fccb1c	fix potential hang on overload
+2025-11-18T00:01:06Z	aa36a631244781353de2422cbf43071c8f632665	make sure that seqno is unique among all tasks
+2025-11-18T00:01:12Z	647712ba062ff0cb903ca4cb94a9a699728ff522	fixes after merge
+2025-12-09T11:42:54Z	637a75c2cf0e8980c529c4011efb5830a307e271	fix build after merge
+2025-12-11T10:47:34Z	fe731487c9e1e0eb5e0a303e6a6324b5093a8b39	merge diff stable-25-2-1 -> stable-25-2-1-enterprise (#30025)
+2025-12-18T10:37:33Z	db9d2093205c4d72b7652f22d8c83673c6f7b5cf	Enabled QueryMetricsSimple test due to tenants support (#24980)
+2025-12-18T16:48:53Z	603b5d0670452a5aadc8ff489abcc41556c501b6	Add lock statistics to KQP query metrics (#30268)
+2025-12-24T14:09:21Z	a4a473058dad270a0f665ceaf7c5129d73984ea2	Materialize indexes
+2025-12-25T13:19:03Z	a3781b74bab631ee324cf4b5abcc0dd6523d3417	Merge branch 'stable-25-2-1' into merge-25-2-1-20251225
+2025-12-26T15:19:35Z	760e4fd093a54ea774b5adc66e69c9910b1ef122	Fix materialized index export
+2025-12-29T16:44:39Z	eb8f041f27bf497e57f8e1f0853e13552e6d0b85	Materialized index inherits parent table's metadata
+2025-12-30T11:29:27Z	6969cd8673a36e0af494313e7391d5ec7ed5cabc	25-2-1-e: Fix materialized index export (#31416)
+2025-12-30T12:50:08Z	45d20ede26a3e8cf3ee179549b1f9365f28a7e6f	add table to unit test
+2026-01-12T15:02:40Z	e10fdd4e5e008cf41d7f6311d76b8be2ec0779c9	allow prometheus without database (#31778)
+2026-01-13T06:37:43Z	32c9164a12bb8fb0bcb1d3f7e05426318d59e3bf	don't remove DESC sorting from plan for sys view (#28937)
+2026-01-13T06:37:51Z	127bb2079536d4be46fcf1d1a75b43e05ff40dfc	don't remove DESC sorting from plan for sys view (#28937) - dropped unnecessary changes
+2026-01-15T18:10:19Z	d40da3baedb5524958c2066e62515a48b1329f18	BACKPORT-CONFLICT: manual resolution required for commit b9eb476
+2026-01-15T18:40:25Z	e939f452fd6413d2a279f98e2099b06a882821c0	Update ya.make
+2026-01-28T02:20:40Z	59310f161d4082c9fe7cb038ef5452438786ba02	fix tests
+2026-02-10T11:05:52Z	753e7f1c7206ae80610186d7aa68e0b6e56fac11	Create new ldap server mock (#33012)
+2026-02-10T11:12:52Z	f4a3c1958a84263ca6d02fa61c78d8be6c0b6bb3	Support SASL EXTERNAL bind to LDAP server (#33506)
+2026-02-10T11:36:58Z	632898d14bd230d79050a3122aac8468c747d8c5	Fix tests
+2026-02-12T15:37:22Z	be7c063b14ba5a8248e0fbc75f83b92367a36867	Revert "[25-2-1-enterprise] Ldap external bind (#33809)"
+2026-02-16T16:08:17Z	1733e74f9430bd942ba48d8daabd28fa7b8aed3d	Save the value of the `IsRestore` flag for index tables (#34260)
+2026-03-12T09:33:11Z	a6462007804b803ff7855900f08c43dc5ae3ef3c	BACKPORT-CONFLICT: manual resolution required for commit e8c978d
+2026-03-12T09:33:20Z	ddfe0dd9f00a673ca0a9bae9622d9af7879a89a5	BACKPORT-CONFLICT: manual resolution required for commit 6a7726e
+2026-03-12T09:33:27Z	0aa83baaaf422e56a3968f9634b01e6d0f49cf4f	Resolved merge conflicts
+2026-03-12T09:33:40Z	6eba7d4cbb01b9a956aa4584ee921f2dc9706bbc	fix
+2026-03-12T09:33:51Z	dee57dc3d9f54ec26f6639eecbba25fc3e0c6243	delete new tests
+2026-03-27T13:09:51Z	56fb83fe7043000fd28a635f8b42625a4f2effe7	Update mkql_wide_top_sort.cpp
+2026-03-27T13:21:46Z	3d519fbac2d8f6250ce5dc846ce1e08c50adf902	Update mkql_wide_top_sort_ut.cpp
+2026-04-15T12:59:38Z	8eb4efb85f6552a9e89034678c767adf7c5af413	Fix false-positive VERIFY in synclog
+2026-04-17T14:16:13Z	0e9164242a8f108ec194ce689394dd4bad91a0c7	fixes after merge
+2026-04-17T14:16:53Z	cb57eb8e105b013e7176c09c62504fcb3de709ba	more fixes after merge
+2026-04-17T15:31:52Z	c6cf863224476fc4ff74f32e8ff19a20e165fbf1	Raise priority of DSProxy ERROR response
+2026-04-19T23:54:08Z	3b9b16d66308f41a7f6f0d21f969b155a8b3d3c5	fixes after merge
+2026-04-20T08:43:16Z	b8dbc2888fdf7f5944fd2276cff7f559c241546d	fixes after merge
+2026-04-20T09:59:18Z	e9db4bab3b1e2d0bd8ed3c47a4a89c1fabf16d45	fixes after merge

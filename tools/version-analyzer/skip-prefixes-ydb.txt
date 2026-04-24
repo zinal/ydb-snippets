@@ -1,0 +1,3 @@
+# Test skip list for YDB version-analyzer
+ydb/docs/
+.github/

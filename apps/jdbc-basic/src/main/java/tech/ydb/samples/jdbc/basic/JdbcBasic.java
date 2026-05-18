@@ -60,7 +60,7 @@ public class JdbcBasic {
             stmt.execute("CREATE TABLE tab_test1(a Int32, b Text, PRIMARY KEY(a))");
             stmt.execute("CREATE TOPIC top_test1(CONSUMER cons1)");
             stmt.execute("UPSERT INTO tab_test1(a,b) VALUES"
-                    + "(1, 'One'u), (2, 'Two'u), (3, 'Three'u), (4, 'Four'u)");
+                    + "(1, 'One'u), (2, 'Two'u), (3, 'Three'u), (4, 'Four'u), (5, 'Five'u)");
         }
         con.setAutoCommit(false);
     }

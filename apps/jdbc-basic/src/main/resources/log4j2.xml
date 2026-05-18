@@ -7,7 +7,7 @@
     </Appenders>
     <Loggers>
         <Logger name="tech.ydb.samples" level="info"/>
-        <Logger name="tech.ydb" level="warn"/>
+        <Logger name="tech.ydb" level="debug"/>
         <Root level="info">
             <AppenderRef ref="STDERR"/>
         </Root>

@@ -30,12 +30,10 @@ public class JdbcBasic {
         try (var con = getConnection()) {
             createTables(con);
             tablesCreated = true;
-            try (var topicClient = createTopicClient(con)) {
-                jdbcTest(1, con, topicClient);
-                jdbcTest(2, con, topicClient);
-                jdbcTest(3, con, topicClient);
-                jdbcTest(4, con, topicClient);
-                jdbcTest(5, con, topicClient);
+            try (var pool = Executors.newCachedThreadPool()) {
+                for (int i = 1; i < 11; ++i) {
+                    jdbcTest(i, con, pool);
+                }
             }
             LOG.info("SUCCESS!");
         } catch (Exception ex) {
@@ -83,12 +81,10 @@ public class JdbcBasic {
         return DriverManager.getConnection(url, user, password);
     }
 
-    private static ExecutorService newServiceExecutor() {
-        return Executors.newCachedThreadPool();
-    }
-
-    private static TopicClient createTopicClient(Connection con) throws Exception {
-        return TopicClient.newClient(con.unwrap(GrpcTransport.class)).build();
+    private static TopicClient createTopicClient(Connection con, ExecutorService servicePool) throws Exception {
+        return TopicClient.newClient(con.unwrap(GrpcTransport.class))
+                .setCompressionExecutor(servicePool)
+                .build();
     }
 
     private static SyncWriter createWriter(TopicClient tc, String topicName) throws Exception {
@@ -105,13 +101,14 @@ public class JdbcBasic {
         return writer;
     }
 
-    private static void jdbcTest(int recordId, Connection con, TopicClient topicClient) throws Exception {
+    private static void jdbcTest(int recordId, Connection con, ExecutorService servicePool) throws Exception {
         LOG.info("Transaction sample for recordId={}", recordId);
         con.setAutoCommit(false);
         String messageData = "";
         // currently (until YDB 26.2) we need a separate writer per transaction
-        var writer = createWriter(topicClient, "top_test1");
-        try {
+        SyncWriter writer = null;
+        try (var topicClient = createTopicClient(con, servicePool)) {
+            writer = createWriter(topicClient, "top_test1");
             // select statement
             try (var ps = con.prepareStatement("SELECT a,b FROM tab_test1 WHERE a=?")) {
                 ps.setInt(1, recordId);
@@ -145,7 +142,9 @@ public class JdbcBasic {
                 LOG.info("Transaction rolled back");
             }
         } finally {
-            writer.shutdown(30L, TimeUnit.SECONDS);
+            if (writer != null) {
+                writer.shutdown(30L, TimeUnit.SECONDS);
+            }
         }
     }
 

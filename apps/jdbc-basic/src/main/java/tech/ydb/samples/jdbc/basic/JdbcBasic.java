@@ -31,6 +31,9 @@ public class JdbcBasic {
             try (var writer = createWriter(con, "top_test1")) {
                 jdbcTest(1, con, writer);
                 jdbcTest(2, con, writer);
+                jdbcTest(3, con, writer);
+                jdbcTest(4, con, writer);
+                jdbcTest(5, con, writer);
             }
             LOG.info("SUCCESS!");
         } catch (Exception ex) {
@@ -123,7 +126,7 @@ public class JdbcBasic {
             ps.executeUpdate();
         }
         LOG.info("Update performed");
-        if (recordId == 1) {
+        if (recordId % 2 == 1) {
             con.commit();
             LOG.info("Transaction committed");
         } else {

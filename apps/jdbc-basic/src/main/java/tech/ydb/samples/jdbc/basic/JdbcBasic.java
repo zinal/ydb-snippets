@@ -36,8 +36,8 @@ public class JdbcBasic {
             LOG.error("FAILED!", ex);
         } finally {
             if (tablesCreated) {
-                try {
-                    dropTables(getConnection());
+                try (var xcon = getConnection()) {
+                    dropTables(xcon);
                 } catch (Exception ex) {
                 }
             }

@@ -42,6 +42,6 @@
         <maven.compiler.release>21</maven.compiler.release>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
-        <exec.mainClass>ydb.tech.samples.jdbc.basic.JdbcBasic</exec.mainClass>
+        <exec.mainClass>tech.ydb.samples.jdbc.basic.JdbcBasic</exec.mainClass>
     </properties>
 </project>

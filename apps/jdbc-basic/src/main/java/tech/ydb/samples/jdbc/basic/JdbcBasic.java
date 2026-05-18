@@ -1,5 +1,6 @@
-package ydb.tech.samples.jdbc.basic;
+package tech.ydb.samples.jdbc.basic;
 
+import java.lang.management.ManagementFactory;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -27,7 +28,7 @@ public class JdbcBasic {
             createTables(con);
             tablesCreated = true;
             try (var writer = createWriter(con, "top_test1")) {
-                jdbcTest(con, writer);
+                jdbcTest(1, con, writer);
             }
             System.out.println("SUCCESS! ");
         } catch (Exception ex) {
@@ -91,11 +92,12 @@ public class JdbcBasic {
         }
     }
 
-    private static void jdbcTest(Connection con, WriteContext writeContext) throws Exception {
+    private static void jdbcTest(int recordId, Connection con, WriteContext writeContext) throws Exception {
         con.setAutoCommit(false);
         var writer = writeContext.getWriter();
         String messageData = "";
-        try (var ps = con.prepareStatement("SELECT a,b FROM tab_test1 WHERE a=1")) {
+        try (var ps = con.prepareStatement("SELECT a,b FROM tab_test1 WHERE a=?")) {
+            ps.setInt(1, recordId);
             try (var rs = ps.executeQuery()) {
                 while (rs.next()) {
                     messageData = rs.getString(2);
@@ -109,6 +111,23 @@ public class JdbcBasic {
                 SendSettings.newBuilder().setTransaction(trans).build());
         writer.flush();
         con.commit();
+    }
+
+    private static void dumpThreads() {
+        LOG.info("Performing pre-closure thread dump.");
+        var threadMXBean = ManagementFactory.getThreadMXBean();
+        var tis = threadMXBean.getThreadInfo(threadMXBean.getAllThreadIds(), 100);
+        for (var ti : tis) {
+            LOG.info("#{} {} -> {}", ti.getThreadId(), ti.getThreadName(), ti.getThreadState());
+            int counter = 0;
+            for (var ste : ti.getStackTrace()) {
+                LOG.info("\t {}", ste);
+                if (++counter > 10) {
+                    break;
+                }
+            }
+            LOG.info("***");
+        }
     }
 
     static class WriteContext implements AutoCloseable {

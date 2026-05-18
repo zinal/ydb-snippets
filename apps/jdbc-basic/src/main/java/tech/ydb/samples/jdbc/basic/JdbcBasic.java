@@ -20,6 +20,7 @@ import tech.ydb.topic.write.SyncWriter;
 public class JdbcBasic {
 
     private static final org.slf4j.Logger LOG = org.slf4j.LoggerFactory.getLogger(JdbcBasic.class);
+    private static final boolean NEED_DUMP_THREADS = false;
 
     public static void main(String[] args) {
         long tvStart = System.currentTimeMillis();
@@ -45,7 +46,9 @@ public class JdbcBasic {
         long tvFinish = System.currentTimeMillis();
         LOG.info("Execution millis: {}", (tvFinish - tvStart));
         LOG.info("--");
-        dumpThreads();
+        if (NEED_DUMP_THREADS) {
+            dumpThreads();
+        }
     }
 
     private static void createTables(Connection con) throws Exception {

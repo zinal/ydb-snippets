@@ -4,6 +4,8 @@ import java.lang.management.ManagementFactory;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import tech.ydb.common.transaction.YdbTransaction;
 import tech.ydb.core.grpc.GrpcTransport;
@@ -66,14 +68,12 @@ public class JdbcBasic {
     }
 
     private static void dropTables(Connection con) throws Exception {
-        /*
         con.setAutoCommit(true);
         try (var stmt = con.createStatement()) {
             stmt.execute("DROP TABLE tab_test1");
             stmt.execute("DROP TOPUC top_test1");
         }
         con.setAutoCommit(false);
-         */
     }
 
     private static Connection getConnection() throws Exception {
@@ -81,6 +81,10 @@ public class JdbcBasic {
         String user = System.getenv("YDB_USER");
         String password = System.getenv("YDB_PASSWORD");
         return DriverManager.getConnection(url, user, password);
+    }
+
+    private static ExecutorService newServiceExecutor() {
+        return Executors.newCachedThreadPool();
     }
 
     private static TopicClient createTopicClient(Connection con) throws Exception {

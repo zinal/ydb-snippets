@@ -31,7 +31,7 @@ public class JdbcBasic {
             createTables(con);
             tablesCreated = true;
             try (var pool = Executors.newCachedThreadPool()) {
-                for (int i = 1; i < 11; ++i) {
+                for (int i = 1; i < 101; ++i) {
                     jdbcTest(i, con, pool);
                 }
             }

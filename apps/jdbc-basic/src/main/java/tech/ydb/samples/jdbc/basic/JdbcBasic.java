@@ -59,8 +59,14 @@ public class JdbcBasic {
         try (var stmt = con.createStatement()) {
             stmt.execute("CREATE TABLE tab_test1(a Int32, b Text, PRIMARY KEY(a))");
             stmt.execute("CREATE TOPIC top_test1(CONSUMER cons1)");
-            stmt.execute("UPSERT INTO tab_test1(a,b) VALUES"
-                    + "(1, 'One'u), (2, 'Two'u), (3, 'Three'u), (4, 'Four'u), (5, 'Five'u)");
+        }
+        try (var ps = con.prepareStatement("UPSERT INTO tab_test1(a,b) VALUES(?,?)")) {
+            for (int i = 1; i < 101; ++i) {
+                ps.setInt(1, i);
+                ps.setString(2, "value-" + Integer.toString(i + 100500, 35));
+                ps.addBatch();
+            }
+            ps.executeBatch();
         }
         con.setAutoCommit(false);
     }

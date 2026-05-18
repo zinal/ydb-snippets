@@ -29,10 +29,11 @@ public class JdbcBasic {
             tablesCreated = true;
             try (var writer = createWriter(con, "top_test1")) {
                 jdbcTest(1, con, writer);
+                jdbcTest(2, con, writer);
             }
-            System.out.println("SUCCESS! ");
+            LOG.info("SUCCESS!");
         } catch (Exception ex) {
-            System.out.println("FAILED! " + ex.toString());
+            LOG.error("FAILED!", ex);
         } finally {
             if (tablesCreated) {
                 try {
@@ -42,7 +43,9 @@ public class JdbcBasic {
             }
         }
         long tvFinish = System.currentTimeMillis();
-        System.out.println("Execution millis: " + (tvFinish - tvStart));
+        LOG.info("Execution millis: {}", (tvFinish - tvStart));
+        LOG.info("--");
+        dumpThreads();
     }
 
     private static void createTables(Connection con) throws Exception {
@@ -93,6 +96,7 @@ public class JdbcBasic {
     }
 
     private static void jdbcTest(int recordId, Connection con, WriteContext writeContext) throws Exception {
+        LOG.info("Transaction sample for recordId={}", recordId);
         con.setAutoCommit(false);
         var writer = writeContext.getWriter();
         String messageData = "";
@@ -101,16 +105,18 @@ public class JdbcBasic {
             try (var rs = ps.executeQuery()) {
                 while (rs.next()) {
                     messageData = rs.getString(2);
-                    System.out.println("\toutput1: " + messageData);
+                    LOG.info("output1: {}", messageData);
                 }
             }
         }
         var trans = con.unwrap(YdbTransaction.class);
-        System.out.println("\ttransactionId: " + trans.getId() + "\tsessionId=" + trans.getSessionId());
+        LOG.info("transactionId: {}\tsessionId={}", trans.getId(), trans.getSessionId());
         writer.send(Message.of(messageData.getBytes(StandardCharsets.UTF_8)),
                 SendSettings.newBuilder().setTransaction(trans).build());
         writer.flush();
+        LOG.info("Message flushed");
         con.commit();
+        LOG.info("Transaction committed");
     }
 
     private static void dumpThreads() {

@@ -111,12 +111,22 @@ public class JdbcBasic {
         }
         var trans = con.unwrap(YdbTransaction.class);
         LOG.info("transactionId: {}\tsessionId={}", trans.getId(), trans.getSessionId());
-        writer.send(Message.of(messageData.getBytes(StandardCharsets.UTF_8)),
+        writer.send(Message.of(("message " + messageData + "\n").getBytes(StandardCharsets.UTF_8)),
                 SendSettings.newBuilder().setTransaction(trans).build());
         writer.flush();
         LOG.info("Message flushed");
-        con.commit();
-        LOG.info("Transaction committed");
+        try (var ps = con.prepareStatement("UPDATE tab_test1 SET b='Operation 'u || b WHERE a=?")) {
+            ps.setInt(1, recordId);
+            ps.executeUpdate();
+        }
+        LOG.info("Update performed");
+        if (recordId == 1) {
+            con.commit();
+            LOG.info("Transaction committed");
+        } else {
+            con.rollback();
+            LOG.info("Transaction rolled back");
+        }
     }
 
     private static void dumpThreads() {

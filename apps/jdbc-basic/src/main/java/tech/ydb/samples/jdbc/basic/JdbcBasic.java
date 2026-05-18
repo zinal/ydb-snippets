@@ -25,30 +25,23 @@ public class JdbcBasic {
     private static final boolean NEED_DUMP_THREADS = false;
 
     public static void main(String[] args) {
-        long tvStart = System.currentTimeMillis();
-        boolean tablesCreated = false;
         try (var con = getConnection()) {
             createTables(con);
-            tablesCreated = true;
             try (var pool = Executors.newCachedThreadPool()) {
+                long tvStart = System.currentTimeMillis();
                 for (int i = 1; i < 101; ++i) {
                     jdbcTest(i, con, pool);
                 }
+                long tvFinish = System.currentTimeMillis();
+                LOG.info("SUCCESS!");
+                LOG.info("Execution millis: {}", (tvFinish - tvStart));
+                LOG.info("--");
+            } finally {
+                cleanup(con);
             }
-            LOG.info("SUCCESS!");
         } catch (Exception ex) {
             LOG.error("FAILED!", ex);
-        } finally {
-            if (tablesCreated) {
-                try (var xcon = getConnection()) {
-                    dropTables(xcon);
-                } catch (Exception ex) {
-                }
-            }
         }
-        long tvFinish = System.currentTimeMillis();
-        LOG.info("Execution millis: {}", (tvFinish - tvStart));
-        LOG.info("--");
         if (NEED_DUMP_THREADS) {
             dumpThreads();
         }
@@ -71,11 +64,19 @@ public class JdbcBasic {
         con.setAutoCommit(false);
     }
 
+    private static void cleanup(Connection con) {
+        try {
+            dropTables(con);
+        } catch (Exception ex) {
+            LOG.error("Cleanup failed", ex);
+        }
+    }
+
     private static void dropTables(Connection con) throws Exception {
         con.setAutoCommit(true);
         try (var stmt = con.createStatement()) {
             stmt.execute("DROP TABLE tab_test1");
-            stmt.execute("DROP TOPUC top_test1");
+            stmt.execute("DROP TOPIC top_test1");
         }
         con.setAutoCommit(false);
     }

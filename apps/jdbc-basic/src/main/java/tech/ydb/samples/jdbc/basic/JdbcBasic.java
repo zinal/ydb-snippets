@@ -28,12 +28,12 @@ public class JdbcBasic {
         try (var con = getConnection()) {
             createTables(con);
             tablesCreated = true;
-            try (var writer = createWriter(con, "top_test1")) {
-                jdbcTest(1, con, writer);
-                jdbcTest(2, con, writer);
-                jdbcTest(3, con, writer);
-                jdbcTest(4, con, writer);
-                jdbcTest(5, con, writer);
+            try (var topicClient = createTopicClient(con)) {
+                jdbcTest(1, con, topicClient);
+                jdbcTest(2, con, topicClient);
+                jdbcTest(3, con, topicClient);
+                jdbcTest(4, con, topicClient);
+                jdbcTest(5, con, topicClient);
             }
             LOG.info("SUCCESS!");
         } catch (Exception ex) {
@@ -83,56 +83,65 @@ public class JdbcBasic {
         return DriverManager.getConnection(url, user, password);
     }
 
-    private static WriteContext createWriter(Connection con, String topicName) throws Exception {
-        WriterSettings writerSettings = WriterSettings.newBuilder()
-                .setTopicPath(topicName)
-                .build();
-        var transport = con.unwrap(GrpcTransport.class);
-        var client = TopicClient.newClient(transport).build();
-        try {
-            var writer = client.createSyncWriter(writerSettings);
-            writer.initAndWait();
-            return new WriteContext(client, topicName, writer);
-        } catch (Exception ex) {
-            try {
-                client.close();
-            } catch (Exception ex2) {
-            }
-            throw ex;
-        }
+    private static TopicClient createTopicClient(Connection con) throws Exception {
+        return TopicClient.newClient(con.unwrap(GrpcTransport.class)).build();
     }
 
-    private static void jdbcTest(int recordId, Connection con, WriteContext writeContext) throws Exception {
+    private static SyncWriter createWriter(TopicClient tc, String topicName) throws Exception {
+        String producerId = System.getenv("YDB_PRODUCER");
+        if (producerId == null || producerId.length() == 0) {
+            producerId = "my-test-producer";
+        }
+        WriterSettings writerSettings = WriterSettings.newBuilder()
+                .setTopicPath(topicName)
+                .setProducerId(producerId)
+                .build();
+        var writer = tc.createSyncWriter(writerSettings);
+        writer.init();
+        return writer;
+    }
+
+    private static void jdbcTest(int recordId, Connection con, TopicClient topicClient) throws Exception {
         LOG.info("Transaction sample for recordId={}", recordId);
         con.setAutoCommit(false);
-        var writer = writeContext.getWriter();
         String messageData = "";
-        try (var ps = con.prepareStatement("SELECT a,b FROM tab_test1 WHERE a=?")) {
-            ps.setInt(1, recordId);
-            try (var rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    messageData = rs.getString(2);
-                    LOG.info("output1: {}", messageData);
+        // currently (until YDB 26.2) we need a separate writer per transaction
+        var writer = createWriter(topicClient, "top_test1");
+        try {
+            // select statement
+            try (var ps = con.prepareStatement("SELECT a,b FROM tab_test1 WHERE a=?")) {
+                ps.setInt(1, recordId);
+                try (var rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        messageData = rs.getString(2);
+                        LOG.info("output1: {}", messageData);
+                    }
                 }
             }
-        }
-        var trans = con.unwrap(YdbTransaction.class);
-        LOG.info("transactionId: {}\tsessionId={}", trans.getId(), trans.getSessionId());
-        writer.send(Message.of(("message " + messageData + "\n").getBytes(StandardCharsets.UTF_8)),
-                SendSettings.newBuilder().setTransaction(trans).build());
-        writer.flush();
-        LOG.info("Message flushed");
-        try (var ps = con.prepareStatement("UPDATE tab_test1 SET b='Operation 'u || b WHERE a=?")) {
-            ps.setInt(1, recordId);
-            ps.executeUpdate();
-        }
-        LOG.info("Update performed");
-        if (recordId % 2 == 1) {
-            con.commit();
-            LOG.info("Transaction committed");
-        } else {
-            con.rollback();
-            LOG.info("Transaction rolled back");
+            // transaction details
+            var trans = con.unwrap(YdbTransaction.class);
+            LOG.info("transactionId: {}\tsessionId={}", trans.getId(), trans.getSessionId());
+            // write to topic and wait
+            writer.send(Message.of(("message " + messageData + "\n").getBytes(StandardCharsets.UTF_8)),
+                    SendSettings.newBuilder().setTransaction(trans).build());
+            writer.flush();
+            LOG.info("Message flushed");
+            // update statement
+            try (var ps = con.prepareStatement("UPDATE tab_test1 SET b='Operation 'u || b WHERE a=?")) {
+                ps.setInt(1, recordId);
+                ps.executeUpdate();
+            }
+            LOG.info("Update performed");
+            // commit or rollback
+            if (recordId % 2 == 1) {
+                con.commit();
+                LOG.info("Transaction committed");
+            } else {
+                con.rollback();
+                LOG.info("Transaction rolled back");
+            }
+        } finally {
+            writer.shutdown(30L, TimeUnit.SECONDS);
         }
     }
 
@@ -153,42 +162,4 @@ public class JdbcBasic {
         }
     }
 
-    static class WriteContext implements AutoCloseable {
-
-        final TopicClient client;
-        final String topicName;
-        final SyncWriter writer;
-
-        public WriteContext(TopicClient client, String topicName, SyncWriter writer) {
-            this.client = client;
-            this.topicName = topicName;
-            this.writer = writer;
-        }
-
-        public TopicClient getClient() {
-            return client;
-        }
-
-        public String getTopicName() {
-            return topicName;
-        }
-
-        public SyncWriter getWriter() {
-            return writer;
-        }
-
-        @Override
-        public void close() {
-            try {
-                writer.shutdown(30L, TimeUnit.SECONDS);
-            } catch (Exception ex) {
-                LOG.error("SyncWriter shutdown has not completed", ex);
-            }
-            try {
-                client.close();
-            } catch (Exception ex) {
-                LOG.error("TopicClient closure failed", ex);
-            }
-        }
-    }
 }

@@ -8,8 +8,13 @@
     <dependencies>
         <dependency>
             <groupId>tech.ydb.jdbc</groupId>
-            <artifactId>ydb-jdbc-driver-shaded</artifactId>
-            <version>2.3.16</version>
+            <artifactId>ydb-jdbc-driver</artifactId>
+            <version>2.3.25</version>
+        </dependency>
+        <dependency>
+            <groupId>tech.ydb</groupId>
+            <artifactId>ydb-sdk-topic</artifactId>
+            <version>2.3.33</version> <!-- Should match the ydb-sdk-core dependency of the driver -->
         </dependency>
     </dependencies>
     <properties>

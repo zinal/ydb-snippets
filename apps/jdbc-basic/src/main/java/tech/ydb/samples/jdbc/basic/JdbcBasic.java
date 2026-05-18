@@ -4,6 +4,7 @@ import java.lang.management.ManagementFactory;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -34,7 +35,8 @@ public class JdbcBasic {
                 }
                 long tvFinish = System.currentTimeMillis();
                 LOG.info("SUCCESS!");
-                LOG.info("Execution millis: {}", (tvFinish - tvStart));
+                long tvTotal = tvFinish - tvStart;
+                LOG.info("Execution total millis: {}, per transaction: {}", tvTotal, tvTotal / 100);
                 LOG.info("--");
             } finally {
                 cleanup(con);
@@ -65,6 +67,19 @@ public class JdbcBasic {
     }
 
     private static void cleanup(Connection con) {
+        try {
+            try (var ps = con.prepareStatement(
+                    "SELECT a, b FROM tab_test1 ORDER BY a")) {
+                try (var rs = ps.executeQuery()) {
+                    LOG.info("Table data on exit:");
+                    while (rs.next()) {
+                        LOG.info("{} -> {}", rs.getInt(1), rs.getString(2));
+                    }
+                    LOG.info("End table data.");
+                }
+            }
+        } catch (Exception ex) {
+        }
         try {
             dropTables(con);
         } catch (Exception ex) {

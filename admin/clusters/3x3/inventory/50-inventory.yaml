@@ -35,19 +35,29 @@ all:
               data_center: d
               rack: r-d-1
         ydbd_dynamic:
-          # Узлы базы данных (dynamic nodes). Их размещение по зонам отказа
-          # не критично для кворума хранения, но рекомендуется по тем же
-          # причинам высокой доступности.
+          # Узлы базы данных (dynamic nodes).
+          #
+          # ВАЖНО: не задавайте здесь host-переменные data_center и rack.
+          # Роль ydbd_static при ydb_brokers, заданном в vars, всё равно
+          # пересобирает список брокеров: берёт по одному хосту из каждого
+          # data_center среди groups['all'] (сортировка по имени). Тогда в
+          # брокеры попадают ydb-db1-* вместо ydb-s*, и wait_for ждёт :2135
+          # на узле БД, где storage-сервис не слушает.
+          #
+          # Для --data-center / --rack на dynnode используйте ydb_node_*.
           hosts:
             ydb-db1-1.front.private:
-              data_center: a
-              rack: r-a-2
+              ydb_node_dc: a
+              ydb_node_rack: r-a-2
+              ydb_node_body: 1
             ydb-db1-2.front.private:
-              data_center: b
-              rack: r-b-2
+              ydb_node_dc: b
+              ydb_node_rack: r-b-2
+              ydb_node_body: 2
             ydb-db1-3.front.private:
-              data_center: d
-              rack: r-d-2
+              ydb_node_dc: d
+              ydb_node_rack: r-d-2
+              ydb_node_body: 3
 
       vars:
         # === Ansible ============================================================
@@ -104,9 +114,7 @@ all:
         ydb_skip_data_loss_confirmation_prompt: true
         ydb_pool_kind: ssd
 
-        # Список брокеров — ИМЕНА УЗЛОВ ХРАНЕНИЯ (ydbd_static).
-        # Используются динамическими узлами для обнаружения кластера, а также
-        # клиентами как точки входа (port 2135).
+        # Список брокеров — только узлы хранения (ydbd_static), порт 2135.
         ydb_brokers:
           - ydb-s1.front.private
           - ydb-s2.front.private
@@ -130,4 +138,4 @@ all:
 
         # === Безопасность ======================================================
         ydb_enforce_user_token_requirement: true
-        ydb_request_client_certificate: true
+        ydb_request_client_certificate: false

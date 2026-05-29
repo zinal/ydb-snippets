@@ -151,6 +151,40 @@ ansible-playbook ydb_platform.ydb.update_dynconfig
 Этот playbook применяет новый dynconfig и автоматически делает rolling restart
 динамических узлов.
 
+## Устранение неполадок
+
+### `Timeout when waiting for ydb-db1-*.front.private:2135` на шаге `install_static`
+
+Роль `ydb_platform.ydb.ydbd_static` после задания `ydb_brokers` в инвентаре
+может **перезаписать** его задачей «Select one node from each data center»:
+из каждого `data_center` выбирается первый хост из `groups['all']` (по имени).
+Если у узлов `ydbd_dynamic` заданы те же `data_center`, что и у storage, в
+брокеры попадают `ydb-db1-*` (алфавитно раньше `ydb-s*`), а порт **2135**
+слушают только static-узлы.
+
+**Исправление:** на хостах `ydbd_dynamic` не используйте `data_center` / `rack`;
+для dynnode задайте `ydb_node_dc`, `ydb_node_rack`, `ydb_node_body` (см.
+актуальный `inventory/50-inventory.yaml`). Явный `ydb_brokers` оставьте только
+с FQDN узлов `ydb-s*`.
+
+Проверка перед повторным запуском:
+
+```bash
+ansible-playbook ydb_platform.ydb.install_static -l ydbd_static \
+  --tags never -vv 2>&1 | head   # или добавьте debug после set_fact
+# проще: убедитесь, что на dyn-хостах нет hostvar data_center:
+ansible-inventory --host ydb-db1-1.front.private | grep data_center
+```
+
+После правки инвентаря:
+
+```bash
+ansible-playbook ydb_platform.ydb.install_static -l ydbd_static
+```
+
+Если storage уже частично поднят, смотрите также `journalctl -u ydbd-storage`
+на `ydb-s1` и доступность `grpcs://ydb-s1.front.private:2135` с control-host.
+
 ## Что важно помнить
 
 - Переменная `ydb_archive` задаёт локальный путь к архиву на **управляющем
@@ -158,7 +192,9 @@ ansible-playbook ydb_platform.ydb.update_dynconfig
   доставляет сам Ansible. Альтернатива — `ydb_version` (онлайн-режим,
   скачивание официального релиза по номеру версии).
 - `ydb_brokers` — это ровно 3 имени узлов **хранения**. Динамические узлы
-  используют этот список как `--node-broker grpcs://<host>:2135`.
+  используют этот список как `--node-broker grpcs://<host>:2135`. На хостах
+  `ydbd_dynamic` не задавайте `data_center` / `rack` — иначе роль `ydbd_static`
+  подменит `ydb_brokers` узлами БД (см. раздел «Устранение неполадок»).
 - `ydb_database_groups: 3` — приемлемое значение для тестового кластера.
   Для production с дисками > 800 ГБ ориентируйтесь на ~84 % от общего числа
   PDisk при `mirror-3-dc` (см. документацию).

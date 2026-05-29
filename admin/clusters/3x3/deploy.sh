@@ -46,27 +46,7 @@ echo "         а create_database.sh лежит только на static (шаг
 ansible-playbook ydb_platform.ydb.install_dynamic --skip-tags create_database
 
 cat <<'EOF'
-
 ============================================================================
 Развёртывание завершено.
-
-  Domain:    /rnd-ydb
-  Database:  /rnd-ydb/db1
-  Storage:   mirror-3-dc (3-node), 3 storage groups, kind=ssd
-  Brokers:   storage-a/b/c.rnd-ydb.example.com :2135  (grpcs)
-  Dynnodes:  database-a/b/c.rnd-ydb.example.com :2136 (grpcs)
-  Monitoring (Embedded UI):
-    Static:    https://storage-a.rnd-ydb.example.com:8765
-    Dynamic:   https://database-a.rnd-ydb.example.com:8766
-
-Проверка соединения с базой:
-  ydb -e grpcs://storage-a.rnd-ydb.example.com:2135 \
-      -d /rnd-ydb/db1 \
-      --ca-file files/TLS/certs/ca.crt \
-      --user root \
-      sql -s 'SELECT 1;'
-
-Обновление настроек памяти БД (повторное применение dynconfig):
-  ansible-playbook ydb_platform.ydb.update_dynconfig
 ============================================================================
 EOF

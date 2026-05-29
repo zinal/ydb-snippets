@@ -105,7 +105,7 @@ all:
         # Включаем применение dynconfig после bootstrap'а кластера.
         # Файл-шаблон лежит в files/dynconfig.yaml и содержит селектор для
         # базы /rnd-ydb/db1 с настройками memory_controller_config.
-        ydb_use_dynamic_config: true
+        ydb_use_dynamic_config: false
         ydb_custom_dynconfig: "{{ ansible_config_file | dirname }}/files/dynconfig.yaml"
 
         # === Хранилище =========================================================
@@ -147,4 +147,5 @@ all:
 
         # === Безопасность ======================================================
         ydb_enforce_user_token_requirement: true
-        ydb_request_client_certificate: false
+        ydb_request_client_certificate: true
+        ydb_use_dynamic_config: false

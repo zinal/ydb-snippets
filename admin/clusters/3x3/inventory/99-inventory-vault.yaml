@@ -1,0 +1,14 @@
+---
+# ВНИМАНИЕ: файл должен быть зашифрован Ansible Vault после указания реального пароля!
+#
+#   ansible-vault encrypt inventory/99-inventory-vault.yaml
+#
+# Редактирование:
+#   ansible-vault edit inventory/99-inventory-vault.yaml
+#
+# Здесь хранится начальный пароль пользователя `root` кластера YDB.
+all:
+  children:
+    ydb:
+      vars:
+        ydb_password: "P@$$w0rd+"

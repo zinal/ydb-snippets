@@ -1,0 +1,133 @@
+---
+# Инвентарь для кластера YDB с РАЗДЕЛЁННЫМИ узлами хранения и БД:
+#   - 3 ВМ образуют группу `ydbd_static`  (storage / static nodes)
+#   - 3 ВМ образуют группу `ydbd_dynamic` (database / dynamic nodes)
+#   - Обе подгруппы — дети группы `ydb`, на которой работают playbooks
+#     `prepare_host`, `binaries_all` и др.
+#
+# Поведение готовых playbook'ов:
+#   - ydb_platform.ydb.install_static   → по-прежнему использует группу `ydb`,
+#     поэтому при его запуске обязательно ограничиваем хосты ключом
+#     `-l ydbd_static` (см. deploy.sh);
+#   - ydb_platform.ydb.create_database  → автоматически использует группу
+#     `ydbd_static`;
+#   - ydb_platform.ydb.install_dynamic  → автоматически использует группу
+#     `ydbd_dynamic`, если она присутствует.
+#
+# Стандартный playbook ydb_platform.ydb.initial_setup НЕ ПОДХОДИТ для этой
+# топологии, потому что он применяет роли `ydbd_static` и `ydbd_dynamic`
+# к одному и тому же набору хостов.
+all:
+  children:
+    ydb:
+      children:
+        ydbd_static:
+          # Узлы хранения (static nodes). Должны быть в трёх разных зонах
+          # отказа (data centers / racks) для топологии mirror-3-dc.
+          hosts:
+            ydb-s1.front.private:
+              data_center: a
+              rack: r-a-1
+            ydb-s2.front.private:
+              data_center: b
+              rack: r-b-1
+            ydb-s3.front.private:
+              data_center: d
+              rack: r-d-1
+        ydbd_dynamic:
+          # Узлы базы данных (dynamic nodes). Их размещение по зонам отказа
+          # не критично для кворума хранения, но рекомендуется по тем же
+          # причинам высокой доступности.
+          hosts:
+            ydb-db1-1.front.private:
+              data_center: a
+              rack: r-a-2
+            ydb-db1-2.front.private:
+              data_center: b
+              rack: r-b-2
+            ydb-db1-3.front.private:
+              data_center: d
+              rack: r-d-2
+
+      vars:
+        # === Ansible ============================================================
+        ansible_user: yc-user
+        # ansible_ssh_private_key_file: "~/.ssh/id_rsa_ydb"
+
+        # === Системные настройки ВМ =============================================
+        system_timezone: Europe/Moscow
+        system_ntp_servers:
+          - 0.ru.pool.ntp.org
+          - 1.ru.pool.ntp.org
+
+        # === Источник дистрибутива YDB (ОФФЛАЙН-УСТАНОВКА) =====================
+        # ydb_archive — это локальный путь к архиву YDB на УПРАВЛЯЮЩЕМ ХОСТЕ
+        # (там, где запускается ansible-playbook), а НЕ на целевых ВМ.
+        # Доставку архива на узлы кластера обеспечивает сам Ansible (роль
+        # ydbd / ydb_platform.ydb.binaries_all). Положите официальный архив
+        # ydbd-server-<version>-linux-amd64.tar.gz по этому пути на машине,
+        # с которой Вы запускаете развёртывание.
+        ydb_archive: /opt/ydb-dist/ydbd-server.tar.gz
+        # ydb_archive_unpack_options оставлены по умолчанию (--strip-component=1).
+        # Версия используется только для условных проверок внутри playbook'ов
+        # (например, для выбора V1/V2 по умолчанию). Принудительно фиксируем
+        # V1, поэтому она здесь информативна.
+        ydb_version: "26.1.1.ent.1"
+
+        # === Управление конфигурацией: V1 ======================================
+        # Принудительно используем конфигурацию V1
+        # (--yaml-config + actor_system_config + dynconfig через ydb admin).
+        ydb_config_v2: false
+
+        # Путь к файлу СТАТИЧЕСКОЙ (кластерной) конфигурации V1.
+        ydb_config: "{{ ansible_config_file | dirname }}/files/config.yaml"
+
+        # === ДИНАМИЧЕСКАЯ КОНФИГУРАЦИЯ =========================================
+        # Включаем применение dynconfig после bootstrap'а кластера.
+        # Файл-шаблон лежит в files/dynconfig.yaml и содержит селектор для
+        # базы /rnd-ydb/db1 с настройками memory_controller_config.
+        ydb_use_dynamic_config: true
+        ydb_custom_dynconfig: "{{ ansible_config_file | dirname }}/files/dynconfig.yaml"
+
+        # === Хранилище =========================================================
+        # Топология хранения — mirror-3-dc, "сокращённый" вариант на 3 узлах.
+        # 8 vCPU на узел хранения.
+        ydb_cores_static: 8
+        # Список дисков, используемых для блочного хранилища YDB.
+        # Этот список применяется только к хостам группы `ydbd_static`,
+        # т.к. роль ydbd_static выполняется только на них (см. deploy.sh).
+        ydb_disks:
+          - { name: /dev/vdb, label: ydb_disk_1 }
+          - { name: /dev/vdc, label: ydb_disk_2 }
+          - { name: /dev/vdd, label: ydb_disk_3 }
+        ydb_allow_format_drives: true
+        ydb_skip_data_loss_confirmation_prompt: true
+        ydb_pool_kind: ssd
+
+        # Список брокеров — ИМЕНА УЗЛОВ ХРАНЕНИЯ (ydbd_static).
+        # Используются динамическими узлами для обнаружения кластера, а также
+        # клиентами как точки входа (port 2135).
+        ydb_brokers:
+          - ydb-s1.front.private
+          - ydb-s2.front.private
+          - ydb-s3.front.private
+
+        # === База данных =======================================================
+        ydb_user: root
+        ydb_domain: rnd-ydb
+        ydb_dbname: db1
+
+        # Количество групп хранения, выделяемое создаваемой БД.
+        ydb_database_groups: 3
+
+        # 16 vCPU на узел БД.
+        ydb_cores_dynamic: 14
+
+        # На каждом ydbd_dynamic-хосте запускается ОДИН dynnode для базы db1.
+        # offset=0 → grpcs=2136, ic=19002, mon=8766.
+        ydb_dynnodes:
+          - { dbname: db1, instance: 'a', offset: 0 }
+
+        # === Безопасность ======================================================
+        ydb_enforce_user_token_requirement: true
+        ydb_request_client_certificate: true

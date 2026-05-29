@@ -1,0 +1,202 @@
+storage_config_generation: 0
+static_erasure: mirror-3-dc
+
+host_configs:
+  - host_config_id: 1
+    drive:
+      - path: /dev/disk/by-partlabel/ydb_disk_1
+        type: SSD
+      - path: /dev/disk/by-partlabel/ydb_disk_2
+        type: SSD
+      - path: /dev/disk/by-partlabel/ydb_disk_3
+        type: SSD
+
+hosts:
+  - host: ydb-s1.front.private
+    node_id: 1
+    host_config_id: 1
+    walle_location:
+      body: 1
+      data_center: 'a'
+      rack: 'r-a-1'
+  - host: ydb-s2.front.private
+    node_id: 2
+    host_config_id: 1
+    walle_location:
+      body: 2
+      data_center: 'b'
+      rack: 'r-b-1'
+  - host: ydb-s3.front.private
+    node_id: 3
+    host_config_id: 1
+    walle_location:
+      body: 3
+      data_center: 'd'
+      rack: 'r-d-1'
+
+domains_config:
+  domain:
+    - name: rnd-ydb
+      storage_pool_types:
+        - kind: ssd
+          pool_config:
+            box_id: 1
+            erasure_species: mirror-3-dc
+            kind: ssd
+            geometry:
+              realm_level_begin: 10
+              realm_level_end: 20
+              domain_level_begin: 10
+              domain_level_end: 256
+            pdisk_filter:
+              - property:
+                  - type: SSD
+            vdisk_kind: Default
+  state_storage:
+    - ring:
+        node: [1, 2, 3]
+        nto_select: 3
+      ssid: 1
+  security_config:
+    enforce_user_token_requirement: true
+    monitoring_allowed_sids:
+      - "root"
+      - "ADMINS"
+      - "DATABASE-ADMINS"
+    administration_allowed_sids:
+      - "root"
+      - "ADMINS"
+      - "DATABASE-ADMINS"
+    viewer_allowed_sids:
+      - "root"
+      - "ADMINS"
+      - "DATABASE-ADMINS"
+    register_dynamic_node_allowed_sids:
+      - databaseNodes@cert
+      - root@builtin
+
+# Статическая раскладка blob storage: 3 узла × 3 PDisk = 9 PDisk
+# на одну группу хранения. Группа описана один раз — необходимый минимум
+# для bootstrap'а кластера. Дополнительные группы (ydb_database_groups: 3)
+# создаются автоматически при создании БД.
+blob_storage_config:
+  service_set:
+    groups:
+      - erasure_species: mirror-3-dc
+        rings:
+          - fail_domains:
+              - vdisk_locations:
+                  - node_id: 1
+                    pdisk_category: SSD
+                    path: /dev/disk/by-partlabel/ydb_disk_1
+              - vdisk_locations:
+                  - node_id: 1
+                    pdisk_category: SSD
+                    path: /dev/disk/by-partlabel/ydb_disk_2
+              - vdisk_locations:
+                  - node_id: 1
+                    pdisk_category: SSD
+                    path: /dev/disk/by-partlabel/ydb_disk_3
+          - fail_domains:
+              - vdisk_locations:
+                  - node_id: 2
+                    pdisk_category: SSD
+                    path: /dev/disk/by-partlabel/ydb_disk_1
+              - vdisk_locations:
+                  - node_id: 2
+                    pdisk_category: SSD
+                    path: /dev/disk/by-partlabel/ydb_disk_2
+              - vdisk_locations:
+                  - node_id: 2
+                    pdisk_category: SSD
+                    path: /dev/disk/by-partlabel/ydb_disk_3
+          - fail_domains:
+              - vdisk_locations:
+                  - node_id: 3
+                    pdisk_category: SSD
+                    path: /dev/disk/by-partlabel/ydb_disk_1
+              - vdisk_locations:
+                  - node_id: 3
+                    pdisk_category: SSD
+                    path: /dev/disk/by-partlabel/ydb_disk_2
+              - vdisk_locations:
+                  - node_id: 3
+                    pdisk_category: SSD
+                    path: /dev/disk/by-partlabel/ydb_disk_3
+
+channel_profile_config:
+  profile:
+    - profile_id: 0
+      channel:
+        - erasure_species: mirror-3-dc
+          pdisk_category: 1   # 0=ROT, 1=SSD, 2=NVME
+          storage_pool_kind: ssd
+        - erasure_species: mirror-3-dc
+          pdisk_category: 1
+          storage_pool_kind: ssd
+        - erasure_species: mirror-3-dc
+          pdisk_category: 1
+          storage_pool_kind: ssd
+
+interconnect_config:
+  start_tcp: true
+  encryption_mode: DISABLED
+
+grpc_config:
+  cert: "/opt/ydb/certs/node.crt"
+  key: "/opt/ydb/certs/node.key"
+  ca: "/opt/ydb/certs/ca.crt"
+  services_enabled:
+    - legacy
+    - discovery
+
+auth_config:
+  path_to_root_ca: /opt/ydb/certs/ca.crt
+
+client_certificate_authorization:
+  request_client_certificate: true
+  client_certificate_definitions:
+    - member_groups: ["databaseNodes@cert"]
+      subject_terms:
+        - short_name: "O"
+          values: ["YDB"]
+
+feature_flags:
+  enable_external_data_sources: true
+  enable_script_execution_operations: true
+  enable_json_index: true
+  enable_json_index_auto_select: true
+  enable_fs_backups: true
+
+table_profiles_config:
+  table_profiles:
+  - name: default
+    compaction_policy: default
+    execution_policy: default
+    partitioning_policy: default
+    storage_policy: default
+    replication_policy: default
+    caching_policy: default
+  compaction_policies:
+  - name: default
+  execution_policies:
+  - name: default
+  partitioning_policies:
+  - name: default
+    auto_split: true
+    auto_merge: true
+    size_to_split: 2147483648
+  storage_policies:
+  - name: default
+    column_families:
+    - storage_config:
+        sys_log:
+          preferred_pool_kind: ssd
+        log:
+          preferred_pool_kind: ssd
+        data:
+          preferred_pool_kind: ssd
+  replication_policies:
+  - name: default
+  caching_policies:
+  - name: default

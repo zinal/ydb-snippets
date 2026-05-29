@@ -1,0 +1,27 @@
+metadata:
+  kind: MainConfig
+  cluster: ""
+  version: 0
+
+config:
+  yaml_config_enabled: true
+
+allowed_labels:
+  node_id:
+    type: string
+  host:
+    type: string
+  tenant:
+    type: string
+  dynamic:
+    type: string
+
+selector_config:
+  - description: "Memory tuning for database /rnd-ydb/db1"
+    selector:
+      tenant: /rnd-ydb/db1
+    config:
+      memory_controller_config:
+        hard_limit_bytes: 60129542144
+        shared_cache_min_percent: 40
+        shared_cache_max_percent: 50

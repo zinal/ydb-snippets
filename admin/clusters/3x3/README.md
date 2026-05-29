@@ -153,6 +153,64 @@ ansible-playbook ydb_platform.ydb.update_dynconfig
 
 ## Устранение неполадок
 
+### `Version comparison failed: '<' not supported between instances of 'str' and 'int'` на шаге `wait for ydb healthcheck switch to "GOOD" status`
+
+Условие выполнения задачи в роли `ydbd_static` написано так:
+
+```yaml
+when: (ydb_version is regex("\d+\..*") or ydb_version is regex("\d+-.*"))
+      and ydb_version is version('25.1', '<')
+```
+
+Если `ydb_version` — не semver (`main.2026-05-29`, `26.1.1.ent.1`, и т.п.),
+происходит сразу две неприятности:
+
+1. Регулярка `\d+-.*` срабатывает на подстроке вроде `2026-05-29`, поэтому
+   короткого замыкания на первом условии **не** случается.
+2. Дальше Jinja-фильтр `is version('25.1', '<')` падает, потому что не умеет
+   сравнивать строку с нечисловыми компонентами.
+
+**Исправление:** в `inventory/50-inventory.yaml` указывайте semver-совместимую
+строку (`X.Y` или `X.Y.Z`). Эта переменная нужна только для условных
+проверок внутри playbook'ов; на сам `ydbd` её значение не передаётся, а так
+как мы используем `ydb_archive`, для скачивания она тоже не нужна:
+
+```yaml
+ydb_version: "26.0"   # фактический билд: main.2026-05-29
+```
+
+**Альтернатива** (если по каким-то причинам нельзя править инвентарь): можно
+пропустить только этот шаг по тегу
+
+```bash
+ansible-playbook ydb_platform.ydb.install_static -l ydbd_static --skip-tags healthcheck
+```
+
+В upstream-`main` коллекции это место уже переписано на
+`ydb_version|split('.')|first != '25'`, так что починится автоматически
+после обновления коллекции.
+
+### `No such file or directory: .../create_database.sh` на `ydb-db1-*` (роль `ydbd_newdb`)
+
+Скрипт `/opt/ydb/home/create_database.sh` создаётся ролью `ydbd_static` **только
+на узлах хранения**. Playbook `install_dynamic` дополнительно импортирует роль
+`ydbd_newdb` с тегом `create_database` и `run_once: true`. При раздельной
+топологии `run_once` выполняется на **первом хосте `ydbd_dynamic`**
+(`ydb-db1-1`), где скрипта нет.
+
+**Порядок для схемы 3+3:**
+
+```bash
+# 1) БД создаётся на static-узле (там есть create_database.sh)
+ansible-playbook ydb_platform.ydb.create_database
+
+# 2) Dynnode — без повторного create_database
+ansible-playbook ydb_platform.ydb.install_dynamic --skip-tags create_database
+```
+
+Если шаг `create_database` ещё не выполнялся — сначала только его, затем
+`install_dynamic` с `--skip-tags create_database`.
+
 ### `Timeout when waiting for ydb-db1-*.front.private:2135` на шаге `install_static`
 
 Роль `ydb_platform.ydb.ydbd_static` после задания `ydb_brokers` в инвентаре

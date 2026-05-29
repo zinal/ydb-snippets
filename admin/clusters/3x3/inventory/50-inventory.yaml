@@ -9,10 +9,11 @@
 #   - ydb_platform.ydb.install_static   → по-прежнему использует группу `ydb`,
 #     поэтому при его запуске обязательно ограничиваем хосты ключом
 #     `-l ydbd_static` (см. deploy.sh);
-#   - ydb_platform.ydb.create_database  → автоматически использует группу
-#     `ydbd_static`;
-#   - ydb_platform.ydb.install_dynamic  → автоматически использует группу
-#     `ydbd_dynamic`, если она присутствует.
+#   - ydb_platform.ydb.create_database  → группа `ydbd_static` (скрипт
+#     create_database.sh есть только там);
+#   - ydb_platform.ydb.install_dynamic  → группа `ydbd_dynamic`; обязательно
+#     с --skip-tags create_database, если БД уже создана шагом create_database
+#     (иначе ydbd_newdb с run_once упадёт на ydb-db1-*).
 #
 # Стандартный playbook ydb_platform.ydb.initial_setup НЕ ПОДХОДИТ для этой
 # топологии, потому что он применяет роли `ydbd_static` и `ydbd_dynamic`
@@ -79,10 +80,18 @@ all:
         # с которой Вы запускаете развёртывание.
         ydb_archive: /opt/ydb-dist/ydbd-server.tar.gz
         # ydb_archive_unpack_options оставлены по умолчанию (--strip-component=1).
-        # Версия используется только для условных проверок внутри playbook'ов
-        # (например, для выбора V1/V2 по умолчанию). Принудительно фиксируем
-        # V1, поэтому она здесь информативна.
-        ydb_version: "26.1.1.ent.1"
+        #
+        # ВАЖНО про ydb_version:
+        # Значение используется только для условных проверок внутри playbook'ов
+        # (`is version(...)`, выбор V1/V2 по умолчанию и т.п.). На сам ydbd
+        # оно не передаётся, а раз дистрибутив берётся из ydb_archive — для
+        # скачивания тоже не нужно. Поэтому здесь ОБЯЗАТЕЛЬНО указывать
+        # semver-совместимую строку (X.Y или X.Y.Z), иначе фильтр Jinja
+        # `is version('25.1', '<')` падает на нечисловых частях и плейбук
+        # ломается на шаге `wait for ydb healthcheck switch to "GOOD" status`.
+        # Реальный билд (например `main.2026-05-29` или `26.1.1.ent.1`) держим
+        # в комментарии рядом — для документирования.
+        ydb_version: "26.0"   # фактический билд: main.2026-05-29
 
         # === Управление конфигурацией: V1 ======================================
         # Принудительно используем конфигурацию V1

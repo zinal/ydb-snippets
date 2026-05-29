@@ -40,8 +40,10 @@ echo "         Этот playbook автоматически использует
 ansible-playbook ydb_platform.ydb.create_database
 
 echo "==> [5/5] install_dynamic: запуск динамических узлов на 3 ВМ группы ydbd_dynamic"
-echo "         Этот playbook автоматически использует группу ydbd_dynamic."
-ansible-playbook ydb_platform.ydb.install_dynamic
+echo "         --skip-tags create_database обязателен: роль ydbd_newdb внутри"
+echo "         install_dynamic с run_once выполняется на первом ydbd_dynamic-хосте,"
+echo "         а create_database.sh лежит только на static (шаг [4/5])."
+ansible-playbook ydb_platform.ydb.install_dynamic --skip-tags create_database
 
 cat <<'EOF'
 

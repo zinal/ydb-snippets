@@ -97,11 +97,11 @@ Runs three load profiles and saves JSON under `results/`:
 ```bash
 python3 partition_analysis.py \
   --table bench_uuid \
-  --profile "$YDB_PROFILE" \
-  --sample-prefixes 50000 \
   --sample-prefixes 50000 \
   --output results/partitions.json
 ```
+
+Uses `YDB_ENDPOINT`/`YDB_DATABASE` from the environment. Optionally pass `--profile` for `ydb scheme describe`; otherwise the script falls back to Python SDK `describe_table`.
 
 Reports:
 

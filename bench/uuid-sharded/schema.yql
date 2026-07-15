@@ -1,0 +1,18 @@
+-- Benchmark table for Uuid::newSharded() experiments.
+-- Requires Uuid UDF from https://github.com/ydb-platform/ydb/pull/45923
+
+CREATE TABLE bench_uuid (
+    id Uuid NOT NULL,
+    payload Utf8,
+    created_at Timestamp,
+    PRIMARY KEY (id)
+)
+WITH (
+    AUTO_PARTITIONING_BY_LOAD = ENABLED,
+    AUTO_PARTITIONING_BY_SIZE = ENABLED,
+    AUTO_PARTITIONING_MIN_PARTITIONS_COUNT = 64,
+    AUTO_PARTITIONING_MAX_PARTITIONS_COUNT = 256
+);
+
+-- Optional cleanup:
+-- DROP TABLE bench_uuid;

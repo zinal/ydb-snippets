@@ -20,7 +20,7 @@ from sharded_keygen import (
     gini_coefficient,
     imbalance_ratio,
 )
-from ydb_connect import connect_driver
+from ydb_connect import connect_driver, table_describe_paths
 
 
 def build_ydb_cli_prefix(profile: str | None) -> list[str]:
@@ -54,7 +54,13 @@ def load_scheme_describe_cli(table: str, profile: str | None) -> dict:
     if not has_target:
         raise RuntimeError("Set YDB_PROFILE or YDB_ENDPOINT/YDB_DATABASE for scheme describe")
 
-    completed = subprocess.run(command, check=True, capture_output=True, text=True)
+    completed = subprocess.run(command, check=False, capture_output=True, text=True)
+    if completed.returncode != 0:
+        stderr = completed.stderr.strip()
+        raise RuntimeError(
+            f"ydb CLI exited with {completed.returncode}"
+            + (f": {stderr}" if stderr else "")
+        )
     return json.loads(completed.stdout)
 
 
@@ -86,39 +92,64 @@ def uuid_from_key_bound(bound: ydb.KeyBound | None) -> bytes | None:
     return None
 
 
-def partition_ranges_from_table_describe(driver: ydb.Driver, table: str) -> list[dict]:
+def partition_ranges_from_table_describe(pool: ydb.SessionPool, table: str) -> list[dict]:
     settings = ydb.DescribeTableSettings().with_include_shard_key_bounds(True)
-    entry = driver.table_client.describe_table(table, settings)
-    ranges: list[dict] = []
-    for key_range in entry.shard_key_ranges:
-        ranges.append(
-            {
-                "datashard_id": None,
-                "from": uuid_from_key_bound(key_range.from_bound),
-                "to": uuid_from_key_bound(key_range.to_bound),
-                "source": "table_describe",
-            }
-        )
-    return ranges
+    last_error: Exception | None = None
+
+    for path in table_describe_paths(table):
+        try:
+            def callee(session: ydb.Session, describe_path: str = path):
+                return session.describe_table(describe_path, settings)
+
+            entry = pool.retry_operation_sync(callee)
+        except ydb.SchemeError as exc:
+            last_error = exc
+            logging.warning("describe_table failed for %s: %s", path, exc)
+            continue
+
+        ranges: list[dict] = []
+        for key_range in entry.shard_key_ranges:
+            ranges.append(
+                {
+                    "datashard_id": None,
+                    "from": uuid_from_key_bound(key_range.from_bound),
+                    "to": uuid_from_key_bound(key_range.to_bound),
+                    "source": "table_describe",
+                    "describe_path": path,
+                }
+            )
+        return ranges
+
+    if last_error is not None:
+        raise last_error
+    raise RuntimeError(f"describe_table failed for all paths: {table_describe_paths(table)}")
 
 
 def load_partition_ranges(
     table: str,
     profile: str | None,
     describe_json: Path | None,
-    driver: ydb.Driver,
-) -> tuple[list[dict], str]:
+    pool: ydb.SessionPool,
+) -> tuple[list[dict] | None, str, str | None]:
     if describe_json is not None:
         describe = json.loads(describe_json.read_text(encoding="utf-8"))
-        return partition_ranges_from_scheme_json(describe), "describe_json"
+        return partition_ranges_from_scheme_json(describe), "describe_json", None
+
+    for path in table_describe_paths(table):
+        try:
+            describe = load_scheme_describe_cli(path, profile)
+            return partition_ranges_from_scheme_json(describe), "ydb_cli", None
+        except (subprocess.CalledProcessError, FileNotFoundError, json.JSONDecodeError, RuntimeError) as exc:
+            logging.warning("ydb CLI scheme describe failed for %s (%s)", path, exc)
 
     try:
-        describe = load_scheme_describe_cli(table, profile)
-        return partition_ranges_from_scheme_json(describe), "ydb_cli"
-    except (subprocess.CalledProcessError, FileNotFoundError, json.JSONDecodeError, RuntimeError) as exc:
-        logging.warning("ydb CLI scheme describe unavailable (%s), falling back to SDK", exc)
-
-    return partition_ranges_from_table_describe(driver, table), "python_sdk"
+        return partition_ranges_from_table_describe(pool, table), "python_sdk", None
+    except ydb.SchemeError as exc:
+        logging.warning("Python SDK describe_table unavailable (%s)", exc)
+        return None, "unavailable", str(exc)
+    except Exception as exc:
+        logging.warning("Partition metadata unavailable (%s)", exc)
+        return None, "unavailable", str(exc)
 
 
 def decode_uuid_key(value: object | None) -> bytes | None:
@@ -198,39 +229,53 @@ def sample_prefix_distribution(pool: ydb.SessionPool, table: str, sample_size: i
 def analyze(args: argparse.Namespace) -> dict:
     driver = connect_driver()
     pool = ydb.SessionPool(driver, size=8)
-    ranges, partition_source = load_partition_ranges(
+    ranges, partition_source, partition_error = load_partition_ranges(
         args.table,
         args.profile,
         args.describe_json,
-        driver,
+        pool,
     )
 
     result: dict = {
         "table": args.table,
-        "partition_count": len(ranges),
+        "table_paths_tried": table_describe_paths(args.table),
         "partition_source": partition_source,
         "partitions": [],
     }
 
-    if len(ranges) < 2:
+    if ranges is None:
+        result["partition_count"] = None
         result["partition_metrics_reliable"] = False
         result["warnings"] = [
-            "Table has fewer than 2 partitions. This is normal right after CREATE TABLE "
-            "or with a small dataset: YDB keeps a single datashard until auto-split triggers.",
-            "Per-partition imbalance/gini are not meaningful yet — rely on prefix_sample "
-            "(logical 10-bit spread) or load more rows and rerun analysis.",
+            "Could not read partition metadata via ydb CLI or Python SDK describe_table.",
+            "prefix_sample below still validates logical 10-bit UUID prefix spread.",
         ]
+        if partition_error:
+            result["partition_error"] = partition_error
         logging.warning(
-            "partition_count=%s: per-partition metrics skipped; use prefix_sample instead",
-            len(ranges),
+            "Partition metadata unavailable; continuing with prefix_sample only"
         )
     else:
-        result["partition_metrics_reliable"] = True
+        result["partition_count"] = len(ranges)
+        if len(ranges) < 2:
+            result["partition_metrics_reliable"] = False
+            result["warnings"] = [
+                "Table has fewer than 2 partitions. This is normal right after CREATE TABLE "
+                "or with a small dataset: YDB keeps a single datashard until auto-split triggers.",
+                "Per-partition imbalance/gini are not meaningful yet — rely on prefix_sample "
+                "(logical 10-bit spread) or load more rows and rerun analysis.",
+            ]
+            logging.warning(
+                "partition_count=%s: per-partition metrics skipped; use prefix_sample instead",
+                len(ranges),
+            )
+        else:
+            result["partition_metrics_reliable"] = True
 
     if args.sample_prefixes > 0:
         result["prefix_sample"] = sample_prefix_distribution(pool, args.table, args.sample_prefixes)
 
-    if not args.skip_counts:
+    if not args.skip_counts and ranges is not None:
         if len(ranges) < 2:
             logging.warning("Skipping per-partition COUNT: need at least 2 partitions")
         else:

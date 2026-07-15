@@ -44,3 +44,12 @@ def table_path(table_name: str) -> str:
     if database.endswith("/"):
         return f"{database}{table_name}"
     return f"{database}/{table_name}"
+
+
+def table_describe_paths(table_name: str) -> list[str]:
+    """Candidate paths for scheme/describe APIs (relative and absolute)."""
+    paths: list[str] = []
+    for candidate in (table_name, table_path(table_name)):
+        if candidate and candidate not in paths:
+            paths.append(candidate)
+    return paths

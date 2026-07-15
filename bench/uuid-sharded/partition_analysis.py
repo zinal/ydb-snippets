@@ -189,7 +189,7 @@ def count_rows_in_range(pool: ydb.SessionPool, table: str, lower: bytes | None, 
 
     def callee(session: ydb.Session) -> int:
         prepared = session.prepare(query)
-        result = session.transaction(ydb.OnlineReadOnly()).execute(prepared, params)
+        result = session.transaction(ydb.OnlineReadOnly()).execute(prepared, params, commit_tx=True)
         return int(result[0].rows[0].cnt)
 
     return pool.retry_operation_sync(callee)
@@ -204,7 +204,7 @@ def sample_prefix_distribution(pool: ydb.SessionPool, table: str, sample_size: i
 
     def callee(session: ydb.Session) -> list[bytes]:
         prepared = session.prepare(query)
-        result = session.transaction(ydb.OnlineReadOnly()).execute(prepared, {})
+        result = session.transaction(ydb.OnlineReadOnly()).execute(prepared, {}, commit_tx=True)
         ids: list[bytes] = []
         for row in result[0].rows:
             raw = row.id

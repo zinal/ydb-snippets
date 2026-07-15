@@ -25,7 +25,7 @@ Python code in `sharded_keygen.py` mirrors `ydb/library/yql/udfs/common/uuid/uui
 export YDB_ENDPOINT=grpc://localhost:2136
 export YDB_DATABASE=/local
 # auth: YDB_ACCESS_TOKEN_CREDENTIALS or YDB_USER/YDB_PASSWORD
-export YDB_PROFILE=local   # optional, for ydb CLI
+export YDB_PROFILE=local   # optional; partition_analysis also works via SDK without it
 ```
 
 Install dependencies:

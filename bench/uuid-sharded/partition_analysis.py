@@ -7,6 +7,7 @@ import argparse
 import json
 import logging
 import math
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -19,29 +20,45 @@ from sharded_keygen import (
     gini_coefficient,
     imbalance_ratio,
 )
-from ydb_connect import connect_driver, table_path
+from ydb_connect import connect_driver
 
 
-def load_scheme_describe(table: str, profile: str | None, describe_json: Path | None) -> dict:
-    if describe_json is not None:
-        return json.loads(describe_json.read_text(encoding="utf-8"))
-    if not profile:
-        raise RuntimeError("Provide --profile or --describe-json")
-    command = [
-        "ydb",
-        "-p",
-        profile,
+def build_ydb_cli_prefix(profile: str | None) -> list[str]:
+    prefix = ["ydb"]
+    profile = profile or os.getenv("YDB_PROFILE")
+    if profile:
+        prefix.extend(["-p", profile])
+        return prefix
+
+    endpoint = os.getenv("YDB_ENDPOINT")
+    database = os.getenv("YDB_DATABASE")
+    if endpoint:
+        prefix.extend(["-e", endpoint])
+    if database:
+        prefix.extend(["-d", database])
+    return prefix
+
+
+def load_scheme_describe_cli(table: str, profile: str | None) -> dict:
+    command = build_ydb_cli_prefix(profile) + [
         "scheme",
         "describe",
         table,
         "--format",
         "json",
     ]
+    if len(command) <= 1 or command[0] != "ydb":
+        raise RuntimeError("Failed to build ydb CLI command")
+
+    has_target = profile or os.getenv("YDB_PROFILE") or os.getenv("YDB_ENDPOINT")
+    if not has_target:
+        raise RuntimeError("Set YDB_PROFILE or YDB_ENDPOINT/YDB_DATABASE for scheme describe")
+
     completed = subprocess.run(command, check=True, capture_output=True, text=True)
     return json.loads(completed.stdout)
 
 
-def partition_ranges(describe: dict) -> list[dict]:
+def partition_ranges_from_scheme_json(describe: dict) -> list[dict]:
     partitions = describe.get("PathDescription", {}).get("TablePartitions", [])
     ranges: list[dict] = []
     for partition in partitions:
@@ -56,10 +73,61 @@ def partition_ranges(describe: dict) -> list[dict]:
     return ranges
 
 
-def decode_uuid_key(value: dict | None) -> bytes | None:
-    if not value:
+def uuid_from_key_bound(bound: ydb.KeyBound | None) -> bytes | None:
+    if bound is None:
         return None
-    # ydb scheme describe returns typed key components; Uuid is usually under "Uuid" or raw bytes.
+    value = bound.value
+    if isinstance(value, tuple):
+        if not value:
+            return None
+        value = value[0]
+    if isinstance(value, (bytes, bytearray)):
+        return bytes(value)
+    return None
+
+
+def partition_ranges_from_table_describe(driver: ydb.Driver, table: str) -> list[dict]:
+    settings = ydb.DescribeTableSettings().with_include_shard_key_bounds(True)
+    entry = driver.table_client.describe_table(table, settings)
+    ranges: list[dict] = []
+    for key_range in entry.shard_key_ranges:
+        ranges.append(
+            {
+                "datashard_id": None,
+                "from": uuid_from_key_bound(key_range.from_bound),
+                "to": uuid_from_key_bound(key_range.to_bound),
+                "source": "table_describe",
+            }
+        )
+    return ranges
+
+
+def load_partition_ranges(
+    table: str,
+    profile: str | None,
+    describe_json: Path | None,
+    driver: ydb.Driver,
+) -> tuple[list[dict], str]:
+    if describe_json is not None:
+        describe = json.loads(describe_json.read_text(encoding="utf-8"))
+        return partition_ranges_from_scheme_json(describe), "describe_json"
+
+    try:
+        describe = load_scheme_describe_cli(table, profile)
+        return partition_ranges_from_scheme_json(describe), "ydb_cli"
+    except (subprocess.CalledProcessError, FileNotFoundError, json.JSONDecodeError, RuntimeError) as exc:
+        logging.warning("ydb CLI scheme describe unavailable (%s), falling back to SDK", exc)
+
+    return partition_ranges_from_table_describe(driver, table), "python_sdk"
+
+
+def decode_uuid_key(value: object | None) -> bytes | None:
+    if value is None:
+        return None
+    if isinstance(value, (bytes, bytearray)):
+        return bytes(value)
+    if not isinstance(value, dict):
+        return None
     if "Uuid" in value:
         raw = value["Uuid"]
         if isinstance(raw, str):
@@ -128,39 +196,44 @@ def sample_prefix_distribution(pool: ydb.SessionPool, table: str, sample_size: i
 
 
 def analyze(args: argparse.Namespace) -> dict:
-    table = table_path(args.table)
-    describe = load_scheme_describe(table, args.profile, args.describe_json)
-    ranges = partition_ranges(describe)
+    driver = connect_driver()
+    pool = ydb.SessionPool(driver, size=8)
+    ranges, partition_source = load_partition_ranges(
+        args.table,
+        args.profile,
+        args.describe_json,
+        driver,
+    )
 
     result: dict = {
-        "table": table,
+        "table": args.table,
         "partition_count": len(ranges),
+        "partition_source": partition_source,
         "partitions": [],
     }
 
     if args.sample_prefixes > 0:
-        driver = connect_driver()
-        pool = ydb.SessionPool(driver, size=4)
         result["prefix_sample"] = sample_prefix_distribution(pool, args.table, args.sample_prefixes)
 
     if not args.skip_counts:
-        driver = connect_driver()
-        pool = ydb.SessionPool(driver, size=min(8, max(1, len(ranges))))
         counts: list[int] = []
+        partition_rows: list[dict] = []
         for item in ranges:
             lower = decode_uuid_key(item.get("from"))
             upper = decode_uuid_key(item.get("to"))
             count = count_rows_in_range(pool, args.table, lower, upper)
             counts.append(count)
-            item["row_count"] = count
+            partition_info = dict(item)
+            partition_info["row_count"] = count
+            partition_rows.append(partition_info)
             logging.info(
                 "datashard=%s rows=%s from=%s to=%s",
-                item["datashard_id"],
+                item.get("datashard_id"),
                 count,
                 item.get("from"),
                 item.get("to"),
             )
-        result["partitions"] = ranges
+        result["partitions"] = partition_rows
         result["row_count_total"] = sum(counts)
         result["imbalance_ratio"] = imbalance_ratio(counts)
         result["gini"] = gini_coefficient(counts)
@@ -188,7 +261,11 @@ def main() -> int:
 
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--table", default="bench_uuid")
-    parser.add_argument("--profile", default=None, help="ydb CLI profile for scheme describe")
+    parser.add_argument(
+        "--profile",
+        default=os.getenv("YDB_PROFILE"),
+        help="ydb CLI profile (optional; falls back to YDB_ENDPOINT/YDB_DATABASE or Python SDK)",
+    )
     parser.add_argument("--describe-json", type=Path, default=None, help="Offline scheme describe JSON")
     parser.add_argument("--sample-prefixes", type=int, default=50_000, help="Rows to scan for prefix stats")
     parser.add_argument(
@@ -200,10 +277,7 @@ def main() -> int:
     parser.add_argument("--output", default="")
     args = parser.parse_args()
 
-    if not args.with_counts:
-        args.skip_counts = True
-    else:
-        args.skip_counts = False
+    args.skip_counts = not args.with_counts
 
     result = analyze(args)
     payload = json.dumps(result, indent=2, sort_keys=True)

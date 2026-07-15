@@ -88,9 +88,9 @@ Runs three load profiles and saves JSON under `results/`:
 
 | Mode | Generator | Purpose |
 |------|-----------|---------|
-| `random` | `RandomUuid()` | Baseline spread |
-| `chrono` | `Uuid::newChrono()` | Hot-tail control |
-| `sharded` | `Uuid::newSharded()` | Target scheme |
+| `random` | `RandomUuid($dep)` | Baseline spread |
+| `chrono` | `Uuid::newChrono($dep)` | Hot-tail control |
+| `sharded` | `Uuid::newSharded($dep)` | Target scheme |
 
 ### 3. Partition / prefix analysis after load
 
@@ -158,3 +158,5 @@ Upstream PR already covers correctness:
 ```
 
 These snippets focus on **effectiveness** (distribution and load balance), not UDF correctness.
+
+Note: YQL `RandomUuid()` requires at least one dependency argument (e.g. `RandomUuid($dep)`); the load benchmark passes a per-row `$dep` for that reason.

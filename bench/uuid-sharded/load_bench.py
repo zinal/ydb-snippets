@@ -15,32 +15,36 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import ydb
 
-from ydb_connect import connect_driver, table_path
+from ydb_connect import connect_driver
 
 KEY_GENERATORS = {
-    "random": "RandomUuid()",
-    "chrono": "Uuid::newChrono()",
-    "sharded": "Uuid::newSharded()",
-    "sharded_prefix": "Uuid::newShardedPrefix($prefix)",
+    "random": "RandomUuid($dep)",
+    "chrono": "Uuid::newChrono($dep)",
+    "sharded": "Uuid::newSharded($dep)",
+    "sharded_prefix": "Uuid::newShardedPrefix($prefix, $dep)",
 }
 
 SINGLE_ROW_QUERIES = {
     "random": """
+        DECLARE $dep AS Int32;
         UPSERT INTO `{table}` (id, payload, created_at)
-        VALUES (RandomUuid(), RandomUuid(), CurrentUtcTimestamp());
+        VALUES (RandomUuid($dep), RandomUuid($dep + 1), CurrentUtcTimestamp());
     """,
     "chrono": """
+        DECLARE $dep AS Int32;
         UPSERT INTO `{table}` (id, payload, created_at)
-        VALUES (Uuid::newChrono(), RandomUuid(), CurrentUtcTimestamp());
+        VALUES (Uuid::newChrono($dep), RandomUuid($dep + 1), CurrentUtcTimestamp());
     """,
     "sharded": """
+        DECLARE $dep AS Int32;
         UPSERT INTO `{table}` (id, payload, created_at)
-        VALUES (Uuid::newSharded(), RandomUuid(), CurrentUtcTimestamp());
+        VALUES (Uuid::newSharded($dep), RandomUuid($dep + 1), CurrentUtcTimestamp());
     """,
     "sharded_prefix": """
+        DECLARE $dep AS Int32;
         DECLARE $prefix AS Uint64;
         UPSERT INTO `{table}` (id, payload, created_at)
-        VALUES (Uuid::newShardedPrefix($prefix), RandomUuid(), CurrentUtcTimestamp());
+        VALUES (Uuid::newShardedPrefix($prefix, $dep), RandomUuid($dep + 1), CurrentUtcTimestamp());
     """,
 }
 
@@ -92,21 +96,28 @@ def worker(
     batch_size: int,
     rows_target: int,
     prefix: int,
+    worker_id: int,
     tracker: LatencyTracker,
     stop_event: threading.Event,
 ) -> None:
     query_template = SINGLE_ROW_QUERIES[mode].format(table=table)
     rows_written = 0
+
+    def make_params(row_index: int) -> dict[str, object]:
+        # Dependency arg breaks YQL constant folding for RandomUuid / Uuid::* generators.
+        dep = worker_id * rows_target + row_index
+        params: dict[str, object] = {"$dep": dep}
+        if mode == "sharded_prefix":
+            params["$prefix"] = prefix
+        return params
+
     while not stop_event.is_set() and rows_written < rows_target:
         started = time.perf_counter()
         try:
             def callee(session: ydb.Session) -> None:
                 prepared = session.prepare(query_template)
                 tx = session.transaction(ydb.SerializableReadWrite())
-                params = {}
-                if mode == "sharded_prefix":
-                    params["$prefix"] = prefix
-                tx.execute(prepared, params, commit_tx=True)
+                tx.execute(prepared, make_params(rows_written), commit_tx=True)
 
             pool.retry_operation_sync(callee)
             tracker.add((time.perf_counter() - started) * 1000.0, 1)
@@ -117,7 +128,6 @@ def worker(
 
 
 def run_benchmark(args: argparse.Namespace) -> dict:
-    table = table_path(args.table)
     driver = connect_driver()
     pool = ydb.SessionPool(driver, size=args.workers + 2)
     tracker = LatencyTracker()
@@ -133,10 +143,11 @@ def run_benchmark(args: argparse.Namespace) -> dict:
                 worker,
                 pool,
                 args.mode,
-                table,
+                args.table,
                 args.batch_size,
                 rows_per_worker,
                 args.prefix,
+                worker_index,
                 tracker,
                 stop_event,
             )
@@ -159,7 +170,7 @@ def run_benchmark(args: argparse.Namespace) -> dict:
     result = tracker.summary(elapsed)
     result["mode"] = args.mode
     result["workers"] = args.workers
-    result["table"] = table
+    result["table"] = args.table
     result["generator"] = KEY_GENERATORS[args.mode]
     return result
 

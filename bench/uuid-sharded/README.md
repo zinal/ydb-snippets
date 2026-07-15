@@ -80,7 +80,7 @@ Environment overrides:
 ```bash
 export UUID_BENCH_TABLE=bench_uuid
 export UUID_BENCH_WORKERS=20
-export UUID_BENCH_ROWS=100000
+export UUID_BENCH_ROWS=500000   # raise to trigger auto-split; 100k often leaves 1 partition
 export SKIP_SCHEMA=1   # if table already exists
 ```
 
@@ -94,6 +94,11 @@ Runs three load profiles and saves JSON under `results/`:
 
 ### 3. Partition / prefix analysis after load
 
+**Important:** a freshly created table almost always has **one partition** (`partition_count: 1`).
+Auto-split by load/size kicks in later. Until then, per-partition `imbalance_ratio` / `gini` are meaningless.
+
+Use **`prefix_sample`** — it measures logical 10-bit prefix spread in stored UUID bytes and works even with a single datashard.
+
 ```bash
 python3 partition_analysis.py \
   --table bench_uuid \
@@ -105,12 +110,14 @@ Uses `YDB_ENDPOINT`/`YDB_DATABASE` from the environment. Optionally pass `--prof
 
 Reports:
 
-- `partition_count` — active datashards after load
-- `prefix_sample.distinct_prefixes_in_sample` — prefix diversity in sample
-- `prefix_sample.imbalance_ratio` — max/min bucket counts in sample
+- `partition_count` — datashards visible to scheme/describe (often `1` on a fresh table)
+- `partition_metrics_reliable` — `false` when `partition_count < 2`
+- `warnings` — explains when to ignore per-partition stats
+- `prefix_sample.distinct_prefixes_in_sample` — **primary spread metric** at any partition count
+- `prefix_sample.imbalance_ratio` — max/min bucket counts among 1024 logical prefixes
 - `prefix_sample.gini` — inequality (lower is better for load balance)
 
-Remove default skip and pass `--with-counts` to run `COUNT(*)` per partition key range (slow on large tables).
+To study **physical** shard balance, load enough data to trigger auto-split (try `UUID_BENCH_ROWS=1000000+`), then rerun analysis. Pass `--with-counts` for per-partition row counts once `partition_count >= 2`.
 
 ### 4. Full comparison report
 
@@ -136,6 +143,12 @@ Writes `results/report.json` with offline stats and optional cluster load number
 
 ## Interpreting cluster results
 
+**Single partition is expected early on.** After `CREATE TABLE`, YDB usually keeps one datashard. The benchmark still validates `Uuid::newSharded()` via:
+
+1. **Offline** `offline_prefix_bench.py` — full χ² over 1024 prefix buckets
+2. **Cluster** `prefix_sample` — prefix spread in rows already written (works with 1 partition)
+3. **Cluster** per-partition stats — only after auto-split (`partition_count >= 2`, `partition_metrics_reliable: true`)
+
 **Good signs for `newSharded`:**
 
 - `tps` within ~10% of `random`
@@ -146,7 +159,8 @@ Writes `results/report.json` with offline stats and optional cluster load number
 
 - `sharded` TPS or tail latency matches `chrono` → prefix may not affect leading sort bytes
 - `prefix_sample.distinct_prefixes_in_sample` ≪ 1024 on large samples → investigate UDF build or generator regression
-- High `gini` with low partition count → consider raising `AUTO_PARTITIONING_MIN_PARTITIONS_COUNT`
+- High `gini` with `partition_count == 1` → expected; wait for split or load more data
+- High `gini` with `partition_count >= 8` → investigate split policy or prefix layout
 
 ## Related PR unit tests
 

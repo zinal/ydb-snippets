@@ -8,6 +8,8 @@ CREATE TABLE bench_uuid (
     PRIMARY KEY (id)
 )
 WITH (
+    -- Auto-split triggers only after enough data/load; a new table starts with 1 partition.
+    -- prefix_sample in partition_analysis.py is the primary spread metric until splits occur.
     AUTO_PARTITIONING_BY_LOAD = ENABLED,
     AUTO_PARTITIONING_BY_SIZE = ENABLED,
     AUTO_PARTITIONING_MIN_PARTITIONS_COUNT = 64,

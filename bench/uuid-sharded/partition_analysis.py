@@ -212,32 +212,50 @@ def analyze(args: argparse.Namespace) -> dict:
         "partitions": [],
     }
 
+    if len(ranges) < 2:
+        result["partition_metrics_reliable"] = False
+        result["warnings"] = [
+            "Table has fewer than 2 partitions. This is normal right after CREATE TABLE "
+            "or with a small dataset: YDB keeps a single datashard until auto-split triggers.",
+            "Per-partition imbalance/gini are not meaningful yet — rely on prefix_sample "
+            "(logical 10-bit spread) or load more rows and rerun analysis.",
+        ]
+        logging.warning(
+            "partition_count=%s: per-partition metrics skipped; use prefix_sample instead",
+            len(ranges),
+        )
+    else:
+        result["partition_metrics_reliable"] = True
+
     if args.sample_prefixes > 0:
         result["prefix_sample"] = sample_prefix_distribution(pool, args.table, args.sample_prefixes)
 
     if not args.skip_counts:
-        counts: list[int] = []
-        partition_rows: list[dict] = []
-        for item in ranges:
-            lower = decode_uuid_key(item.get("from"))
-            upper = decode_uuid_key(item.get("to"))
-            count = count_rows_in_range(pool, args.table, lower, upper)
-            counts.append(count)
-            partition_info = dict(item)
-            partition_info["row_count"] = count
-            partition_rows.append(partition_info)
-            logging.info(
-                "datashard=%s rows=%s from=%s to=%s",
-                item.get("datashard_id"),
-                count,
-                item.get("from"),
-                item.get("to"),
-            )
-        result["partitions"] = partition_rows
-        result["row_count_total"] = sum(counts)
-        result["imbalance_ratio"] = imbalance_ratio(counts)
-        result["gini"] = gini_coefficient(counts)
-        result["entropy_bits"] = shannon_entropy_bits(counts)
+        if len(ranges) < 2:
+            logging.warning("Skipping per-partition COUNT: need at least 2 partitions")
+        else:
+            counts: list[int] = []
+            partition_rows: list[dict] = []
+            for item in ranges:
+                lower = decode_uuid_key(item.get("from"))
+                upper = decode_uuid_key(item.get("to"))
+                count = count_rows_in_range(pool, args.table, lower, upper)
+                counts.append(count)
+                partition_info = dict(item)
+                partition_info["row_count"] = count
+                partition_rows.append(partition_info)
+                logging.info(
+                    "datashard=%s rows=%s from=%s to=%s",
+                    item.get("datashard_id"),
+                    count,
+                    item.get("from"),
+                    item.get("to"),
+                )
+            result["partitions"] = partition_rows
+            result["row_count_total"] = sum(counts)
+            result["imbalance_ratio"] = imbalance_ratio(counts)
+            result["gini"] = gini_coefficient(counts)
+            result["entropy_bits"] = shannon_entropy_bits(counts)
 
     return result
 

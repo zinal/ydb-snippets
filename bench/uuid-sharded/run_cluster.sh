@@ -8,11 +8,12 @@ cd "$(dirname "$0")"
 
 TABLE="${UUID_BENCH_TABLE:-bench_uuid}"
 WORKERS="${UUID_BENCH_WORKERS:-20}"
-ROWS="${UUID_BENCH_ROWS:-100000}"
+ROWS="${UUID_BENCH_ROWS:-500000}"
 PROFILE="${YDB_PROFILE:-}"
 
 if [[ "${SKIP_SCHEMA:-0}" != "1" ]]; then
   echo "Creating table ${TABLE} (set SKIP_SCHEMA=1 to skip)..."
+  echo "Note: a new table starts with 1 partition; auto-split happens after enough load."
   ydb ${PROFILE:+-p "$PROFILE"} yql -f schema.yql
 fi
 

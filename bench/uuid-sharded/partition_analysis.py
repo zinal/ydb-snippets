@@ -195,21 +195,51 @@ def count_rows_in_range(pool: ydb.SessionPool, table: str, lower: bytes | None, 
     return pool.retry_operation_sync(callee)
 
 
-def sample_prefix_distribution(pool: ydb.SessionPool, table: str, sample_size: int) -> dict:
+DEFAULT_SAMPLE_BATCH_SIZE = 2000
+
+
+def row_id_bytes(row: object) -> bytes | None:
+    raw = getattr(row, "id", None)
+    if isinstance(raw, (bytes, bytearray)):
+        return bytes(raw)
+    return None
+
+
+def sample_prefix_distribution(
+    pool: ydb.SessionPool,
+    table: str,
+    sample_size: int,
+    batch_size: int = DEFAULT_SAMPLE_BATCH_SIZE,
+) -> dict:
     query = f"""
+    DECLARE $last AS Uuid;
+    DECLARE $limit AS Uint32;
     SELECT id
     FROM `{table}`
-    LIMIT {sample_size};
+    WHERE id > $last
+    ORDER BY id
+    LIMIT $limit;
     """
 
     def callee(session: ydb.Session) -> list[bytes]:
         prepared = session.prepare(query)
-        result = session.transaction(ydb.OnlineReadOnly()).execute(prepared, {}, commit_tx=True)
         ids: list[bytes] = []
-        for row in result[0].rows:
-            raw = row.id
-            if isinstance(raw, (bytes, bytearray)):
-                ids.append(bytes(raw))
+        last_id = bytes(16)  # lower bound for keyset pagination
+        while len(ids) < sample_size:
+            current_limit = min(batch_size, sample_size - len(ids))
+            result = session.transaction(ydb.OnlineReadOnly()).execute(
+                prepared,
+                {"$last": last_id, "$limit": current_limit},
+                commit_tx=True,
+            )
+            rows = result[0].rows
+            if not rows:
+                break
+            for row in rows:
+                raw = row_id_bytes(row)
+                if raw is not None:
+                    ids.append(raw)
+            last_id = ids[-1]
         return ids
 
     ids = pool.retry_operation_sync(callee)
@@ -220,6 +250,7 @@ def sample_prefix_distribution(pool: ydb.SessionPool, table: str, sample_size: i
     bucket_values = [counts.get(bucket, 0) for bucket in range(PREFIX_BUCKET_COUNT)]
     return {
         "sample_size": len(ids),
+        "sample_batches": math.ceil(len(ids) / batch_size) if ids else 0,
         "distinct_prefixes_in_sample": len(counts),
         "imbalance_ratio": imbalance_ratio(bucket_values) if any(bucket_values) else 0.0,
         "gini": gini_coefficient(bucket_values) if any(bucket_values) else 0.0,
@@ -273,7 +304,12 @@ def analyze(args: argparse.Namespace) -> dict:
             result["partition_metrics_reliable"] = True
 
     if args.sample_prefixes > 0:
-        result["prefix_sample"] = sample_prefix_distribution(pool, args.table, args.sample_prefixes)
+        result["prefix_sample"] = sample_prefix_distribution(
+            pool,
+            args.table,
+            args.sample_prefixes,
+            args.sample_batch_size,
+        )
 
     if not args.skip_counts and ranges is not None:
         if len(ranges) < 2:

@@ -24,27 +24,30 @@ KEY_GENERATORS = {
     "sharded_prefix": "Uuid::newShardedPrefix($prefix, $dep)",
 }
 
+# payload is Utf8; RandomUuid returns Uuid — cast via String.
+PAYLOAD_EXPR = "CAST(CAST(RandomUuid($dep + 1) AS String) AS Utf8)"
+
 SINGLE_ROW_QUERIES = {
-    "random": """
+    "random": f"""
         DECLARE $dep AS Int32;
-        UPSERT INTO `{table}` (id, payload, created_at)
-        VALUES (RandomUuid($dep), RandomUuid($dep + 1), CurrentUtcTimestamp());
+        UPSERT INTO `{{table}}` (id, payload, created_at)
+        VALUES (RandomUuid($dep), {PAYLOAD_EXPR}, CurrentUtcTimestamp());
     """,
-    "chrono": """
+    "chrono": f"""
         DECLARE $dep AS Int32;
-        UPSERT INTO `{table}` (id, payload, created_at)
-        VALUES (Uuid::newChrono($dep), RandomUuid($dep + 1), CurrentUtcTimestamp());
+        UPSERT INTO `{{table}}` (id, payload, created_at)
+        VALUES (Uuid::newChrono($dep), {PAYLOAD_EXPR}, CurrentUtcTimestamp());
     """,
-    "sharded": """
+    "sharded": f"""
         DECLARE $dep AS Int32;
-        UPSERT INTO `{table}` (id, payload, created_at)
-        VALUES (Uuid::newSharded($dep), RandomUuid($dep + 1), CurrentUtcTimestamp());
+        UPSERT INTO `{{table}}` (id, payload, created_at)
+        VALUES (Uuid::newSharded($dep), {PAYLOAD_EXPR}, CurrentUtcTimestamp());
     """,
-    "sharded_prefix": """
+    "sharded_prefix": f"""
         DECLARE $dep AS Int32;
         DECLARE $prefix AS Uint64;
-        UPSERT INTO `{table}` (id, payload, created_at)
-        VALUES (Uuid::newShardedPrefix($prefix, $dep), RandomUuid($dep + 1), CurrentUtcTimestamp());
+        UPSERT INTO `{{table}}` (id, payload, created_at)
+        VALUES (Uuid::newShardedPrefix($prefix, $dep), {PAYLOAD_EXPR}, CurrentUtcTimestamp());
     """,
 }
 

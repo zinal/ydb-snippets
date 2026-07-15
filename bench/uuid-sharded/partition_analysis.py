@@ -40,28 +40,32 @@ def build_ydb_cli_prefix(profile: str | None) -> list[str]:
 
 
 def load_scheme_describe_cli(table: str, profile: str | None) -> dict:
-    command = build_ydb_cli_prefix(profile) + [
-        "scheme",
-        "describe",
-        table,
-        "--format",
-        "json",
-    ]
-    if len(command) <= 1 or command[0] != "ydb":
-        raise RuntimeError("Failed to build ydb CLI command")
-
     has_target = profile or os.getenv("YDB_PROFILE") or os.getenv("YDB_ENDPOINT")
     if not has_target:
         raise RuntimeError("Set YDB_PROFILE or YDB_ENDPOINT/YDB_DATABASE for scheme describe")
 
-    completed = subprocess.run(command, check=False, capture_output=True, text=True)
-    if completed.returncode != 0:
-        stderr = completed.stderr.strip()
-        raise RuntimeError(
-            f"ydb CLI exited with {completed.returncode}"
-            + (f": {stderr}" if stderr else "")
-        )
-    return json.loads(completed.stdout)
+    last_error: Exception | None = None
+    for output_format in ("json-unicode", "json-rest"):
+        command = build_ydb_cli_prefix(profile) + [
+            "scheme",
+            "describe",
+            table,
+            "--format",
+            output_format,
+        ]
+        completed = subprocess.run(command, check=False, capture_output=True, text=True)
+        if completed.returncode != 0:
+            stderr = completed.stderr.strip()
+            last_error = RuntimeError(
+                f"ydb CLI exited with {completed.returncode}"
+                + (f": {stderr}" if stderr else "")
+            )
+            continue
+        return json.loads(completed.stdout)
+
+    if last_error is not None:
+        raise last_error
+    raise RuntimeError("ydb CLI scheme describe failed")
 
 
 def partition_ranges_from_scheme_json(describe: dict) -> list[dict]:
@@ -367,6 +371,12 @@ def main() -> int:
     )
     parser.add_argument("--describe-json", type=Path, default=None, help="Offline scheme describe JSON")
     parser.add_argument("--sample-prefixes", type=int, default=50_000, help="Rows to scan for prefix stats")
+    parser.add_argument(
+        "--sample-batch-size",
+        type=int,
+        default=DEFAULT_SAMPLE_BATCH_SIZE,
+        help="Rows per SELECT batch (avoids TruncatedResponseError)",
+    )
     parser.add_argument(
         "--with-counts",
         action="store_true",

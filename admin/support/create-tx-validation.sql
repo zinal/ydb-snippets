@@ -1,6 +1,8 @@
 -- tx_validation: 256 initial partitions via PARTITION_AT_KEYS.
 -- hash = SHA-256(tx_id) from TableTxExecutor; boundaries are 2-hex-digit prefixes 01..ff.
 
+DROP TABLE `tx_validation`;
+
 CREATE TABLE `tx_validation` (
     hash Text NOT NULL,
     tx_id Text NOT NULL,

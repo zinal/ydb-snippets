@@ -185,10 +185,10 @@ def count_rows_in_range(pool: ydb.SessionPool, table: str, lower: bytes | None, 
         clauses: list[str] = []
         if lower is not None:
             clauses.append("id >= $lo")
-            params["$lo"] = lower
+            params["$lo"] = bytes_to_uuid_param(lower)
         if upper is not None:
             clauses.append("id < $hi")
-            params["$hi"] = upper
+            params["$hi"] = bytes_to_uuid_param(upper)
         query_parts.append(" AND ".join(clauses))
     query = "\n".join(query_parts) + ";"
 
@@ -240,7 +240,7 @@ def sample_prefix_distribution(
     def callee(session: ydb.Session) -> list[bytes]:
         prepared = session.prepare(query)
         ids: list[bytes] = []
-        last_id = bytes(16)  # lower bound for keyset pagination
+        last_id = ZERO_UUID
         while len(ids) < sample_size:
             current_limit = min(batch_size, sample_size - len(ids))
             result = session.transaction(ydb.OnlineReadOnly()).execute(
@@ -252,10 +252,10 @@ def sample_prefix_distribution(
             if not rows:
                 break
             for row in rows:
-                raw = row_id_bytes(row)
-                if raw is not None:
-                    ids.append(raw)
-            last_id = ids[-1]
+                row_uuid = normalize_row_uuid(row)
+                if row_uuid is not None:
+                    ids.append(uuid_to_internal_bytes(row_uuid))
+            last_id = normalize_row_uuid(rows[-1]) or last_id
         return ids
 
     ids = pool.retry_operation_sync(callee)

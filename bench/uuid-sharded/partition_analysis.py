@@ -200,7 +200,9 @@ def count_rows_in_range(pool: ydb.SessionPool, table: str, lower: bytes | None, 
     return pool.retry_operation_sync(callee)
 
 
-DEFAULT_SAMPLE_BATCH_SIZE = 2000
+# YDB truncates data query responses above ~1000 rows per request.
+MAX_QUERY_ROWS = 1000
+DEFAULT_SAMPLE_BATCH_SIZE = MAX_QUERY_ROWS
 ZERO_UUID = uuid_module.UUID(int=0)
 
 
@@ -227,6 +229,7 @@ def sample_prefix_distribution(
     sample_size: int,
     batch_size: int = DEFAULT_SAMPLE_BATCH_SIZE,
 ) -> dict:
+    batch_size = max(1, min(batch_size, MAX_QUERY_ROWS))
     query = f"""
     DECLARE $last AS Uuid;
     DECLARE $limit AS Uint32;
@@ -389,7 +392,7 @@ def main() -> int:
         "--sample-batch-size",
         type=int,
         default=DEFAULT_SAMPLE_BATCH_SIZE,
-        help="Rows per SELECT batch (avoids TruncatedResponseError)",
+        help=f"Rows per SELECT batch (max {MAX_QUERY_ROWS}, YDB response limit)",
     )
     parser.add_argument(
         "--with-counts",
@@ -401,6 +404,7 @@ def main() -> int:
     args = parser.parse_args()
 
     args.skip_counts = not args.with_counts
+    args.sample_batch_size = max(1, min(args.sample_batch_size, MAX_QUERY_ROWS))
 
     result = analyze(args)
     payload = json.dumps(result, indent=2, sort_keys=True)

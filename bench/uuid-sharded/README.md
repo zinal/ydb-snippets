@@ -108,6 +108,8 @@ python3 partition_analysis.py \
 
 Uses `YDB_ENDPOINT`/`YDB_DATABASE` from the environment. Optionally pass `--profile` for `ydb scheme describe`; otherwise the script falls back to Python SDK `describe_table`.
 
+Sampling reads ids in batches of at most **1000 rows** per query (YDB response limit).
+
 Reports:
 
 - `partition_count` — datashards visible to scheme/describe (often `1` on a fresh table)

@@ -10,6 +10,7 @@ import math
 import os
 import subprocess
 import sys
+import uuid as uuid_module
 from pathlib import Path
 
 import ydb
@@ -200,13 +201,24 @@ def count_rows_in_range(pool: ydb.SessionPool, table: str, lower: bytes | None, 
 
 
 DEFAULT_SAMPLE_BATCH_SIZE = 2000
+ZERO_UUID = uuid_module.UUID(int=0)
 
 
-def row_id_bytes(row: object) -> bytes | None:
+def normalize_row_uuid(row: object) -> uuid_module.UUID | None:
     raw = getattr(row, "id", None)
-    if isinstance(raw, (bytes, bytearray)):
-        return bytes(raw)
+    if isinstance(raw, uuid_module.UUID):
+        return raw
+    if isinstance(raw, (bytes, bytearray)) and len(raw) == 16:
+        return uuid_module.UUID(bytes_le=bytes(raw))
     return None
+
+
+def uuid_to_internal_bytes(value: uuid_module.UUID) -> bytes:
+    return value.bytes_le
+
+
+def bytes_to_uuid_param(value: bytes) -> uuid_module.UUID:
+    return uuid_module.UUID(bytes_le=value)
 
 
 def sample_prefix_distribution(
@@ -307,12 +319,14 @@ def analyze(args: argparse.Namespace) -> dict:
         else:
             result["partition_metrics_reliable"] = True
 
+    sample_batch_size = getattr(args, "sample_batch_size", DEFAULT_SAMPLE_BATCH_SIZE)
+
     if args.sample_prefixes > 0:
         result["prefix_sample"] = sample_prefix_distribution(
             pool,
             args.table,
             args.sample_prefixes,
-            args.sample_batch_size,
+            sample_batch_size,
         )
 
     if not args.skip_counts and ranges is not None:

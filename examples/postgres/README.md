@@ -14,20 +14,19 @@
 
 ## Подключение
 
-Задайте переменные (или скопируйте `env.example` → `env.local` и `source` его):
+Подробно (удалённый хост, порт, БД, логин/пароль, **без TLS**): см. [`connect.md`](connect.md).
+
+Кратко — URI без TLS:
 
 ```bash
-export PGHOST=127.0.0.1
-export PGPORT=5432
-export PGUSER=postgres
-export PGDATABASE=mydb
-# export PGPASSWORD=...   # или ~/.pgpass
-# export PGSSLMODE=require
+psql "postgresql://USER:PASSWORD@HOST:PORT/DBNAME?sslmode=disable"
 ```
 
-Проверка:
+Или через переменные (удобно для скриптов из этого каталога):
 
 ```bash
+cp env.example env.local   # подставить HOST/PORT/USER/DB/PASSWORD
+source env.local
 psql -c 'SELECT version();'
 psql -c 'SELECT current_database(), current_user, inet_server_addr(), inet_server_port();'
 ```

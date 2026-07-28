@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
   <title id="title">Архитектура распределенного планировщика в YDB</title>
-  <desc id="desc">ExecutionOutbox safely dispatches YMQ tasks. After execution_id and epoch checks, a worker atomically updates ExecutionHistory and appends ExecutionResultEvents. CDC of only that append-only table feeds a result relay which publishes execution.results.</desc>
+  <desc id="desc">SchedulerEpoch fences only scheduler transactions that reserve new executions and advance next_run_at. Committed ExecutionHistory and ExecutionOutbox remain valid across leader changes. Workers check stable execution_id and nonterminal state, never the current global epoch.</desc>
   <defs>
     <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
       <path d="M0,0 L0,6 L9,3 z" fill="#334155"/>
@@ -33,7 +33,7 @@
 
   <rect x="0" y="0" width="1600" height="1000" fill="#f8fafc"/>
   <text class="txt title" x="50" y="58">Распределенный планировщик заданий</text>
-  <text class="txt subtitle" x="50" y="88">Leader election и fencing для диспетчеризации; условный execution_id для истинной защиты запуска</text>
+  <text class="txt subtitle" x="50" y="88">SchedulerEpoch fences new dispatch only; committed executions survive leader changes</text>
 
   <rect class="boundary" x="310" y="135" width="900" height="650" rx="22"/>
   <text class="txt box-title" x="340" y="173">YDB boundary</text>
@@ -41,7 +41,7 @@
 
   <rect class="tx" x="345" y="345" width="830" height="310" rx="18"/>
   <text class="txt box-title" x="370" y="378">ACID row-table transactions</text>
-  <text class="txt small" x="370" y="401">dispatch: epoch + execution_id + next_run_at + Outbox | worker final: verify id/epoch + History + ResultEvent</text>
+  <text class="txt small" x="370" y="401">dispatch tx: check global epoch | worker final tx: check execution_id + nonterminal state, never global epoch</text>
 
   <path class="coord-flow" d="M270 245 H350"/>
   <path class="coord-flow" d="M350 285 H290 V285 H270"/>
@@ -74,7 +74,7 @@
   <rect class="label-bg" x="1360" y="493" width="78" height="22" rx="5"/>
   <text class="txt small" x="1370" y="509">competing</text>
   <rect class="label-bg" x="1070" y="640" width="126" height="22" rx="5"/>
-  <text class="txt small" x="1080" y="656">verify id + epoch</text>
+  <text class="txt small" x="1080" y="656">verify id + state</text>
 
   <rect class="app" x="40" y="200" width="230" height="210" rx="14"/>
   <text class="txt box-title" x="70" y="235">Scheduler instances</text>
@@ -102,12 +102,13 @@
   <rect class="table" x="560" y="420" width="190" height="110" rx="12"/>
   <text class="txt box-title" x="580" y="453">SchedulerEpoch</text>
   <text class="txt body" x="580" y="479">key: scheduler_name</text>
-  <text class="txt body" x="580" y="504">transactional epoch++</text>
+  <text class="txt small" x="580" y="502">epoch++ fences only</text>
+  <text class="txt small" x="580" y="520">new dispatch writes</text>
 
   <rect class="table" x="780" y="420" width="250" height="110" rx="12"/>
   <text class="txt box-title" x="805" y="453">ExecutionLeases</text>
   <text class="txt body" x="805" y="479">key: execution_id</text>
-  <text class="txt small" x="805" y="504">owner, epoch, attempt, deadline</text>
+  <text class="txt small" x="805" y="504">owner, attempt, deadline, state</text>
 
   <rect class="table" x="370" y="535" width="170" height="115" rx="12"/>
   <text class="txt small" x="382" y="558" font-weight="700">ExecutionResultEvents</text>
@@ -119,12 +120,13 @@
   <rect class="table" x="560" y="535" width="245" height="115" rx="12"/>
   <text class="txt box-title" x="585" y="568">ExecutionHistory</text>
   <text class="txt body" x="585" y="594">schedule_id, execution_id</text>
-  <text class="txt body" x="585" y="620">epoch, attempt, status, result</text>
+  <text class="txt body" x="585" y="620">attempt, status, terminal result</text>
 
   <rect class="table" x="835" y="535" width="310" height="115" rx="12"/>
   <text class="txt box-title" x="860" y="568">ExecutionOutbox</text>
-  <text class="txt body" x="860" y="594">key: execution_id; epoch, payload</text>
-  <text class="txt body" x="860" y="620">relay_state, stable task_id</text>
+  <text class="txt small" x="860" y="592">key: execution_id; payload, stable task_id</text>
+  <text class="txt small" x="860" y="614">created_by_epoch: audit only</text>
+  <text class="txt small" x="860" y="636">dispatch survives epoch change</text>
 
   <rect class="topic" x="330" y="680" width="260" height="85" rx="14"/>
   <text class="txt box-title" x="355" y="708">ResultEvents CDC</text>
@@ -148,9 +150,10 @@
 
   <rect class="app" x="1260" y="540" width="290" height="145" rx="14"/>
   <text class="txt box-title" x="1290" y="575">Workers</text>
-  <text class="txt body" x="1290" y="603">conditional attempt claim</text>
-  <text class="txt body" x="1290" y="629">idempotent external effect</text>
-  <text class="txt small" x="1290" y="655">verify execution_id + epoch at commit</text>
+  <text class="txt small" x="1290" y="603">claim stable execution_id + attempt</text>
+  <text class="txt small" x="1290" y="625">require expected nonterminal state</text>
+  <text class="txt small" x="1290" y="647">idempotent effect; one terminal commit</text>
+  <text class="txt small" x="1290" y="669">never check global SchedulerEpoch</text>
 
   <rect class="error" x="1400" y="700" width="150" height="75" rx="12"/>
   <text class="txt box-title" x="1455" y="731">DLQ</text>
@@ -158,8 +161,8 @@
 
   <rect x="40" y="825" width="1500" height="130" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
   <text class="txt box-title" x="65" y="859">Гарантии</text>
-  <text class="txt body" x="65" y="890">Dispatch: ExecutionOutbox closes enqueue gap • Result: History + ExecutionResultEvents commit atomically</text>
-  <text class="txt body" x="65" y="918">CDC reads only append-only ResultEvents • execution.results publish is at-least-once and idempotent</text>
+  <text class="txt body" x="65" y="890">SchedulerEpoch fences only new dispatcher writes • Committed History + Outbox survive leader change</text>
+  <text class="txt body" x="65" y="918">Worker checks execution_id + nonterminal state • Result + ResultEvents commit exactly once</text>
 
   <rect class="app" x="1020" y="852" width="26" height="18" rx="3"/>
   <text class="txt small" x="1055" y="866">app</text>

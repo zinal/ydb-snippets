@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+  <title id="title">Архитектура распределенного планировщика в YDB</title>
+  <desc id="desc">Coordination provides only a session-bound leader lease. A new leader increments SchedulerEpoch in a transaction. Execution, next_run_at, and ExecutionOutbox commit atomically; CDC relay and recovery scan enqueue external YMQ tasks.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#334155"/>
+    </marker>
+    <style>
+      .txt { font-family: "DejaVu Sans", Arial, sans-serif; fill: #172033; }
+      .title { font-size: 30px; font-weight: 700; }
+      .subtitle { font-size: 16px; fill: #526075; }
+      .box-title { font-size: 18px; font-weight: 700; }
+      .body { font-size: 14px; }
+      .small { font-size: 13px; }
+      .boundary { fill: #f8fbff; stroke: #2563a6; stroke-width: 3; }
+      .tx { fill: #ffffff; stroke: #1d4ed8; stroke-width: 2; stroke-dasharray: 9 7; }
+      .app { fill: #dbeafe; stroke: #2563eb; stroke-width: 2; }
+      .table { fill: #dcfce7; stroke: #16a34a; stroke-width: 2; }
+      .topic { fill: #f3e8ff; stroke: #9333ea; stroke-width: 2; }
+      .ymq { fill: #ffedd5; stroke: #ea580c; stroke-width: 2; }
+      .coord { fill: #ccfbf1; stroke: #0f766e; stroke-width: 2; }
+      .error { fill: #fee2e2; stroke: #dc2626; stroke-width: 2; }
+      .flow { fill: none; stroke: #334155; stroke-width: 2.2; marker-end: url(#arrow); }
+      .event { fill: none; stroke: #7e22ce; stroke-width: 2.2; marker-end: url(#arrow); }
+      .queue { fill: none; stroke: #c2410c; stroke-width: 2.2; marker-end: url(#arrow); }
+      .coord-flow { fill: none; stroke: #0f766e; stroke-width: 2.2; stroke-dasharray: 7 5; marker-end: url(#arrow); }
+      .error-flow { fill: none; stroke: #dc2626; stroke-width: 2.2; marker-end: url(#arrow); }
+      .recovery { fill: none; stroke: #64748b; stroke-width: 2; stroke-dasharray: 7 5; marker-end: url(#arrow); }
+      .label-bg { fill: #ffffff; opacity: 0.96; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1600" height="1000" fill="#f8fafc"/>
+  <text class="txt title" x="50" y="58">Распределенный планировщик заданий</text>
+  <text class="txt subtitle" x="50" y="88">Leader election и fencing для диспетчеризации; условный execution_id для истинной защиты запуска</text>
+
+  <rect class="boundary" x="310" y="135" width="900" height="650" rx="22"/>
+  <text class="txt box-title" x="340" y="173">YDB boundary</text>
+  <text class="txt small" x="500" y="173">Coordination, row tables, CDC and Topics</text>
+
+  <rect class="tx" x="345" y="345" width="830" height="310" rx="18"/>
+  <text class="txt box-title" x="370" y="378">ACID-транзакция планирования</text>
+  <text class="txt small" x="370" y="401">check epoch + reserve execution_id + next_run_at + ExecutionOutbox</text>
+
+  <path class="coord-flow" d="M270 245 H350"/>
+  <path class="coord-flow" d="M350 285 H290 V285 H270"/>
+  <path class="flow" d="M270 340 H325 V445 H345"/>
+  <path class="flow" d="M540 475 H560"/>
+  <path class="flow" d="M750 475 H780"/>
+  <path class="flow" d="M905 520 V535"/>
+  <path class="event" d="M1145 585 H1188 V255 H1180"/>
+  <path class="queue" d="M1180 255 H1230 V410 H1260"/>
+  <path class="recovery" d="M870 320 V330 H1155 V535 H1145"/>
+  <path class="queue" d="M1350 470 V540"/>
+  <path class="queue" d="M1460 540 V470"/>
+  <path class="flow" d="M1260 640 H1225 V665 H680 V650"/>
+  <path class="event" d="M680 650 V722 H900"/>
+  <path class="error-flow" d="M1490 470 H1570 V737 H1550"/>
+
+  <rect class="label-bg" x="282" y="217" width="59" height="22" rx="5"/>
+  <text class="txt small" x="290" y="233">сессия</text>
+  <rect class="label-bg" x="300" y="298" width="205" height="30" rx="5"/>
+  <text class="txt small" x="310" y="318">leader lease only; no epoch</text>
+  <rect class="label-bg" x="289" y="411" width="111" height="22" rx="5"/>
+  <text class="txt small" x="298" y="427">dispatch due</text>
+  <rect class="label-bg" x="1190" y="230" width="105" height="22" rx="5"/>
+  <text class="txt small" x="1200" y="246">idempotent enqueue</text>
+  <rect class="label-bg" x="1055" y="307" width="95" height="22" rx="5"/>
+  <text class="txt small" x="1065" y="323">recovery scan</text>
+  <rect class="label-bg" x="1360" y="493" width="78" height="22" rx="5"/>
+  <text class="txt small" x="1370" y="509">competing</text>
+  <rect class="label-bg" x="1070" y="640" width="126" height="22" rx="5"/>
+  <text class="txt small" x="1080" y="656">verify id + epoch</text>
+  <rect class="label-bg" x="760" y="694" width="122" height="22" rx="5"/>
+  <text class="txt small" x="770" y="710">committed result</text>
+
+  <rect class="app" x="40" y="200" width="230" height="210" rx="14"/>
+  <text class="txt box-title" x="70" y="235">Scheduler instances</text>
+  <text class="txt body" x="70" y="268">scheduler-1</text>
+  <text class="txt body" x="70" y="298">scheduler-2</text>
+  <text class="txt body" x="70" y="328">scheduler-N</text>
+  <text class="txt body" x="70" y="370">dispatcher = leader</text>
+
+  <rect class="coord" x="350" y="200" width="360" height="105" rx="14"/>
+  <text class="txt box-title" x="380" y="235">Coordination leader election</text>
+  <text class="txt body" x="380" y="263">session-bound leader lease only</text>
+  <text class="txt body" x="380" y="286">does NOT issue epoch; not ACID</text>
+
+  <rect class="app" x="850" y="190" width="330" height="130" rx="14"/>
+  <text class="txt box-title" x="880" y="223">ExecutionOutbox CDC / relay</text>
+  <text class="txt small" x="880" y="249">exactly-once change record in changefeed</text>
+  <text class="txt small" x="880" y="273">read / processing may retry</text>
+  <text class="txt small" x="880" y="297">idempotent enqueue + recovery scan</text>
+
+  <rect class="table" x="370" y="420" width="170" height="110" rx="12"/>
+  <text class="txt box-title" x="395" y="453">Schedules</text>
+  <text class="txt body" x="395" y="479">key: schedule_id</text>
+  <text class="txt body" x="395" y="504">next_run_at, version</text>
+
+  <rect class="table" x="560" y="420" width="190" height="110" rx="12"/>
+  <text class="txt box-title" x="580" y="453">SchedulerEpoch</text>
+  <text class="txt body" x="580" y="479">key: scheduler_name</text>
+  <text class="txt body" x="580" y="504">transactional epoch++</text>
+
+  <rect class="table" x="780" y="420" width="250" height="110" rx="12"/>
+  <text class="txt box-title" x="805" y="453">ExecutionLeases</text>
+  <text class="txt body" x="805" y="479">key: execution_id</text>
+  <text class="txt small" x="805" y="504">owner, epoch, attempt, deadline</text>
+
+  <rect class="table" x="560" y="535" width="245" height="115" rx="12"/>
+  <text class="txt box-title" x="585" y="568">ExecutionHistory</text>
+  <text class="txt body" x="585" y="594">schedule_id, execution_id</text>
+  <text class="txt body" x="585" y="620">epoch, attempt, status, result</text>
+
+  <rect class="table" x="835" y="535" width="310" height="115" rx="12"/>
+  <text class="txt box-title" x="860" y="568">ExecutionOutbox</text>
+  <text class="txt body" x="860" y="594">key: execution_id; epoch, payload</text>
+  <text class="txt body" x="860" y="620">relay_state, stable task_id</text>
+
+  <rect class="topic" x="900" y="680" width="280" height="85" rx="14"/>
+  <text class="txt box-title" x="925" y="711">Result changefeed Topic</text>
+  <text class="txt small" x="925" y="735">exactly-once record; read may retry</text>
+  <text class="txt small" x="925" y="755">pub/sub consumer groups</text>
+
+  <rect class="ymq" x="1260" y="350" width="290" height="120" rx="14"/>
+  <text class="txt box-title" x="1290" y="385">YMQ tasks — outside YDB</text>
+  <text class="txt body" x="1290" y="413">SQS-compatible queue</text>
+  <text class="txt body" x="1290" y="440">at-least-once, retries</text>
+
+  <rect class="app" x="1260" y="540" width="290" height="145" rx="14"/>
+  <text class="txt box-title" x="1290" y="575">Workers</text>
+  <text class="txt body" x="1290" y="603">conditional attempt claim</text>
+  <text class="txt body" x="1290" y="629">idempotent external effect</text>
+  <text class="txt small" x="1290" y="655">verify execution_id + epoch at commit</text>
+
+  <rect class="error" x="1400" y="700" width="150" height="75" rx="12"/>
+  <text class="txt box-title" x="1455" y="731">DLQ</text>
+  <text class="txt small" x="1425" y="755">retry limit reached</text>
+
+  <rect x="40" y="825" width="1500" height="130" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text class="txt box-title" x="65" y="859">Гарантии</text>
+  <text class="txt body" x="65" y="890">Execution + next_run_at + ExecutionOutbox commit atomically; relay recovery closes the enqueue gap</text>
+  <text class="txt body" x="65" y="918">Coordination is session lease only; epoch lives in SchedulerEpoch; worker verifies execution_id + epoch</text>
+
+  <rect class="app" x="1020" y="852" width="26" height="18" rx="3"/>
+  <text class="txt small" x="1055" y="866">app</text>
+  <rect class="table" x="1110" y="852" width="26" height="18" rx="3"/>
+  <text class="txt small" x="1145" y="866">row table</text>
+  <rect class="topic" x="1240" y="852" width="26" height="18" rx="3"/>
+  <text class="txt small" x="1275" y="866">Topic</text>
+  <rect class="ymq" x="1360" y="852" width="26" height="18" rx="3"/>
+  <text class="txt small" x="1395" y="866">YMQ</text>
+  <rect class="coord" x="1020" y="899" width="26" height="18" rx="3"/>
+  <text class="txt small" x="1055" y="913">Coordination</text>
+  <rect class="error" x="1215" y="899" width="26" height="18" rx="3"/>
+  <text class="txt small" x="1250" y="913">DLQ / error</text>
+</svg>

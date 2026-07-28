@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+  <title id="title">CQRS с CDC и версионируемыми проекциями</title>
+  <desc id="desc">Command API записывает нормализованные строковые таблицы YDB. CDC ровно один раз записывает change record каждого committed change в topic. Projectors атомарно изменяют read models и встроенные consumer offsets; Query API читает активную версию.</desc>
+  <defs>
+    <marker id="arrow-blue" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-purple" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#7c3aed"/>
+    </marker>
+    <marker id="arrow-teal" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#0f766e"/>
+    </marker>
+    <style>
+      text, tspan { fill: #172033; }
+      .title { font-size: 30px; font-weight: 700; }
+      .subtitle { font-size: 16px; fill: #475569; }
+      .box-title { font-size: 18px; font-weight: 700; }
+      .body { font-size: 14px; }
+      .small { font-size: 12px; }
+      .flow { font-size: 13px; font-weight: 600; }
+      .app { fill: #dbeafe; stroke: #2563eb; stroke-width: 2; }
+      .table { fill: #dcfce7; stroke: #16a34a; stroke-width: 2; }
+      .topic { fill: #ede9fe; stroke: #7c3aed; stroke-width: 2; }
+      .queue { fill: #ffedd5; stroke: #d97706; stroke-width: 2; }
+      .coord { fill: #ccfbf1; stroke: #0f766e; stroke-width: 2; }
+      .error { fill: #fee2e2; stroke: #dc2626; stroke-width: 2; }
+      .boundary { fill: #f8fafc; stroke: #334155; stroke-width: 2; stroke-dasharray: 9 6; }
+      .blue-flow { fill: none; stroke: #2563eb; stroke-width: 2.4; marker-end: url(#arrow-blue); }
+      .purple-flow { fill: none; stroke: #7c3aed; stroke-width: 2.4; marker-end: url(#arrow-purple); }
+      .teal-flow { fill: none; stroke: #0f766e; stroke-width: 2.4; stroke-dasharray: 6 4; marker-end: url(#arrow-teal); }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1600" height="1000" fill="#ffffff"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="50" y="48" class="title">CQRS: CDC, проекции и безопасный rebuild</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="50" y="76" class="subtitle">Строгая согласованность write model • eventual consistency read models • версионирование без остановки записи</text>
+
+  <rect x="50" y="110" width="350" height="105" rx="14" class="app"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="75" y="143" class="box-title">Command API / Handler</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="75" y="170" class="body">command_id • проверка инвариантов</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="75" y="194" class="small">Ответ содержит write_version</text>
+
+  <rect x="1185" y="110" width="365" height="105" rx="14" class="app"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1210" y="143" class="box-title">Query API</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1210" y="170" class="body">Читает только активную версию</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1210" y="194" class="small">Может вернуть «проекция обновляется»</text>
+
+  <rect x="35" y="255" width="1530" height="565" rx="18" class="boundary"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="60" y="287" class="box-title">YDB — только строковые таблицы и Topics</text>
+
+  <rect x="65" y="320" width="390" height="205" rx="14" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="90" y="350" class="box-title">Нормализованная write model</text>
+  <rect x="90" y="370" width="155" height="60" rx="8" class="table"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="110" y="395" class="box-title">Customers</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="110" y="416" class="small">PK: customer_id</text>
+  <rect x="265" y="370" width="165" height="60" rx="8" class="table"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="285" y="395" class="box-title">Orders</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="285" y="416" class="small">PK: order_id</text>
+  <rect x="90" y="448" width="165" height="60" rx="8" class="table"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="110" y="473" class="box-title">OrderLines</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="110" y="494" class="small">PK: order_id, line_no</text>
+  <rect x="275" y="448" width="155" height="60" rx="8" class="table"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="295" y="473" class="box-title">CommandResults</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="295" y="494" class="small">PK: command_id</text>
+
+  <rect x="505" y="350" width="210" height="115" rx="12" class="topic"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="530" y="382" class="box-title">CDC / changefeed</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="530" y="406" class="body">exactly-once write</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="530" y="430" class="small">1 committed change</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="530" y="451" class="small">→ 1 change record</text>
+
+  <rect x="760" y="350" width="330" height="115" rx="12" class="topic"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="785" y="382" class="box-title">Topic: orders.changefeed</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="785" y="408" class="body">YDB Topics = pub/sub log</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="785" y="432" class="small">partition key: order_id</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="785" y="451" class="small">Consumer groups на каждую проекцию</text>
+
+  <rect x="1135" y="320" width="395" height="205" rx="14" class="app"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1160" y="352" class="box-title">Projectors</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1160" y="380" class="body">orders-summary-v1</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1160" y="404" class="body">orders-by-customer-v1</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1160" y="428" class="body">CG: orders-summary-v2-rebuild</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1160" y="456" class="small">read model + ProcessedEvents</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1160" y="478" class="small">+ built-in consumer offset</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1160" y="502" class="small">one topic+table transaction</text>
+
+  <rect x="65" y="585" width="255" height="100" rx="11" class="table"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="88" y="616" class="box-title">OrderSummary_v1</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="88" y="642" class="body">PK: order_id</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="88" y="665" class="small">активная версия</text>
+
+  <rect x="345" y="585" width="300" height="100" rx="11" class="table"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="368" y="616" class="box-title">OrdersByCustomer_v1</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="368" y="642" class="body">PK: customer_id, updated_bucket, order_id</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="368" y="665" class="small">активная версия</text>
+
+  <rect x="670" y="585" width="255" height="100" rx="11" class="table"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="693" y="616" class="box-title">OrderSummary_v2</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="693" y="642" class="body">PK: order_id</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="693" y="665" class="small">rebuild → catch-up → verify</text>
+
+  <rect x="950" y="585" width="270" height="100" rx="11" class="table"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="973" y="616" class="box-title">ProjectionOffsets</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="973" y="642" class="small">version + diagnostic lag</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="973" y="665" class="small">not a resume offset</text>
+
+  <rect x="1245" y="585" width="285" height="100" rx="11" class="table"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1268" y="616" class="box-title">ProjectionRegistry</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1268" y="642" class="body">projection_name → v1 / v2</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1268" y="665" class="small">атомарное переключение</text>
+
+  <rect x="685" y="720" width="350" height="72" rx="11" class="coord"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="710" y="750" class="box-title">YDB Coordination</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="710" y="775" class="body">Lease rebuild + сериализация switch; не ACID</text>
+
+  <rect x="1080" y="720" width="330" height="72" rx="11" class="error"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1105" y="750" class="box-title">Poison event / blocked</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1105" y="775" class="body">Диагностика, исправление, controlled replay</text>
+
+  <path d="M225 215 L225 311" class="blue-flow"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="238" y="252" class="flow">ACID write</text>
+  <path d="M455 405 L496 405" class="purple-flow"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="462" y="391" class="flow">CDC</text>
+  <path d="M715 405 L751 405" class="purple-flow"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="727" y="391" class="flow">1:1</text>
+  <path d="M1090 405 L1126 405" class="purple-flow"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1092" y="391" class="flow">consume</text>
+
+  <path d="M1260 525 L1260 550 L190 550 L190 576" class="purple-flow"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1060" y="544" class="flow">project v1</text>
+  <path d="M1320 525 L1320 565 L495 565 L495 576" class="purple-flow"/>
+  <path d="M1380 525 L1380 540 L797 540 L797 576" class="purple-flow"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="805" y="533" class="flow">rebuild v2 + live catch-up</text>
+  <path d="M1440 525 L1440 555 L1085 555 L1085 576" class="blue-flow"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1100" y="548" class="small">transactional built-in offset</text>
+
+  <path d="M860 720 L860 702 L1387 702 L1387 694" class="teal-flow"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="990" y="715" class="flow">lease и switch guard</text>
+  <path d="M925 407 L925 535 L797 535 L797 576" class="teal-flow"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="800" y="489" class="small">replay от baseline offset</text>
+
+  <path d="M1387 585 L1387 540 L1480 540 L1480 224" class="blue-flow"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1398" y="308" class="flow">active version</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1140" y="705" class="small">ошибка не подтверждает offset</text>
+
+  <rect x="50" y="850" width="1500" height="76" rx="12" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="75" y="875" class="box-title">Гарантии</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="75" y="899" class="body">CDC: exactly-once write of each change record • subscriber may retry → idempotency</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="75" y="919" class="small">Read model + built-in consumer offset: one topic+table transaction • read models: eventual consistency</text>
+
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="50" y="968" class="box-title">Легенда:</text>
+  <rect x="150" y="950" width="24" height="18" rx="3" class="app"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="183" y="965" class="body">приложение</text>
+  <rect x="295" y="950" width="24" height="18" rx="3" class="table"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="328" y="965" class="body">строковая таблица</text>
+  <rect x="490" y="950" width="24" height="18" rx="3" class="topic"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="523" y="965" class="body">Topic / CDC</text>
+  <rect x="675" y="950" width="24" height="18" rx="3" class="coord"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="708" y="965" class="body">Coordination</text>
+  <rect x="845" y="950" width="24" height="18" rx="3" class="error"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="878" y="965" class="body">ошибка</text>
+  <line x1="985" y1="959" x2="1045" y2="959" class="blue-flow"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1055" y="965" class="body">чтение / запись</text>
+  <line x1="1225" y1="959" x2="1285" y2="959" class="purple-flow"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1295" y="965" class="body">асинхронный поток</text>
+</svg>

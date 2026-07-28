@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+  <title id="title">Event-driven микросервисы с транзакционной публикацией и Outbox</title>
+  <desc id="desc">Три изолированных bounded context используют собственные строковые таблицы YDB. Показаны атомарная запись в таблицу и topic, альтернативный Outbox с CDC, Inbox для дедупликации, командная очередь, DLQ и Coordination.</desc>
+  <defs>
+    <marker id="arrow-blue" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-purple" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#7c3aed"/>
+    </marker>
+    <marker id="arrow-orange" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#d97706"/>
+    </marker>
+    <style>
+      text, tspan { fill: #172033; }
+      .title { font-size: 30px; font-weight: 700; }
+      .subtitle { font-size: 16px; fill: #475569; }
+      .box-title { font-size: 18px; font-weight: 700; }
+      .body { font-size: 14px; }
+      .small { font-size: 12px; }
+      .flow { font-size: 13px; font-weight: 600; }
+      .app { fill: #dbeafe; stroke: #2563eb; stroke-width: 2; }
+      .table { fill: #dcfce7; stroke: #16a34a; stroke-width: 2; }
+      .topic { fill: #ede9fe; stroke: #7c3aed; stroke-width: 2; }
+      .queue { fill: #ffedd5; stroke: #d97706; stroke-width: 2; }
+      .coord { fill: #ccfbf1; stroke: #0f766e; stroke-width: 2; }
+      .error { fill: #fee2e2; stroke: #dc2626; stroke-width: 2; }
+      .boundary { fill: #f8fafc; stroke: #334155; stroke-width: 2; stroke-dasharray: 9 6; }
+      .lane { fill: none; stroke: #94a3b8; stroke-width: 1.5; stroke-dasharray: 5 5; }
+      .blue-flow { fill: none; stroke: #2563eb; stroke-width: 2.4; marker-end: url(#arrow-blue); }
+      .purple-flow { fill: none; stroke: #7c3aed; stroke-width: 2.4; marker-end: url(#arrow-purple); }
+      .orange-flow { fill: none; stroke: #d97706; stroke-width: 2.4; marker-end: url(#arrow-orange); }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1600" height="1000" fill="#ffffff"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="50" y="48" class="title">Event-driven микросервисы: транзакционная публикация и Outbox</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="50" y="76" class="subtitle">Изоляция bounded context • доставка как минимум один раз • идемпотентные consumers и внешние эффекты</text>
+
+  <rect x="50" y="105" width="450" height="125" rx="14" class="app"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="75" y="138" class="box-title">Orders Service</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="75" y="164" class="body">Владеет только контекстом «Заказы»</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="75" y="188" class="body">Команда: CreateOrder</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="75" y="212" class="small">idempotency_key → стабильный event_id</text>
+
+  <rect x="575" y="105" width="400" height="125" rx="14" class="app"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="600" y="138" class="box-title">Payments Service</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="600" y="164" class="body">Consumer group: payments</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="600" y="188" class="body">Собственные данные и Inbox</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="600" y="212" class="small">Внешнее списание идемпотентно</text>
+
+  <rect x="1050" y="105" width="400" height="125" rx="14" class="app"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1075" y="138" class="box-title">Delivery Service</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1075" y="164" class="body">Consumer group: delivery</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1075" y="188" class="body">Собственные данные и Inbox</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1075" y="212" class="small">Вызов перевозчика идемпотентен</text>
+
+  <rect x="35" y="265" width="1530" height="535" rx="18" class="boundary"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="60" y="297" class="box-title">YDB — граница кластера (только строковые таблицы и Topics)</text>
+
+  <rect x="65" y="320" width="420" height="120" rx="12" class="lane"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="82" y="343" class="small">Владение Orders Service</text>
+  <rect x="85" y="355" width="180" height="64" rx="9" class="table"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="105" y="380" class="box-title">Orders</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="105" y="403" class="small">PK: order_id</text>
+  <rect x="285" y="355" width="180" height="64" rx="9" class="table"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="305" y="380" class="box-title">OrderItems</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="305" y="403" class="small">PK: order_id, line_no</text>
+
+  <rect x="545" y="320" width="440" height="120" rx="12" class="lane"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="562" y="343" class="small">Владение Payments Service</text>
+  <rect x="565" y="355" width="190" height="64" rx="9" class="table"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="585" y="376" class="box-title">Payments<tspan font-family="DejaVu Sans, Arial, sans-serif" x="585" dy="17" class="small">+ PaymentByOrder</tspan></text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="585" y="410" class="small">PK: payment_id / order_id</text>
+  <rect x="775" y="355" width="190" height="64" rx="9" class="table"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="795" y="380" class="box-title">PaymentInbox</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="795" y="403" class="small">PK: event_id</text>
+
+  <rect x="1040" y="320" width="455" height="120" rx="12" class="lane"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1057" y="343" class="small">Владение Delivery Service</text>
+  <rect x="1060" y="355" width="195" height="64" rx="9" class="table"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1080" y="376" class="box-title">Shipments<tspan font-family="DejaVu Sans, Arial, sans-serif" x="1080" dy="17" class="small">+ ShipmentByOrder</tspan></text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1080" y="410" class="small">PK: shipment_id / order_id</text>
+  <rect x="1275" y="355" width="200" height="64" rx="9" class="table"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1295" y="380" class="box-title">DeliveryInbox</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1295" y="403" class="small">PK: event_id</text>
+
+  <rect x="90" y="485" width="245" height="78" rx="10" class="table"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="110" y="513" class="box-title">OrderOutbox</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="110" y="537" class="small">PK: shard_id, created_at, event_id</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="110" y="554" class="small">вариант B: классический Outbox</text>
+
+  <rect x="385" y="485" width="185" height="78" rx="10" class="topic"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="405" y="506" class="box-title">CDC/changefeed</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="405" y="527" class="small">change record:<tspan font-family="DejaVu Sans, Arial, sans-serif" x="405" dy="16">exactly-once</tspan></text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="405" y="557" class="small">relay publish may retry</text>
+
+  <rect x="650" y="500" width="360" height="90" rx="12" class="topic"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="675" y="532" class="box-title">Topic: orders.events</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="675" y="557" class="body">YDB Topics = partitioned pub/sub log</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="675" y="577" class="small">partition key: order_id • event_id для dedup</text>
+
+  <rect x="1080" y="500" width="365" height="90" rx="12" class="coord"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1105" y="532" class="box-title">YDB Coordination</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1105" y="557" class="body">Lease / leader election для relay</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1105" y="577" class="small">Не заменяет ACID-транзакцию</text>
+
+  <rect x="560" y="665" width="330" height="76" rx="11" class="topic"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="585" y="695" class="box-title">Topic: payments.events</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="585" y="720" class="small">PaymentAuthorized • key: order_id</text>
+  <rect x="930" y="665" width="330" height="76" rx="11" class="topic"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="955" y="695" class="box-title">Topic: delivery.events</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="955" y="720" class="small">ShipmentCreated • key: order_id</text>
+
+  <path d="M275 230 L275 346" class="blue-flow"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="286" y="278" class="flow">write</text>
+  <path d="M485 387 L615 387 L615 475 L735 475 L735 492" class="blue-flow"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="500" y="376" class="flow">вариант A: одна ACID-транзакция</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="500" y="398" class="small">table + topic, предпочтительно</text>
+
+  <path d="M185 440 L185 476" class="blue-flow"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="197" y="465" class="small">тот же commit</text>
+  <path d="M335 524 L376 524" class="purple-flow"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="340" y="513" class="small">changefeed</text>
+  <path d="M570 524 L641 524" class="purple-flow"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="582" y="513" class="small">publish</text>
+  <path d="M1260 500 L1260 462 L475 462 L475 476" class="purple-flow"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1050" y="454" class="small">lease relay</text>
+
+  <path d="M760 500 L520 500 L520 245 L650 245 L650 239" class="purple-flow"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="530" y="485" class="flow">consume + Inbox</text>
+  <path d="M900 500 L1015 500 L1015 245 L1150 245 L1150 239" class="purple-flow"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1025" y="485" class="flow">consume + Inbox</text>
+  <path d="M775 230 L775 346" class="blue-flow"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="787" y="278" class="flow">own write</text>
+  <path d="M1250 230 L1250 346" class="blue-flow"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1262" y="278" class="flow">own write</text>
+  <path d="M725 419 L725 656" class="purple-flow"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="738" y="632" class="small">publish atomically</text>
+  <path d="M1260 419 L1260 640 L1100 640 L1100 656" class="purple-flow"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1110" y="632" class="small">publish atomically</text>
+
+  <rect x="65" y="835" width="530" height="84" rx="12" class="queue"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="90" y="858" class="box-title">YMQ/SQS-подобная очередь<tspan font-family="DejaVu Sans, Arial, sans-serif" x="90" dy="21">Отдельный сервис поверх YDB</tspan></text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="90" y="903" class="small">Команды / повторы • competing consumers • не YDB Topic</text>
+
+  <rect x="635" y="835" width="255" height="84" rx="12" class="error"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="660" y="868" class="box-title">delivery.dlq</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="660" y="893" class="body">Разбор + controlled redrive</text>
+  <path d="M595 877 L626 877" class="orange-flow"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="600" y="862" class="small">лимит</text>
+
+  <path d="M725 741 L725 810 L330 810 L330 826" class="orange-flow"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="450" y="801" class="flow">команды и повторы</text>
+  <path d="M1095 741 L1095 790 L490 790 L490 826" class="orange-flow"/>
+
+  <rect x="930" y="835" width="600" height="84" rx="12" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="955" y="860" class="box-title">Гарантии</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="955" y="884" class="body">ACID внутри bounded context • eventual consistency между сервисами</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="955" y="907" class="body">At-least-once + Inbox/Deduplication • внешние эффекты идемпотентны</text>
+
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="65" y="964" class="box-title">Легенда:</text>
+  <rect x="165" y="946" width="24" height="18" rx="3" class="app"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="198" y="961" class="body">приложение</text>
+  <rect x="310" y="946" width="24" height="18" rx="3" class="table"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="343" y="961" class="body">строковая таблица</text>
+  <rect x="505" y="946" width="24" height="18" rx="3" class="topic"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="538" y="961" class="body">Topic / CDC</text>
+  <rect x="660" y="946" width="24" height="18" rx="3" class="queue"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="693" y="961" class="body">очередь</text>
+  <rect x="785" y="946" width="24" height="18" rx="3" class="coord"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="818" y="961" class="body">Coordination</text>
+  <rect x="955" y="946" width="24" height="18" rx="3" class="error"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="988" y="961" class="body">ошибка / DLQ</text>
+  <line x1="1125" y1="955" x2="1185" y2="955" class="blue-flow"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1195" y="961" class="body">синхронная запись</text>
+  <line x1="1370" y1="955" x2="1430" y2="955" class="purple-flow"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1440" y="961" class="body">async</text>
+</svg>

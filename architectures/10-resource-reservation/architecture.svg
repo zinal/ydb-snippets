@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
+  <title id="title">Архитектура резервирования ограниченных ресурсов в YDB</title>
+  <desc id="desc">Resource reservation and ExpirationOutbox are committed in one YDB transaction. CDC and a recovery relay enqueue duplicate-safe YMQ expiration jobs. Resources CDC provides availability events.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#334155"/>
+    </marker>
+    <style>
+      .txt { font-family: "DejaVu Sans", Arial, sans-serif; fill: #172033; }
+      .title { font-size: 30px; font-weight: 700; }
+      .subtitle { font-size: 16px; fill: #526075; }
+      .box-title { font-size: 18px; font-weight: 700; }
+      .body { font-size: 14px; }
+      .small { font-size: 13px; }
+      .boundary { fill: #f8fbff; stroke: #2563a6; stroke-width: 3; }
+      .tx { fill: #ffffff; stroke: #1d4ed8; stroke-width: 2; stroke-dasharray: 9 7; }
+      .app { fill: #dbeafe; stroke: #2563eb; stroke-width: 2; }
+      .table { fill: #dcfce7; stroke: #16a34a; stroke-width: 2; }
+      .topic { fill: #f3e8ff; stroke: #9333ea; stroke-width: 2; }
+      .ymq { fill: #ffedd5; stroke: #ea580c; stroke-width: 2; }
+      .coord { fill: #ccfbf1; stroke: #0f766e; stroke-width: 2; }
+      .error { fill: #fee2e2; stroke: #dc2626; stroke-width: 2; }
+      .flow { fill: none; stroke: #334155; stroke-width: 2.2; marker-end: url(#arrow); }
+      .event { fill: none; stroke: #7e22ce; stroke-width: 2.2; marker-end: url(#arrow); }
+      .queue { fill: none; stroke: #c2410c; stroke-width: 2.2; marker-end: url(#arrow); }
+      .coord-flow { fill: none; stroke: #0f766e; stroke-width: 2.2; stroke-dasharray: 7 5; marker-end: url(#arrow); }
+      .recovery { fill: none; stroke: #64748b; stroke-width: 2; stroke-dasharray: 7 5; marker-end: url(#arrow); }
+      .label-bg { fill: #ffffff; opacity: 0.96; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1600" height="1000" fill="#f8fafc"/>
+  <text class="txt title" x="50" y="58">Резервирование ограниченных ресурсов</text>
+  <text class="txt subtitle" x="50" y="88">ACID-инвариант остатка, идемпотентные команды и at-least-once фоновые процессы</text>
+
+  <rect class="boundary" x="330" y="145" width="890" height="650" rx="22"/>
+  <text class="txt box-title" x="360" y="183">YDB boundary</text>
+  <text class="txt small" x="510" y="183">row tables, транзакции, CDC</text>
+
+  <rect class="tx" x="375" y="215" width="800" height="355" rx="18"/>
+  <text class="txt box-title" x="400" y="248">ACID-транзакция резервирования</text>
+  <text class="txt small" x="400" y="270">reserve + result + ExpirationOutbox in one commit</text>
+
+  <path class="coord-flow" d="M1250 245 H1188 V300 H1175"/>
+  <path class="flow" d="M270 350 H375"/>
+  <path class="flow" d="M590 350 H620"/>
+  <path class="flow" d="M860 350 H900"/>
+  <path class="flow" d="M750 410 V438"/>
+  <path class="queue" d="M1270 500 H1230 V810 H290 V650 H270"/>
+  <path class="event" d="M600 350 H620 V675 H900"/>
+  <path class="event" d="M1040 538 V620"/>
+  <path class="event" d="M1160 650 H1270"/>
+  <path class="event" d="M1160 700 H1210 V750 H1270"/>
+  <path class="queue" d="M1410 585 V560"/>
+  <path class="recovery" d="M1270 620 H1190 V520 H1145"/>
+
+  <rect class="label-bg" x="278" y="319" width="90" height="23" rx="5"/>
+  <text class="txt small" x="288" y="336">команда</text>
+  <rect class="label-bg" x="613" y="322" width="66" height="22" rx="5"/>
+  <text class="txt small" x="620" y="338">создать</text>
+  <rect class="label-bg" x="856" y="322" width="72" height="22" rx="5"/>
+  <text class="txt small" x="864" y="338">результат</text>
+  <rect class="label-bg" x="607" y="621" width="143" height="23" rx="5"/>
+  <text class="txt small" x="617" y="638">изменение строки</text>
+  <rect class="label-bg" x="1173" y="624" width="91" height="23" rx="5"/>
+  <text class="txt small" x="1183" y="641">changefeed</text>
+  <rect class="label-bg" x="1210" y="721" width="60" height="23" rx="5"/>
+  <text class="txt small" x="1220" y="738">pub/sub</text>
+  <rect class="label-bg" x="1188" y="534" width="75" height="23" rx="5"/>
+  <text class="txt small" x="1198" y="551">recovery</text>
+  <rect class="label-bg" x="1080" y="575" width="170" height="40" rx="5"/>
+  <text class="txt small" x="1090" y="591">проверить состояние</text>
+  <text class="txt small" x="1090" y="607">и expires_at</text>
+
+  <rect class="app" x="50" y="285" width="220" height="130" rx="14"/>
+  <text class="txt box-title" x="80" y="323">Reservation API</text>
+  <text class="txt body" x="80" y="351">create / confirm / cancel</text>
+  <text class="txt body" x="80" y="377">idempotency_key</text>
+
+  <rect class="app" x="50" y="585" width="220" height="130" rx="14"/>
+  <text class="txt box-title" x="80" y="623">Expiration worker</text>
+  <text class="txt body" x="80" y="651">competing consumer</text>
+  <text class="txt body" x="80" y="677">условный expire</text>
+
+  <rect class="table" x="400" y="300" width="190" height="110" rx="12"/>
+  <text class="txt box-title" x="425" y="333">Resources</text>
+  <text class="txt body" x="425" y="359">key: resource_id</text>
+  <text class="txt body" x="425" y="384">available, version</text>
+
+  <rect class="table" x="620" y="300" width="240" height="110" rx="12"/>
+  <text class="txt box-title" x="640" y="330">Reservations</text>
+  <text class="txt small" x="640" y="351">key: resource_id,</text>
+  <text class="txt small" x="640" y="372">reservation_id</text>
+  <text class="txt small" x="640" y="397">state, qty, expires_at</text>
+
+  <rect class="table" x="900" y="300" width="225" height="110" rx="12"/>
+  <text class="txt box-title" x="925" y="333">Operations</text>
+  <text class="txt body" x="925" y="359">key: operation_id</text>
+  <text class="txt body" x="925" y="384">status, saved_result</text>
+
+  <rect class="table" x="630" y="438" width="270" height="100" rx="12"/>
+  <text class="txt box-title" x="655" y="471">IdempotencyKeys</text>
+  <text class="txt body" x="655" y="497">client_id, idempotency_key</text>
+  <text class="txt body" x="655" y="521">operation_id, response</text>
+
+  <rect class="table" x="930" y="438" width="215" height="100" rx="12"/>
+  <text class="txt box-title" x="950" y="471">ExpirationOutbox</text>
+  <text class="txt small" x="950" y="495">resource_id,</text>
+  <text class="txt small" x="950" y="515">reservation_id, job_id</text>
+  <text class="txt small" x="950" y="529">expires_at, pending</text>
+
+  <rect class="topic" x="900" y="620" width="260" height="110" rx="12"/>
+  <text class="txt box-title" x="930" y="650">CDC changefeeds</text>
+  <text class="txt small" x="930" y="676">exactly-once change record</text>
+  <text class="txt small" x="930" y="698">read / processing may retry</text>
+  <text class="txt small" x="930" y="718">Outbox + Resources</text>
+
+  <rect class="coord" x="1250" y="180" width="300" height="130" rx="14"/>
+  <text class="txt box-title" x="1280" y="218">Coordination semaphore</text>
+  <text class="txt body" x="1280" y="247">только admission control</text>
+  <text class="txt body" x="1280" y="274">не защита инварианта</text>
+
+  <rect class="ymq" x="1270" y="440" width="280" height="120" rx="14"/>
+  <text class="txt box-title" x="1300" y="478">YMQ expiration jobs</text>
+  <text class="txt body" x="1300" y="506">SQS-совместимая очередь</text>
+  <text class="txt body" x="1300" y="532">at-least-once</text>
+
+  <rect class="app" x="1270" y="585" width="280" height="95" rx="14"/>
+  <text class="txt box-title" x="1300" y="617">Expiration relay</text>
+  <text class="txt small" x="1300" y="642">idempotent enqueue + mark sent</text>
+  <text class="txt small" x="1300" y="663">recovery scan pending rows</text>
+
+  <rect class="topic" x="1270" y="700" width="280" height="100" rx="14"/>
+  <text class="txt box-title" x="1300" y="733">Availability Topic</text>
+  <text class="txt body" x="1300" y="759">pub/sub для подписчиков</text>
+  <text class="txt body" x="1300" y="782">события доступности</text>
+
+  <rect x="50" y="835" width="1500" height="120" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text class="txt box-title" x="75" y="869">Гарантии</text>
+  <text class="txt body" x="75" y="900">ACID: reserve + ExpirationOutbox; no dual-write • TTL is cleanup, not an exact timer • YMQ: at-least-once</text>
+  <text class="txt body" x="75" y="928">CDC: exactly-once change record in changefeed Topic; read/processing may retry • External effects are idempotent</text>
+
+  <rect class="app" x="1040" y="867" width="26" height="18" rx="3"/>
+  <text class="txt small" x="1075" y="881">app</text>
+  <rect class="table" x="1130" y="867" width="26" height="18" rx="3"/>
+  <text class="txt small" x="1165" y="881">row table</text>
+  <rect class="topic" x="1260" y="867" width="26" height="18" rx="3"/>
+  <text class="txt small" x="1295" y="881">Topic / CDC</text>
+  <rect class="ymq" x="1415" y="867" width="26" height="18" rx="3"/>
+  <text class="txt small" x="1450" y="881">YMQ</text>
+  <rect class="coord" x="1040" y="910" width="26" height="18" rx="3"/>
+  <text class="txt small" x="1075" y="924">Coordination</text>
+  <rect class="error" x="1235" y="910" width="26" height="18" rx="3"/>
+  <text class="txt small" x="1270" y="924">DLQ / error</text>
+</svg>

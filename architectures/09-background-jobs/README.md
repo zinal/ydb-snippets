@@ -19,36 +19,38 @@
 
 | Компонент | Роль |
 |---|---|
-| Producer / API | В одной транзакции меняет бизнес-таблицы и регистрирует задание |
+| Producer / API | Внешнее приложение: в одной транзакции меняет бизнес-таблицы и регистрирует задание |
 | Business tables | Строковые таблицы предметной области |
 | Jobs | Строковая таблица статуса, попытки, lease и параметров; ключ `job_id` |
-| Outbox | Строковая таблица ожидающей постановки задания; стабильный `message_id` |
-| Dispatcher / CDC relay | Получает change record Outbox и повторяемо отправляет сообщение в YMQ |
+| Outbox | Строковая таблица ожидающей постановки задания; стабильный прикладной `dispatch_id` |
+| Dispatcher / CDC relay | Внешнее приложение: получает change record Outbox и повторяемо отправляет сообщение в YMQ |
 | YMQ queue | Отдельный SQS-совместимый сервис поверх YDB с competing consumers, вне ACID-границы приложения |
-| Workers | Продлевают visibility при необходимости, выполняют и фиксируют результат |
+| Workers | Внешние приложения: claim/receive, продление visibility, выполнение, commit результата и ack/delete |
 | JobResults | Строковая таблица результата по `job_id` |
 | IdempotencyKeys | Строковая таблица дедупликации попыток/операций |
 | StatusOutbox | Строковая таблица статусных событий, атомарно записанных с результатом |
-| Status events Topic | YDB Topics pub/sub log для независимых подписчиков статусов |
+| Status events Topic | YDB Topic статусов; relay задает `producer_id = message_group_id = job_id` |
 | DLQ | Сообщения после исчерпания политики retry |
 
-YMQ и YDB Topics не взаимозаменяемы. YMQ дает competing consumers, visibility timeout, retry и DLQ. Topic — партиционированный pub/sub log с offset каждого consumer group; статусные события могут читать несколько групп независимо. YMQ визуально и транзакционно находится вне границы YDB приложения: то, что сервис построен поверх YDB, не создает общей транзакции с таблицами задания.
+YMQ и YDB Topics не взаимозаменяемы. YMQ дает competing consumers, visibility timeout, retry и DLQ. Topic — партиционированный pub/sub log с offset каждого именованного YDB Consumer. Для YMQ не задаются Topic-поля `producer_id`/`message_group_id`: YMQ присваивает сообщению `message_id`, а прикладная дедупликация использует стабильный `dispatch_id`/`job_id`; `deduplication_id` задается только если выбранный тип очереди явно поддерживает эту возможность. YMQ визуально и транзакционно находится вне границы YDB приложения.
+
+Внутри границы YDB находятся только row tables, CDC changefeeds, Status events Topic и опциональная Coordination. Producer/API, outbox dispatcher/relay, status relay и workers находятся снаружи. YMQ — отдельный внешний сервис; его внутреннее хранение поверх YDB не создает общей транзакции с таблицами задания.
 
 ## Основной поток
 
 1. Producer в одной ACID-транзакции обновляет `Business tables`, создает запись `Jobs` и соответствующую запись `Outbox`. Прямой вызов YMQ отсутствует, поэтому dual-write нет.
-2. CDC exactly-once создает change record для зафиксированной записи `Outbox`. Dispatcher/relay может получить и обработать этот record повторно, поэтому асинхронно отправляет в YMQ стабильные `job_id` и `message_id`.
-3. Один из competing workers получает сообщение; на время обработки оно скрыто на visibility timeout.
+2. CDC создает одну change record на committed row change записи `Outbox`. Внешний dispatcher/relay может прочитать и обработать record повторно, поэтому отправляет в YMQ стабильные прикладные `job_id` и `dispatch_id`; YMQ возвращает собственный `message_id`.
+3. YMQ отдает сообщение одному из competing workers: worker выполняет claim/receive, а YMQ скрывает сообщение на visibility timeout.
 4. Worker проверяет `IdempotencyKeys` и состояние `Jobs`. Для долгой операции он своевременно продлевает visibility, понимая, что lease не является блокировкой внешнего side effect.
 5. Worker выполняет внешний side effect с `job_id` как idempotency key.
 6. В одной ACID-транзакции worker обновляет `Jobs` и записывает `JobResults`, `IdempotencyKeys` и `StatusOutbox`.
-7. После успешного commit worker удаляет сообщение из YMQ; повторная доставка обнаружит сохраненный результат.
-8. CDC exactly-once создает change record для `StatusOutbox`, после чего relay асинхронно публикует статус в Status events Topic. Повтор относится к обработке record relay или подписчиком Topic, а не к созданию CDC change record.
-9. Временная ошибка возвращает сообщение после visibility timeout с retry/backoff; после лимита оно попадает в DLQ и ожидает ручного решения.
+7. Только после успешного commit worker отправляет в YMQ ack/delete с актуальным receipt handle. До commit ack запрещен; потерянный ack приводит к безопасной повторной доставке.
+8. CDC создает одну change record на committed row change `StatusOutbox`, после чего внешний status relay публикует статус в Status events Topic с `producer_id = message_group_id = job_id`. Чтение и обработка change record или Topic-сообщения могут повторяться.
+9. При временной ошибке worker не подтверждает сообщение: visibility expiry возвращает его в YMQ для retry/backoff. После лимита redrive отправляет сообщение в DLQ.
 
 ## Согласованность и надежность
 
-Бизнес-изменение, `Jobs` и `Outbox` атомарны внутри первой транзакции YDB. Обновление `Jobs`, `JobResults`, `IdempotencyKeys` и `StatusOutbox` атомарно внутри транзакции результата. CDC exactly-once пишет change record для каждого зафиксированного изменения outbox; relay и конечные подписчики обрабатывают сообщения как минимум один раз. Отправка в YMQ, получение сообщения, внешний side effect и удаление сообщения не образуют одну транзакцию.
+Бизнес-изменение, `Jobs` и `Outbox` атомарны внутри первой транзакции YDB. Обновление `Jobs`, `JobResults`, `IdempotencyKeys` и `StatusOutbox` атомарно внутри транзакции результата. CDC создает одну change record на каждое committed row change; relay и конечные подписчики могут читать и обрабатывать record повторно. Отправка в YMQ, claim/receive, внешний side effect и ack/delete не образуют одну транзакцию, и exactly-once processing не обещается.
 
 Одна очередь не обеспечивает exactly-once внешний эффект. Worker может успешно вызвать внешний сервис и потерять visibility или упасть до commit/delete; тогда другой worker получит то же сообщение. Внешняя операция обязана быть идемпотентной по стабильному ключу или поддерживать запрос ранее полученного результата. Для неидемпотентного API нужен прикладной протокол сверки и возможность ручного разрешения.
 
@@ -56,13 +58,13 @@ Coordination при дополнительном назначении лидер
 
 ## Масштабирование и ключи партиционирования
 
-`job_id` должен быть хорошо распределенным первым компонентом ключа `Jobs`, `JobResults` и `IdempotencyKeys`. Для выборки outbox по состоянию используют распределенные buckets, а не один монотонный timestamp, создающий горячий диапазон. Dispatcher обрабатывает buckets параллельно.
+Исходный `job_id` остается в PK таблиц `Jobs`, `JobResults` и `IdempotencyKeys`. Если нужен hash-sharding, хеш используется только как shard prefix: `(hash(job_id) % N, job_id, ...)`. Для выборки outbox по состоянию используют bucket и shard prefix с исходным `job_id` в PK, а не один монотонный timestamp. Dispatcher обрабатывает shards параллельно.
 
-Количество workers масштабируется по глубине очереди, возрасту старейшего сообщения и длительности обработки. Visibility timeout должен превышать типичный интервал между heartbeat-продлениями, но не быть настолько большим, чтобы затягивать восстановление. Status events Topic ключуется по `job_id`, сохраняя порядок статусов одного задания; пропускная способность растет с числом партиций.
+Количество workers масштабируется по глубине очереди, возрасту старейшего сообщения и длительности обработки. Visibility timeout должен превышать типичный интервал между heartbeat-продлениями, но не быть настолько большим, чтобы затягивать восстановление. Для Status events Topic relay задает `producer_id = message_group_id = job_id`; порядок статусов одного задания сохраняется внутри `producer_id`. Подписчики используют именованные YDB Consumers.
 
 ## Отказы и восстановление
 
-Если relay упал до отправки, CDC record будет обработан повторно; если после отправки, возможен дубликат YMQ-сообщения. Сам change record для одного изменения создается CDC ровно один раз. Если worker упал до side effect, сообщение вернется по visibility timeout. Если после side effect, повтор проверяет внешний idempotency key и локальные `IdempotencyKeys`. Ошибка commit не должна приводить к безусловному повтору неидемпотентного вызова.
+Если relay упал до отправки, чтение CDC record будет повторено; если после отправки, возможен дубликат YMQ-сообщения. CDC создает одну change record на committed row change, но не гарантирует однократную обработку. Если worker упал до side effect, сообщение вернется по visibility expiry. Если после side effect, повтор проверяет внешний idempotency key и локальные `IdempotencyKeys`. Если commit прошел, а ack/delete потерялся, повтор обнаружит сохраненный результат и снова подтвердит сообщение.
 
 Retry выполняется с экспоненциальным backoff и jitter. Постоянные, невалидные и исчерпавшие попытки сообщения перемещаются в DLQ. Оператор проверяет `Jobs`, `JobResults` и фактическое состояние внешней системы, затем переотправляет, помечает завершенным либо отменяет задание.
 

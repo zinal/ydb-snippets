@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
   <title id="title">Event Sourcing на строковых таблицах YDB</title>
-  <desc id="desc">EventLog остается долговечным источником истины. События публикуются атомарно или CDC ровно один раз создает change record. Projectors в topic+table транзакции обновляют read models и consumer offsets; retention topic не заменяет EventLog.</desc>
+  <desc id="desc">EventLog остается долговечным источником истины. События публикуются атомарно или CDC создает ровно одну change record на committed row change. Projectors в topic+table транзакции обновляют read models и consumer offsets; retention topic не заменяет EventLog.</desc>
   <defs>
     <marker id="arrow-blue" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
       <path d="M0,0 L0,6 L9,3 z" fill="#2563eb"/>
@@ -35,157 +35,104 @@
   </defs>
 
   <rect x="0" y="0" width="1600" height="1000" fill="#ffffff"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="50" y="48" class="title">Event Sourcing: долговечный EventLog и производные проекции</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="50" y="76" class="subtitle">Optimistic aggregate version • порядок по aggregate_id • идемпотентные команды и внешние эффекты</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="45" y="45" class="title">Event Sourcing: durable EventLog, Topics, projections</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="45" y="72" class="subtitle">Aggregate logic, Projectors, replay workers, Query API вне YDB • EventLog = source of truth</text>
 
-  <rect x="50" y="105" width="440" height="120" rx="14" class="app"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="75" y="138" class="box-title">Command API / Aggregate Handler</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="75" y="165" class="body">command_id • aggregate_id • expected_version</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="75" y="189" class="small">Load snapshot + tail → decide → append events</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="75" y="210" class="small">Version conflict → перечитать и решить заново</text>
+  <rect x="40" y="100" width="350" height="125" rx="14" class="app"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="62" y="132" class="box-title">Command API / Aggregate Handler</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="62" y="158" class="body">command_id • expected_version</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="62" y="182" class="small">load snapshot + EventLog tail</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="62" y="204" class="small">decide → append • outside YDB</text>
 
-  <rect x="1160" y="105" width="390" height="120" rx="14" class="app"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="1185" y="138" class="box-title">Query API</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="1185" y="165" class="body">Читает только производные read models</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="1185" y="189" class="small">После команды действует eventual consistency</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="1185" y="210" class="small">write_version помогает read-your-writes</text>
+  <rect x="430" y="100" width="700" height="125" rx="14" class="app"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="452" y="130" class="box-title">Projectors / Replay Workers — outside YDB</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="452" y="154" class="body">YDB Consumer order-state-live • YDB Consumer orders-by-customer-live</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="452" y="178" class="body">YDB Consumer projection-v2-rebuild • full EventLog replay worker</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="452" y="202" class="small">read model + ProcessedEvents + offset → one topic+table transaction</text>
 
-  <rect x="35" y="260" width="1530" height="540" rx="18" class="boundary"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="60" y="292" class="box-title">YDB — граница кластера (только строковые таблицы и Topics)</text>
+  <rect x="1170" y="100" width="380" height="125" rx="14" class="app"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1192" y="132" class="box-title">Query API</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1192" y="158" class="body">reads derived row tables</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1192" y="182" class="small">eventual consistency</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1192" y="204" class="small">outside YDB</text>
 
-  <rect x="65" y="320" width="590" height="275" rx="14" class="tx"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="90" y="350" class="box-title">Одна YDB ACID-транзакция команды</text>
+  <rect x="35" y="280" width="1530" height="505" rx="18" class="boundary"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="58" y="310" class="box-title">YDB boundary — row tables, Topics/changefeed, CDC, Coordination</text>
 
-  <rect x="90" y="375" width="250" height="88" rx="10" class="table"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="112" y="405" class="box-title">EventLog — источник истины</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="112" y="431" class="body">PK: aggregate_id, aggregate_version</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="112" y="452" class="small">event_id • event_type • payload</text>
+  <rect x="60" y="335" width="590" height="245" rx="14" class="tx"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="82" y="362" class="box-title">Command ACID transaction • optimistic version</text>
+  <rect x="82" y="382" width="255" height="82" rx="10" class="table"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="102" y="409" class="box-title">EventLog — source of truth</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="102" y="432" class="small">PK: aggregate_id, aggregate_version</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="102" y="452" class="small">event_id • event_type • payload</text>
+  <rect x="360" y="382" width="265" height="82" rx="10" class="table"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="380" y="409" class="box-title">AggregateHeads</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="380" y="432" class="small">PK: aggregate_id</text><text font-family="DejaVu Sans, Arial, sans-serif" x="380" y="452" class="small">CAS current_version</text>
+  <rect x="82" y="485" width="255" height="72" rx="10" class="table"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="102" y="512" class="box-title">IdempotencyKeys</text><text font-family="DejaVu Sans, Arial, sans-serif" x="102" y="537" class="small">PK: command_id • result</text>
+  <rect x="360" y="485" width="265" height="72" rx="10" class="table"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="380" y="512" class="box-title">AggregateSnapshots</text><text font-family="DejaVu Sans, Arial, sans-serif" x="380" y="537" class="small">PK: aggregate_id, snapshot_version</text>
 
-  <rect x="365" y="375" width="260" height="88" rx="10" class="table"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="387" y="405" class="box-title">AggregateHeads</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="387" y="431" class="body">PK: aggregate_id</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="387" y="452" class="small">CAS: current_version = expected_version</text>
+  <rect x="690" y="345" width="350" height="125" rx="12" class="topic"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="713" y="375" class="box-title">Topic: domain.events</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="713" y="400" class="small">producer_id = message_group_id</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="713" y="421" class="small">= aggregate_id</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="713" y="442" class="small">order within producer_id • limited retention</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="713" y="462" class="small">variant A: table + Topic transaction</text>
 
-  <rect x="90" y="485" width="250" height="82" rx="10" class="table"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="112" y="515" class="box-title">IdempotencyKeys</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="112" y="541" class="body">PK: command_id</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="112" y="561" class="small">result + event version range</text>
+  <rect x="690" y="500" width="350" height="105" rx="12" class="topic"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="713" y="529" class="box-title">CDC: eventlog.changefeed</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="713" y="553" class="small">EventLog only • no custom producer_id</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="713" y="575" class="small">1 change record / committed row change</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="713" y="596" class="small">variant B • subscriber may retry</text>
 
-  <rect x="365" y="485" width="260" height="82" rx="10" class="topic"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="387" y="515" class="box-title">Транзакционный publish</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="387" y="541" class="body">EventLog + domain.events</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="387" y="561" class="small">вариант A, предпочтительно</text>
+  <rect x="1080" y="345" width="450" height="150" rx="12" class="table"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1103" y="375" class="box-title">ProcessedEvents</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1103" y="400" class="small">PK: projection_name, source,</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1103" y="420" class="small">aggregate_id, aggregate_version</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1103" y="447" class="body">read model + built-in consumer offset</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1103" y="471" class="small">one topic+table tx • offset per partition</text>
 
-  <rect x="90" y="630" width="300" height="90" rx="11" class="table"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="115" y="661" class="box-title">AggregateSnapshots</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="115" y="687" class="body">PK: aggregate_id, snapshot_version</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="115" y="708" class="small">Ускорение load; не источник истины</text>
+  <rect x="1080" y="525" width="210" height="90" rx="11" class="table"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1102" y="555" class="box-title">OrderState</text><text font-family="DejaVu Sans, Arial, sans-serif" x="1102" y="580" class="small">PK: aggregate_id</text><text font-family="DejaVu Sans, Arial, sans-serif" x="1102" y="602" class="small">derived read model</text>
+  <rect x="1310" y="525" width="220" height="90" rx="11" class="table"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1332" y="555" class="box-title">OrdersByCustomer</text><text font-family="DejaVu Sans, Arial, sans-serif" x="1332" y="580" class="small">PK: customer_id, bucket,</text><text font-family="DejaVu Sans, Arial, sans-serif" x="1332" y="602" class="small">aggregate_id • full identity</text>
 
-  <rect x="430" y="630" width="225" height="90" rx="11" class="topic"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="455" y="657" class="box-title">CDC / changefeed</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="455" y="683" class="body">exactly-once record</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="455" y="706" class="small">variant B: committed row</text>
+  <rect x="1080" y="645" width="280" height="90" rx="11" class="table"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1102" y="675" class="box-title">ProjectionOffsets</text><text font-family="DejaVu Sans, Arial, sans-serif" x="1102" y="700" class="small">version + diagnostic lag</text><text font-family="DejaVu Sans, Arial, sans-serif" x="1102" y="722" class="small">not a resume offset</text>
+  <rect x="1380" y="645" width="150" height="90" rx="11" class="coord"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1395" y="675" class="body">Coordination</text><text font-family="DejaVu Sans, Arial, sans-serif" x="1395" y="699" class="small">replay lease</text><text font-family="DejaVu Sans, Arial, sans-serif" x="1395" y="721" class="small">not ACID</text>
 
-  <rect x="710" y="360" width="330" height="120" rx="12" class="topic"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="735" y="392" class="box-title">Topic: domain.events</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="735" y="419" class="body">YDB Topics = partitioned pub/sub log</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="735" y="443" class="small">partition key: aggregate_id</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="735" y="464" class="small">subscriber may retry • limited retention</text>
+  <rect x="60" y="635" width="590" height="100" rx="12" class="error"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="82" y="665" class="box-title">Topic retention ≠ source of truth</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="82" y="691" class="body">Full replay always reads durable EventLog</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="82" y="715" class="small">Snapshot is a cache • poison event blocks projection • no silent skip</text>
 
-  <rect x="710" y="510" width="330" height="90" rx="11" class="error"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="735" y="535" class="box-title">Topic retention —<tspan font-family="DejaVu Sans, Arial, sans-serif" x="735" dy="20">не источник истины</tspan></text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="735" y="578" class="small">EventLog долговечен</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="735" y="595" class="small">Полный replay — из EventLog</text>
+  <path d="M215 225 L215 326" class="blue-flow"/><text font-family="DejaVu Sans, Arial, sans-serif" x="227" y="270" class="flow">load + append</text>
+  <path d="M337 423 L351 423" class="blue-flow"/>
+  <path d="M650 407 L681 407" class="purple-flow"/>  <path d="M650 552 L681 552" class="purple-flow"/>  <path d="M865 345 L865 234" class="purple-flow"/><text font-family="DejaVu Sans, Arial, sans-serif" x="878" y="270" class="small">named YDB Consumers</text>
+  <path d="M690 552 L670 552 L670 250 L650 250 L650 225" class="purple-flow"/>
+  <path d="M82 423 L45 423 L45 250 L500 250 L500 225" class="purple-flow"/>  <path d="M1060 225 L1060 420 L1071 420" class="blue-flow"/>
+  <path d="M1060 500 L1060 625 L1185 625 L1185 615" class="blue-flow"/>
+  <path d="M1060 625 L1420 625 L1420 615" class="blue-flow"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1070" y="510" class="small">topic+table tx • offset per partition</text>
+  <path d="M1530 570 L1550 570 L1550 245 L1360 245 L1360 234" class="blue-flow"/><text font-family="DejaVu Sans, Arial, sans-serif" x="1430" y="560" class="small">query read</text>
+  <path d="M1455 645 L1455 635 L1300 635 L1300 505 L1210 505 L1210 504" fill="none" stroke="#0f766e" stroke-width="2.4" stroke-dasharray="6 4"/>
 
-  <rect x="1095" y="320" width="435" height="165" rx="14" class="app"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="1120" y="352" class="box-title">Projectors</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="1120" y="379" class="body">Live: consumer groups topic</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="1120" y="403" class="body">Rebuild: последовательный replay EventLog</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="1120" y="430" class="small">Порядок событий одного aggregate_id</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="1120" y="452" class="small">read model + ProcessedEvents</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="1120" y="474" class="small">+ built-in offset: topic+table tx</text>
+  <rect x="50" y="820" width="570" height="100" rx="12" class="queue"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="73" y="850" class="box-title">YMQ/SQS-like queue — outside YDB</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="73" y="875" class="body">optional commands / retries • competing consumers</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="73" y="899" class="small">separate service over YDB • not EventLog / Topic</text>
+  <rect x="650" y="820" width="900" height="100" rx="12" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="675" y="850" class="box-title">Гарантии</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="675" y="875" class="body">EventLog full PK: aggregate_id + aggregate_version • optimistic concurrency</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="675" y="899" class="small">CDC: 1 record / committed row change • subscriber retry • transactional offsets • idempotent external effects</text>
 
-  <rect x="1095" y="525" width="205" height="90" rx="11" class="table"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="1117" y="556" class="box-title">OrderState</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="1117" y="582" class="body">PK: aggregate_id</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="1117" y="603" class="small">текущее представление</text>
-
-  <rect x="1325" y="525" width="205" height="90" rx="11" class="table"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="1347" y="556" class="box-title">OrdersByCustomer</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="1347" y="582" class="small">PK: customer_id, bucket,</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="1347" y="603" class="small">aggregate_id</text>
-
-  <rect x="1095" y="645" width="265" height="90" rx="11" class="table"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="1117" y="676" class="box-title">ProjectionOffsets</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="1117" y="702" class="small">version + diagnostic lag</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="1117" y="723" class="small">not a resume offset</text>
-
-  <rect x="1370" y="645" width="160" height="90" rx="11" class="coord"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="1385" y="676" class="box-title">Coordination</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="1385" y="700" class="small">projector / replay</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="1385" y="721" class="small">lease • not ACID</text>
-
-  <path d="M270 225 L270 311" class="blue-flow"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="283" y="260" class="flow">load + append</text>
-  <path d="M340 419 L356 419" class="blue-flow"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="343" y="405" class="small">CAS version</text>
-  <path d="M340 525 L356 525" class="blue-flow"/>
-  <path d="M625 525 L680 525 L680 420 L701 420" class="purple-flow"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="638" y="511" class="flow">вариант A</text>
-  <path d="M340 455 L410 455 L410 615 L542 615 L542 621" class="purple-flow"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="420" y="605" class="flow">вариант B</text>
-  <path d="M655 675 L875 675 L875 489" class="purple-flow"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="700" y="665" class="flow">CDC publish</text>
-
-  <path d="M1040 420 L1086 420" class="purple-flow"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="1043" y="406" class="flow">live consume</text>
-  <path d="M215 375 L215 335 L1060 335 L1060 390 L1086 390" class="purple-flow"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="685" y="327" class="flow">полный rebuild из EventLog</text>
-
-  <path d="M1197 485 L1197 516" class="blue-flow"/>
-  <path d="M1427 485 L1427 516" class="blue-flow"/>
-  <path d="M1312 485 L1312 625 L1227 625 L1227 636" class="blue-flow"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="1230" y="628" class="small">transactional offset</text>
-  <path d="M1457 645 L1457 625 L1312 625 L1312 494" class="blue-flow"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="1365" y="637" class="small">lease</text>
-
-  <path d="M1300 570 L1325 570" class="blue-flow"/>
-  <path d="M1530 570 L1545 570 L1545 235 L1355 235 L1355 225" class="blue-flow"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="1450" y="250" class="flow">read</text>
-  <path d="M1095 570 L1065 570 L1065 250 L1260 250 L1260 225" class="blue-flow"/>
-
-  <rect x="55" y="825" width="510" height="100" rx="12" class="queue"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="80" y="850" class="box-title">YMQ/SQS-подобная очередь<tspan font-family="DejaVu Sans, Arial, sans-serif" x="80" dy="20">Опциональный отдельный сервис</tspan></text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="80" y="894" class="small">Команды / повторы • competing consumers</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="80" y="914" class="small">Поверх YDB • не EventLog • не встроенный объект</text>
-
-  <rect x="605" y="825" width="300" height="100" rx="12" class="error"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="630" y="850" class="box-title">Poison event / conflict</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="630" y="875" class="small">Poison → stop projection</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="630" y="895" class="small">Conflict → reload aggregate</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="630" y="914" class="small">No silent skip / blind retry</text>
-
-  <rect x="945" y="825" width="600" height="100" rx="12" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="970" y="850" class="box-title">Гарантии</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="970" y="875" class="body">EventLog = source of truth • optimistic aggregate version</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="970" y="897" class="small">Read model + built-in offset: one topic+table transaction</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="970" y="916" class="small">Subscriber may retry • idempotent effects • eventual consistency</text>
-
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="55" y="968" class="box-title">Легенда:</text>
-  <rect x="155" y="950" width="24" height="18" rx="3" class="app"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="188" y="965" class="body">приложение</text>
-  <rect x="300" y="950" width="24" height="18" rx="3" class="table"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="333" y="965" class="body">строковая таблица</text>
-  <rect x="495" y="950" width="24" height="18" rx="3" class="topic"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="528" y="965" class="body">Topic / CDC</text>
-  <rect x="680" y="950" width="24" height="18" rx="3" class="queue"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="713" y="965" class="body">очередь</text>
-  <rect x="805" y="950" width="24" height="18" rx="3" class="coord"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="838" y="965" class="body">Coordination</text>
-  <rect x="975" y="950" width="24" height="18" rx="3" class="error"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="1008" y="965" class="body">ошибка</text>
-  <line x1="1120" y1="959" x2="1180" y2="959" class="blue-flow"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="1190" y="965" class="body">чтение / запись</text>
-  <line x1="1360" y1="959" x2="1420" y2="959" class="purple-flow"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="1430" y="965" class="body">async</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="50" y="965" class="box-title">Легенда:</text>
+  <rect x="150" y="947" width="24" height="18" rx="3" class="app"/><text font-family="DejaVu Sans, Arial, sans-serif" x="183" y="962" class="body">app outside YDB</text>
+  <rect x="350" y="947" width="24" height="18" rx="3" class="table"/><text font-family="DejaVu Sans, Arial, sans-serif" x="383" y="962" class="body">row table</text>
+  <rect x="510" y="947" width="24" height="18" rx="3" class="topic"/><text font-family="DejaVu Sans, Arial, sans-serif" x="543" y="962" class="body">Topic / CDC</text>
+  <rect x="690" y="947" width="24" height="18" rx="3" class="coord"/><text font-family="DejaVu Sans, Arial, sans-serif" x="723" y="962" class="body">Coordination</text>
+  <rect x="880" y="947" width="24" height="18" rx="3" class="queue"/><text font-family="DejaVu Sans, Arial, sans-serif" x="913" y="962" class="body">external queue</text>
+  <line x1="1110" y1="956" x2="1170" y2="956" class="purple-flow"/><text font-family="DejaVu Sans, Arial, sans-serif" x="1180" y="962" class="body">async / replay</text>
 </svg>

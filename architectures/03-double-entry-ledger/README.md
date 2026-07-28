@@ -13,40 +13,41 @@
 
 ## Компоненты
 
-- **Ledger API / posting engine** аутентифицирует команду, нормализует валюту и точность, проверяет равенство дебетов и кредитов.
-- Строковые таблицы YDB: `Operations(ledger_hash, operation_id, ...)`, `Postings(ledger_hash, account_hash, booking_bucket, operation_id, posting_no, ...)`, `AccountBalances(ledger_hash, account_hash, account_id, currency, ...)`, `IdempotencyKeys(scope_hash, idempotency_key, ...)`, `ReconciliationRuns(ledger_hash, run_id, ...)`.
-- **YDB Topic `ledger-events`** получает доменное событие в той же topic/table transaction, что и строки ledger; key сообщения — `operation_id`. YDB Topics — журнал pub/sub с независимыми consumer groups.
-- Опциональные **CDC changefeeds** таблиц ledger служат для аудита изменений: CDC exactly-once записывает change record во внутренний changefeed topic и сохраняет порядок для одного полного первичного ключа исходной таблицы.
-- **Reconciliation service** повторно суммирует проводки по счетам и сравнивает их с `AccountBalances`, фиксируя границы и результат прогона.
-- Downstream consumers формируют выписки и вызывают внешние интеграции; они не являются источником баланса.
+- Внешний **Ledger API / posting engine** аутентифицирует команду, нормализует валюту и точность, проверяет равенство дебетов и кредитов.
+- Строковые таблицы YDB: `Operations` с PK `(ledger_hash, ledger_id, operation_id)`, `Postings` с PK `(ledger_hash, ledger_id, account_hash, account_id, booking_bucket, operation_id, posting_no)`, `AccountBalances` с PK `(ledger_hash, ledger_id, account_hash, account_id, currency)`, `IdempotencyKeys` с PK `(scope_hash, scope, idempotency_key)`, `ReconciliationRuns` с PK `(ledger_hash, ledger_id, run_id)`. Hash-поля — только распределяющие префиксы.
+- **YDB Topic `ledger-events`** получает доменное событие в той же topic/table transaction, что и строки ledger. Для сообщения задаются `producer_id = message_group_id = operation_id`; порядок гарантирован внутри этого `producer_id`.
+- Опциональные **CDC changefeeds** таблиц ledger служат для аудита: CDC создает одну change record на каждое committed-изменение строки во внутреннем changefeed Topic и сохраняет порядок для одного полного PK исходной таблицы. Пользовательский `producer_id` внутреннему Topic не назначается.
+- Внешний **Reconciliation service** повторно суммирует проводки по счетам и сравнивает их с `AccountBalances`, фиксируя границы и результат прогона.
+- Внешние statements projector и integration app читают `ledger-events` как именованные **YDB Consumer `statements`** и **YDB Consumer `integrations`**; offset каждого хранится по партициям.
+- **Coordination Service** внутри YDB может выдать lease внешнему reconciliation scheduler, но не участвует в финансовой блокировке.
 
 ## Основной поток
 
 1. Клиент отправляет сбалансированный набор entries и `idempotency_key`.
 2. Posting engine проверяет валюту, допустимость счетов и условие `Σ debit = Σ credit` для каждой валюты.
 3. Сервис читает `IdempotencyKeys` и затронутые `AccountBalances`; повтор возвращает сохраненный `operation_id`.
-4. В одной topic/table transaction создается `Operations`, append-only строки `Postings`, обновляются все затронутые `AccountBalances`, сохраняется результат в `IdempotencyKeys` и записывается сообщение в `ledger-events` с key=`operation_id`.
+4. В одной topic/table transaction создается `Operations`, append-only строки `Postings`, обновляются все затронутые `AccountBalances`, сохраняется результат в `IdempotencyKeys` и записывается сообщение в `ledger-events` с `producer_id = message_group_id = operation_id`.
 5. После commit таблицы и доменное событие становятся видимыми вместе; при rollback не появляется ни одно из них. Опциональный CDC отдельно формирует аудит изменений таблиц.
-6. Consumer groups строят выписки и выполняют интеграционные действия по `operation_id`; после сбоя чтение и обработка сообщения могут повториться, поэтому оба consumer идемпотентны.
+6. YDB Consumer `statements` и YDB Consumer `integrations` строят выписки и выполняют интеграционные действия по `operation_id`; после сбоя чтение и обработка сообщения могут повториться, поэтому оба приложения идемпотентны.
 7. Reconciliation service читает зафиксированный диапазон проводок, сравнивает вычисленные и сохраненные остатки и записывает результат в `ReconciliationRuns`.
 
 ## Согласованность и надежность
 
 Финансовая граница атомарности охватывает операцию, все ее проводки, остатки и ключ идемпотентности. Конфликт обновления счета приводит к повтору всей транзакции с повторным чтением остатков. Денежные значения хранятся целыми минимальными единицами или фиксированным Decimal; `float` недопустим.
 
-Проводки после commit не изменяются и не удаляются: исправление выполняется новой сторнирующей операцией со ссылкой на исходную. Topic/table transaction атомарно фиксирует строки и доменное событие. После сбоя consumer может повторно прочитать и обработать сообщение `ledger-events`, поэтому он дедуплицирует по `operation_id`; любой внешний side effect также требует идемпотентности. Для опционального аудита CDC exactly-once записывает change record во внутренний changefeed topic, но consumer этого topic тоже обязан выдерживать повторную обработку.
+Проводки после commit не изменяются и не удаляются: исправление выполняется новой сторнирующей операцией со ссылкой на исходную. Topic/table transaction атомарно фиксирует строки и доменное событие. После сбоя YDB Consumer может повторно прочитать сообщение `ledger-events`, а приложение — повторно его обработать, поэтому используется дедупликация по `operation_id`; любой внешний side effect также требует идемпотентности. Для опционального аудита CDC создает одну change record на каждое committed-изменение строки, но чтение и прикладная обработка этой record тоже могут повторяться.
 
 Coordination Service не заменяет ACID и не должен использоваться как финансовая блокировка счета или всего ledger. Корректность обеспечивают транзакционные проверки, версии строк и уникальные ключи, а не lease.
 
 ## Масштабирование и ключи партиционирования
 
-`ledger_hash` отделяет независимые книги. `Operations` распределяется по хэшу `operation_id`. `Postings` использует `(ledger_hash, account_hash, booking_bucket, operation_id, posting_no)`: `account_hash` распределяет нагрузку, а ограниченный `booking_bucket` поддерживает чтение выписки без монотонного горячего хвоста. `AccountBalances` имеет ключ `(ledger_hash, account_hash, account_id, currency)`. `IdempotencyKeys` начинается со `scope_hash`. Для прикладного `ledger-events` явно задается topic key=`operation_id`; порядок между разными операциями не предполагается. Опциональный CDC-аудит нельзя произвольно партиционировать по `operation_id`: его внутренний changefeed topic следует полному PK каждой исходной таблицы.
+`ledger_hash`, `account_hash` и `scope_hash` распределяют нагрузку, но полные identity остаются в PK: `(ledger_hash, ledger_id, operation_id)`, `(ledger_hash, ledger_id, account_hash, account_id, booking_bucket, operation_id, posting_no)`, `(ledger_hash, ledger_id, account_hash, account_id, currency)` и `(scope_hash, scope, idempotency_key)`. Для прикладного `ledger-events` задаются `producer_id = message_group_id = operation_id`; порядок гарантирован внутри `producer_id`, а между разными операциями не предполагается. Опциональный CDC-аудит следует полному PK каждой исходной таблицы и не получает пользовательский `producer_id`.
 
 Одна операция может затронуть несколько партиций, поэтому число счетов в ней ограничивают разумным пределом. Особенно горячий счет нельзя «исправить» локом Coordination Service: применяют бизнес-декомпозицию, лимиты входного потока или отдельные расчетные счета с последующим переносом.
 
 ## Отказы и восстановление
 
-При таймауте commit клиент повторяет команду с тем же ключом и получает исходный результат. Если транзакция не состоялась, ни проводки, ни событие подтвержденной операции не появляются. Consumer после сбоя продолжает с подтвержденного offset и может повторно обработать сообщение; идемпотентность по `operation_id` делает retry безопасным. Сверка запускается по стабильной верхней границе, хранит прогресс в `ReconciliationRuns` и при расхождении блокирует автоматическое исправление: расследование завершается новой корректирующей операцией.
+При таймауте commit клиент повторяет команду с тем же ключом и получает исходный результат. Если транзакция не состоялась, ни проводки, ни событие подтвержденной операции не появляются. Именованный YDB Consumer после сбоя продолжает с подтвержденного offset по партициям и может повторно передать сообщение приложению; идемпотентность по `operation_id` делает retry безопасным. Сверка запускается по стабильной верхней границе, хранит прогресс в `ReconciliationRuns` и при расхождении блокирует автоматическое исправление: расследование завершается новой корректирующей операцией.
 
 ## Ограничения и антипаттерны
 

@@ -36,22 +36,22 @@
 
   <rect class="boundary" x="330" y="145" width="890" height="650" rx="22"/>
   <text class="txt box-title" x="360" y="183">YDB boundary</text>
-  <text class="txt small" x="510" y="183">row tables, транзакции, CDC</text>
+  <text class="txt small" x="510" y="183">row tables, Topics/changefeed, CDC, Coordination</text>
 
   <rect class="tx" x="375" y="215" width="800" height="355" rx="18"/>
   <text class="txt box-title" x="400" y="248">ACID-транзакция резервирования</text>
   <text class="txt small" x="400" y="270">reserve + result + ExpirationOutbox in one commit</text>
 
-  <path class="coord-flow" d="M1250 245 H1188 V300 H1175"/>
+  <path class="coord-flow" d="M455 620 V585 H350 V300 H375"/>
   <path class="flow" d="M270 350 H375"/>
   <path class="flow" d="M590 350 H620"/>
   <path class="flow" d="M860 350 H900"/>
   <path class="flow" d="M750 410 V438"/>
   <path class="queue" d="M1270 500 H1230 V810 H290 V650 H270"/>
-  <path class="event" d="M600 350 H620 V675 H900"/>
+  <path class="event" d="M500 410 V590 H1030 V620"/>
   <path class="event" d="M1040 538 V620"/>
   <path class="event" d="M1160 650 H1270"/>
-  <path class="event" d="M1160 700 H1210 V750 H1270"/>
+  <path class="event" d="M900 700 H870"/>
   <path class="queue" d="M1410 585 V560"/>
   <path class="recovery" d="M1270 620 H1190 V520 H1145"/>
 
@@ -61,12 +61,12 @@
   <text class="txt small" x="620" y="338">создать</text>
   <rect class="label-bg" x="856" y="322" width="72" height="22" rx="5"/>
   <text class="txt small" x="864" y="338">результат</text>
-  <rect class="label-bg" x="607" y="621" width="143" height="23" rx="5"/>
-  <text class="txt small" x="617" y="638">изменение строки</text>
+  <rect class="label-bg" x="650" y="578" width="143" height="23" rx="5"/>
+  <text class="txt small" x="660" y="595">committed row change</text>
   <rect class="label-bg" x="1173" y="624" width="91" height="23" rx="5"/>
   <text class="txt small" x="1183" y="641">changefeed</text>
-  <rect class="label-bg" x="1210" y="721" width="60" height="23" rx="5"/>
-  <text class="txt small" x="1220" y="738">pub/sub</text>
+  <rect class="label-bg" x="872" y="672" width="58" height="23" rx="5"/>
+  <text class="txt small" x="880" y="689">publish</text>
   <rect class="label-bg" x="1188" y="534" width="75" height="23" rx="5"/>
   <text class="txt small" x="1198" y="551">recovery</text>
   <rect class="label-bg" x="1080" y="575" width="170" height="40" rx="5"/>
@@ -110,16 +110,23 @@
   <text class="txt small" x="950" y="515">reservation_id, job_id</text>
   <text class="txt small" x="950" y="529">expires_at, pending</text>
 
+  <rect class="coord" x="350" y="620" width="210" height="110" rx="12"/>
+  <text class="txt body" x="375" y="650" font-weight="700">Coordination</text>
+  <text class="txt body" x="375" y="670" font-weight="700">semaphore</text>
+  <text class="txt small" x="375" y="696">admission control only</text>
+  <text class="txt small" x="375" y="718">not an invariant guard</text>
+
+  <rect class="topic" x="580" y="620" width="290" height="110" rx="12"/>
+  <text class="txt box-title" x="605" y="650">Availability Topic</text>
+  <text class="txt small" x="605" y="675">producer_id = resource_id</text>
+  <text class="txt small" x="605" y="696">message_group_id = resource_id</text>
+  <text class="txt small" x="605" y="717">YDB Consumer: availability-view</text>
+
   <rect class="topic" x="900" y="620" width="260" height="110" rx="12"/>
   <text class="txt box-title" x="930" y="650">CDC changefeeds</text>
-  <text class="txt small" x="930" y="676">exactly-once change record</text>
-  <text class="txt small" x="930" y="698">read / processing may retry</text>
-  <text class="txt small" x="930" y="718">Outbox + Resources</text>
-
-  <rect class="coord" x="1250" y="180" width="300" height="130" rx="14"/>
-  <text class="txt box-title" x="1280" y="218">Coordination semaphore</text>
-  <text class="txt body" x="1280" y="247">только admission control</text>
-  <text class="txt body" x="1280" y="274">не защита инварианта</text>
+  <text class="txt small" x="930" y="674">one record per committed</text>
+  <text class="txt small" x="930" y="695">row change</text>
+  <text class="txt small" x="930" y="716">read / process may repeat</text>
 
   <rect class="ymq" x="1270" y="440" width="280" height="120" rx="14"/>
   <text class="txt box-title" x="1300" y="478">YMQ expiration jobs</text>
@@ -131,15 +138,10 @@
   <text class="txt small" x="1300" y="642">idempotent enqueue + mark sent</text>
   <text class="txt small" x="1300" y="663">recovery scan pending rows</text>
 
-  <rect class="topic" x="1270" y="700" width="280" height="100" rx="14"/>
-  <text class="txt box-title" x="1300" y="733">Availability Topic</text>
-  <text class="txt body" x="1300" y="759">pub/sub для подписчиков</text>
-  <text class="txt body" x="1300" y="782">события доступности</text>
-
   <rect x="50" y="835" width="1500" height="120" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
   <text class="txt box-title" x="75" y="869">Гарантии</text>
-  <text class="txt body" x="75" y="900">ACID: reserve + ExpirationOutbox; no dual-write • TTL is cleanup, not an exact timer • YMQ: at-least-once</text>
-  <text class="txt body" x="75" y="928">CDC: exactly-once change record in changefeed Topic; read/processing may retry • External effects are idempotent</text>
+  <text class="txt body" x="75" y="900">ACID reserve + Outbox • PK keeps full resource_id/client_id; optional shard prefix only • TTL is cleanup</text>
+  <text class="txt body" x="75" y="928">CDC: one change record per committed row change; read/process may repeat • External effects are idempotent</text>
 
   <rect class="app" x="1040" y="867" width="26" height="18" rx="3"/>
   <text class="txt small" x="1075" y="881">app</text>

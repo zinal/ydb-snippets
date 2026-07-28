@@ -23,7 +23,7 @@
 - Row table **ExpirationOutbox**, ключ `(resource_id, reservation_id)`: неизменяемое намерение поставить проверку `expires_at`, payload и состояние relay.
 - **YMQ expiration jobs** — отдельная SQS-совместимая очередь поверх YDB для competing consumers, обрабатывающих истечение резервов.
 - **Expiration relay** читает changefeed `ExpirationOutbox`, идемпотентно ставит задания в YMQ и выполняет recovery scan необработанных строк.
-- **CDC availability events** публикует изменения `Resources` в Topic; Topic — это pub/sub для независимых подписчиков.
+- **CDC availability events** публикует изменения `Resources` в пользовательский Topic: `producer_id = message_group_id = resource_id`; подписчики используют отдельные именованные **YDB Consumers**.
 - **Coordination semaphore** ограничивает число одновременно допущенных запросов к горячему ресурсу.
 
 ## Основной поток
@@ -31,9 +31,9 @@
 1. Клиент отправляет команду с `idempotency_key`; API находит или создает запись в `IdempotencyKeys`.
 2. В одной ACID-транзакции API читает `Resources`, проверяет `available >= requested`, условно уменьшает остаток и создает `Reservations`, `Operations`, `IdempotencyKeys` и `ExpirationOutbox`.
 3. Commit атомарно сохраняет резерв и намерение фоновой проверки; прямого enqueue после commit в критическом пути нет.
-4. CDC exactly-once записывает change record за committed-вставку `ExpirationOutbox` в changefeed Topic. Relay читает его и идемпотентно ставит YMQ job; повтор чтения или сбой между enqueue и отметкой relay может создать дубликат.
+4. CDC создает одну change record на committed-вставку `ExpirationOutbox` в changefeed Topic. Relay может повторно прочитать или обработать record и идемпотентно ставит YMQ job; сбой между enqueue и отметкой relay может создать дубликат.
 5. Consumer задания в транзакции проверяет текущее состояние и `expires_at`; только активный просроченный резерв переводится в `EXPIRED`, а остаток возвращается в `Resources`.
-6. Отдельный changefeed `Resources` exactly-once записывает change record за committed-изменение доступности; повтор возможен при чтении или обработке, поэтому подписчики Topic дедуплицируют события.
+6. Отдельный changefeed `Resources` создает одну change record на committed-изменение доступности. Availability publisher пишет событие с `producer_id = message_group_id = resource_id`; чтение и обработка могут повториться, поэтому каждый именованный YDB Consumer дедуплицирует события.
 7. Подтверждение или отмена также выполняются условным переходом состояния и атомарным изменением остатка, если оно требуется.
 8. Recovery scan relay периодически находит pending или зависшие строки `ExpirationOutbox` и повторяет enqueue с тем же идентификатором задания.
 
@@ -41,13 +41,13 @@
 
 Инвариант остатка принадлежит транзакции над `Resources` и `Reservations`. Атомарная запись `ExpirationOutbox` устраняет dual-write между commit резерва и enqueue YMQ. Coordination не заменяет ACID и не защищает инвариант: semaphore служит только admission control. Идемпотентность команд опирается на уникальный ключ, а обработчики YMQ и событий допускают повторную доставку. Все внешние эффекты идемпотентны.
 
-CDC гарантирует exactly-once создание change record в changefeed Topic для каждого committed изменения исходной строки. Эта гарантия не делает relay или подписчика exactly-once: после переподключения record может быть повторно прочитан или обработан, поэтому enqueue и публикация используют стабильный event/job id.
+CDC создает одну change record на каждое committed изменение исходной строки в changefeed Topic. Это не гарантирует однократную обработку: после переподключения record может быть повторно прочитан или обработан, поэтому enqueue, публикация и именованные YDB Consumers используют стабильный event/job id.
 
 TTL используется только для фоновой очистки окончательных строк и старых ключей идемпотентности. TTL не является точным таймером и не должен инициировать возврат ресурса; решение об истечении принимает worker по серверному времени и состоянию строки.
 
 ## Масштабирование и ключи партиционирования
 
-API, expiration relay и workers масштабируются горизонтально. `resource_id` локализует транзакцию одного ресурса, но популярный ресурс становится горячим ключом; semaphore, очереди на входе или разбиение бизнес-лимита на бакеты уменьшают давление, не меняя способ защиты инварианта. `Reservations` и `ExpirationOutbox` распределяются по `resource_id`, а при большом числе записей одного ресурса обработка выполняется по полному ключу. YMQ масштабирует competing consumers, Topic — независимые consumer groups.
+API, expiration relay и workers масштабируются горизонтально. Полные `resource_id`, `reservation_id` и `client_id` остаются частью первичного ключа и идентичности. Если нужен дополнительный shard prefix, ключи имеют вид `(resource_shard, resource_id, ...)` или `(client_shard, client_id, ...)`; hash-only identity недопустима. Популярный ресурс остается горячим бизнес-ключом, поэтому semaphore или разбиение самого лимита на бакеты уменьшают давление, не меняя защиту инварианта. YMQ масштабирует competing consumers, а Topic — независимые именованные YDB Consumers.
 
 ## Отказы и восстановление
 
@@ -56,7 +56,7 @@ API, expiration relay и workers масштабируются горизонта
 - Сбой relay после enqueue, но до отметки строки создает допустимый дубликат с тем же job id.
 - Дубликат expiration job безопасен: условный переход из `ACTIVE` выполняется один раз.
 - Раннее или задержанное задание перечитывает `expires_at`; при необходимости создается повторная попытка.
-- Недоступный подписчик возобновляет чтение Topic со своей позиции.
+- Недоступный именованный YDB Consumer возобновляет чтение Topic со своей сохраненной позиции.
 - Сбой держателя semaphore не портит остаток: Coordination освобождает сессию, а транзакционные данные остаются источником истины.
 
 ## Ограничения и антипаттерны

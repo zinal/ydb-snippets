@@ -2,129 +2,141 @@
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
   <title id="title">Надежные фоновые задания с YDB и YMQ</title>
   <desc id="desc">Архитектура отделяет прием бизнес-запроса от длительной фоновой работы.</desc>
-  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#334155"/></marker></defs>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#334155"/></marker><marker id="redArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#dc2626"/></marker></defs>
   <rect x="0" y="0" width="1600" height="1000" fill="#f8fafc"/>
-  <text x="800" y="44" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="30" font-weight="bold" fill="#0f172a">Надежные фоновые задания с YDB и YMQ</text>
-  <text x="800" y="75" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" fill="#475569">Two YDB transactions + CDC/relay · YMQ is outside the YDB boundary</text>
-  <rect x="65" y="98" width="1470" height="82" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
-  <text x="88" y="130" text-anchor="start" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="bold" fill="#0f172a">Легенда:</text>
-  <rect x="185" y="113" width="27" height="21" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
-  <text x="221" y="130" text-anchor="start" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#334155">приложение</text>
-  <rect x="350" y="113" width="27" height="21" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
-  <text x="386" y="130" text-anchor="start" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#334155">строковая таблица</text>
-  <rect x="540" y="113" width="27" height="21" rx="4" fill="#f3e8ff" stroke="#9333ea" stroke-width="2"/>
-  <text x="576" y="130" text-anchor="start" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#334155">Topic / CDC</text>
-  <rect x="695" y="113" width="27" height="21" rx="4" fill="#ffedd5" stroke="#f97316" stroke-width="2"/>
-  <text x="731" y="130" text-anchor="start" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#334155">YMQ</text>
-  <rect x="800" y="113" width="27" height="21" rx="4" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
-  <text x="836" y="130" text-anchor="start" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#334155">DLQ</text>
-  <path d="M 1180 124 L 1230 124" fill="none" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
-  <text x="1240" y="130" text-anchor="start" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#334155">синхронно</text>
-  <path d="M 1350 124 L 1400 124" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
-  <text x="1410" y="130" text-anchor="start" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#334155">асинхронно</text>
-  <rect x="130" y="205" width="1050" height="615" rx="24" fill="#ffffff" stroke="#0f6cbd" stroke-width="4"/>
-  <text x="160" y="242" text-anchor="start" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="bold" fill="#0f6cbd">Граница YDB</text>
-  <rect x="1210" y="225" width="360" height="430" rx="20" fill="#fff7ed" stroke="#f97316" stroke-width="3" stroke-dasharray="9 6"/>
-  <text x="1390.0" y="256" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="18" font-weight="bold" fill="#9a3412">Yandex Message Queue</text>
-  <text x="1390.0" y="278" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#9a3412">Отдельный сервис поверх YDB</text>
-  <rect x="160" y="255" width="410" height="325" rx="20" fill="#f0fdf4" stroke="#15803d" stroke-width="3" stroke-dasharray="9 6"/>
-  <text x="365.0" y="287" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="18" font-weight="bold" fill="#166534">Одна ACID-транзакция YDB</text>
-  <text x="365.0" y="309" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#166534">Business data + Jobs + Outbox</text>
-  <rect x="10" y="350" width="95" height="105" rx="14" fill="#dbeafe" stroke="#2563eb" stroke-width="2.5"/>
-  <text x="57.5" y="383.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="bold" fill="#1e40af">API</text>
-  <text x="57.5" y="407.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" fill="#1e40af">Producer</text>
-  <text x="57.5" y="431.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="12" fill="#1e40af">no dual-write</text>
-  <rect x="190" y="325" width="165" height="100" rx="14" fill="#dcfce7" stroke="#16a34a" stroke-width="2.5"/>
-  <text x="272.5" y="356.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="bold" fill="#166534">Business data</text>
-  <text x="272.5" y="380.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" fill="#166534">row tables</text>
-  <text x="272.5" y="404.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" fill="#166534">domain state</text>
-  <rect x="380" y="325" width="160" height="100" rx="14" fill="#dcfce7" stroke="#16a34a" stroke-width="2.5"/>
-  <text x="460.0" y="356.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="bold" fill="#166534">Jobs (create)</text>
-  <text x="460.0" y="380.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" fill="#166534">job_id</text>
-  <text x="460.0" y="404.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" fill="#166534">pending</text>
-  <rect x="285" y="455" width="165" height="100" rx="14" fill="#dcfce7" stroke="#16a34a" stroke-width="2.5"/>
-  <text x="367.5" y="486.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="bold" fill="#166534">Outbox</text>
-  <text x="367.5" y="510.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" fill="#166534">message_id</text>
-  <text x="367.5" y="534.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" fill="#166534">pending</text>
-  <rect x="610" y="300" width="180" height="120" rx="14" fill="#f3e8ff" stroke="#9333ea" stroke-width="2.5"/>
-  <text x="700.0" y="341.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="bold" fill="#6b21a8">Outbox CDC</text>
-  <text x="700.0" y="365.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" fill="#6b21a8">exactly-once</text>
-  <text x="700.0" y="389.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" fill="#6b21a8">change record</text>
-  <rect x="825" y="300" width="165" height="120" rx="14" fill="#dbeafe" stroke="#2563eb" stroke-width="2.5"/>
-  <text x="907.5" y="329.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="bold" fill="#1e40af">Dispatch relay</text>
-  <text x="907.5" y="353.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" fill="#1e40af">CDC processing</text>
-  <text x="907.5" y="377.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" fill="#1e40af">may repeat</text>
-  <text x="907.5" y="401.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" fill="#1e40af">stable message_id</text>
-  <rect x="1015" y="300" width="140" height="120" rx="14" fill="#dbeafe" stroke="#2563eb" stroke-width="2.5"/>
-  <text x="1085.0" y="317.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="bold" fill="#1e40af">Workers</text>
-  <text x="1085.0" y="341.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" fill="#1e40af">extend</text>
-  <text x="1085.0" y="365.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" fill="#1e40af">visibility</text>
-  <text x="1085.0" y="389.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" fill="#1e40af">idempotency</text>
-  <text x="1085.0" y="413.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" fill="#1e40af">key = job_id</text>
-  <rect x="1240" y="300" width="300" height="120" rx="14" fill="#ffedd5" stroke="#f97316" stroke-width="2.5"/>
-  <text x="1390.0" y="341.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="bold" fill="#9a3412">YMQ job queue</text>
-  <text x="1390.0" y="365.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" fill="#9a3412">competing consumers</text>
-  <text x="1390.0" y="389.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" fill="#9a3412">visibility + retry</text>
-  <rect x="1240" y="485" width="300" height="105" rx="14" fill="#fee2e2" stroke="#dc2626" stroke-width="2.5"/>
-  <text x="1390.0" y="518.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="bold" fill="#991b1b">DLQ</text>
-  <text x="1390.0" y="542.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" fill="#991b1b">retry exhausted</text>
-  <text x="1390.0" y="566.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" fill="#991b1b">manual decision</text>
-  <rect x="480" y="475" width="490" height="300" rx="20" fill="#f0fdf4" stroke="#15803d" stroke-width="3" stroke-dasharray="9 6"/>
-  <text x="725.0" y="507" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="18" font-weight="bold" fill="#166534">Одна ACID-транзакция YDB</text>
-  <text x="725.0" y="529" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#166534">Jobs + results + idempotency + StatusOutbox</text>
-  <rect x="510" y="535" width="190" height="90" rx="14" fill="#dcfce7" stroke="#16a34a" stroke-width="2.5"/>
-  <text x="605.0" y="573.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="bold" fill="#166534">Jobs (update)</text>
-  <text x="605.0" y="597.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" fill="#166534">final status</text>
-  <rect x="730" y="535" width="200" height="90" rx="14" fill="#dcfce7" stroke="#16a34a" stroke-width="2.5"/>
-  <text x="830.0" y="573.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="bold" fill="#166534">JobResults</text>
-  <text x="830.0" y="597.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" fill="#166534">job_id + result</text>
-  <rect x="510" y="650" width="190" height="90" rx="14" fill="#dcfce7" stroke="#16a34a" stroke-width="2.5"/>
-  <text x="605.0" y="688.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="bold" fill="#166534">IdempotencyKeys</text>
-  <text x="605.0" y="712.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" fill="#166534">stable key</text>
-  <rect x="730" y="650" width="200" height="90" rx="14" fill="#dcfce7" stroke="#16a34a" stroke-width="2.5"/>
-  <text x="830.0" y="688.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="bold" fill="#166534">StatusOutbox</text>
-  <text x="830.0" y="712.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" fill="#166534">status event</text>
-  <rect x="1000" y="500" width="155" height="95" rx="14" fill="#f3e8ff" stroke="#9333ea" stroke-width="2.5"/>
-  <text x="1077.5" y="528.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="bold" fill="#6b21a8">Status CDC</text>
-  <text x="1077.5" y="552.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" fill="#6b21a8">exactly-once</text>
-  <text x="1077.5" y="576.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" fill="#6b21a8">change record</text>
-  <rect x="1000" y="625" width="155" height="80" rx="14" fill="#dbeafe" stroke="#2563eb" stroke-width="2.5"/>
-  <text x="1077.5" y="658.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="bold" fill="#1e40af">Status relay</text>
-  <text x="1077.5" y="682.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" fill="#1e40af">repeat-safe</text>
-  <rect x="1000" y="730" width="155" height="75" rx="14" fill="#f3e8ff" stroke="#9333ea" stroke-width="2.5"/>
-  <text x="1077.5" y="760.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="bold" fill="#6b21a8">Status Topic</text>
-  <text x="1077.5" y="784.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" fill="#6b21a8">pub/sub log</text>
-  <rect x="10" y="650" width="95" height="105" rx="14" fill="#dbeafe" stroke="#2563eb" stroke-width="2.5"/>
-  <text x="57.5" y="672.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="bold" fill="#1e40af">Внешний</text>
-  <text x="57.5" y="696.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#1e40af">сервис</text>
-  <text x="57.5" y="720.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#1e40af">idempotency</text>
-  <text x="57.5" y="744.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#1e40af">job_id</text>
-  <path d="M 105 402 L 160 402" fill="none" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
-  <text x="132" y="387" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#334155">sync tx</text>
-  <path d="M 450 505 L 590 505 L 590 360 L 610 360" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
-  <text x="560" y="490" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#334155">committed row</text>
-  <path d="M 790 360 L 825 360" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
-  <text x="807" y="345" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#334155">CDC record</text>
-  <path d="M 990 360 L 1210 360 L 1240 360" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
-  <text x="1100" y="345" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#334155">send</text>
-  <path d="M 1240 390 L 1185 390 L 1185 440 L 1085 440 L 1085 420" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
-  <text x="1160" y="425" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#334155">receive</text>
-  <path d="M 1015 390 L 970 390 L 970 500 L 900 500" fill="none" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
-  <text x="950" y="485" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#334155">result tx</text>
-  <path d="M 1240 420 L 1200 420 L 1200 537 L 1240 537" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
-  <text x="1200" y="475" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#334155">retry → DLQ</text>
-  <path d="M 1015 380 L 960 380 L 960 790 L 120 790 L 120 702 L 105 702" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
-  <text x="535" y="775" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#334155">external ≥ 1</text>
-  <path d="M 930 695 L 975 695 L 975 547 L 1000 547" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
-  <text x="980" y="675" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#334155">committed status</text>
-  <path d="M 1077 595 L 1077 625" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
-  <text x="1090" y="613" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#334155">CDC record</text>
-  <path d="M 1077 705 L 1077 730" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
-  <text x="1090" y="722" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#334155">publish</text>
-  <rect x="105" y="850" width="1380" height="135" rx="12" fill="#fff7ed" stroke="#f97316" stroke-width="2"/>
-  <text x="795" y="877" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="bold" fill="#9a3412">Гарантии и границы</text>
-  <text x="795" y="903" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#9a3412">Initial transaction has no dual-write: business data + Jobs + Outbox.</text>
-  <text x="795" y="926" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#9a3412">Result transaction atomically updates Jobs, JobResults, IdempotencyKeys and StatusOutbox.</text>
-  <text x="795" y="949" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#9a3412">CDC writes each change record exactly once; relay and subscriber processing may repeat.</text>
-  <text x="795" y="972" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#9a3412">A queue alone cannot provide exactly-once external side effects.</text>
+  <text x="800" y="42" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="28" font-weight="bold" fill="#0f172a">Надежные фоновые задания с YDB и YMQ</text>
+  <text x="800" y="72" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" fill="#475569">External producer, relays and workers · two YDB transactions · explicit YMQ claim and ack</text>
+  <rect x="60" y="90" width="1480" height="80" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="85" y="122" text-anchor="start" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="bold" fill="#0f172a">Legend:</text>
+  <rect x="175" y="106" width="26" height="20" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+  <text x="210" y="122" text-anchor="start" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">external app</text>
+  <rect x="345" y="106" width="26" height="20" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+  <text x="380" y="122" text-anchor="start" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">row table</text>
+  <rect x="500" y="106" width="26" height="20" rx="4" fill="#f3e8ff" stroke="#9333ea" stroke-width="2"/>
+  <text x="535" y="122" text-anchor="start" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">Topic / CDC</text>
+  <rect x="670" y="106" width="26" height="20" rx="4" fill="#ffedd5" stroke="#f97316" stroke-width="2"/>
+  <text x="705" y="122" text-anchor="start" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">YMQ</text>
+  <rect x="775" y="106" width="26" height="20" rx="4" fill="#ccfbf1" stroke="#0d9488" stroke-width="2"/>
+  <text x="810" y="122" text-anchor="start" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">Coordination</text>
+  <rect x="945" y="106" width="26" height="20" rx="4" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
+  <text x="980" y="122" text-anchor="start" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">DLQ</text>
+  <path d="M 1190 117 L 1240 117" fill="none" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+  <text x="1250" y="122" text-anchor="start" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">transactional / sync</text>
+  <path d="M 1400 117 L 1450 117" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
+  <text x="1460" y="122" text-anchor="start" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">async</text>
+  <rect x="330" y="205" width="760" height="610" rx="24" fill="#ffffff" stroke="#0f6cbd" stroke-width="4"/>
+  <text x="355" y="239" text-anchor="start" font-family="DejaVu Sans, Arial, sans-serif" font-size="21" font-weight="bold" fill="#0f6cbd">YDB boundary</text>
+  <rect x="1280" y="210" width="290" height="390" rx="20" fill="#fff7ed" stroke="#f97316" stroke-width="3" stroke-dasharray="9 6"/>
+  <text x="1425.0" y="238" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="bold" fill="#9a3412">Yandex Message Queue</text>
+  <text x="1425.0" y="258" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="12" fill="#9a3412">separate service outside YDB</text>
+  <rect x="350" y="245" width="450" height="260" rx="20" fill="#f0fdf4" stroke="#15803d" stroke-width="3" stroke-dasharray="9 6"/>
+  <text x="575.0" y="272" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="bold" fill="#166534">Producer ACID transaction</text>
+  <text x="575.0" y="293" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#166534">Business data + Jobs + Outbox (no dual-write)</text>
+  <rect x="350" y="535" width="450" height="245" rx="20" fill="#f0fdf4" stroke="#15803d" stroke-width="3" stroke-dasharray="9 6"/>
+  <text x="575.0" y="562" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="bold" fill="#166534">Result ACID transaction</text>
+  <text x="575.0" y="583" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#166534">Jobs + JobResults + IdempotencyKeys + StatusOutbox</text>
+  <rect x="20" y="285" width="240" height="115" rx="14" fill="#dbeafe" stroke="#2563eb" stroke-width="2.5"/>
+  <text x="140.0" y="314.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="bold" fill="#1e40af">Producer / API</text>
+  <text x="140.0" y="336.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#1e40af">outside YDB</text>
+  <text x="140.0" y="358.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#1e40af">single YDB transaction</text>
+  <text x="140.0" y="380.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#1e40af">no direct YMQ write</text>
+  <rect x="375" y="315" width="180" height="90" rx="14" fill="#dcfce7" stroke="#16a34a" stroke-width="2.5"/>
+  <text x="465.0" y="354.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="bold" fill="#166534">Business tables</text>
+  <text x="465.0" y="376.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#166534">business_id in PK</text>
+  <rect x="585" y="315" width="180" height="90" rx="14" fill="#dcfce7" stroke="#16a34a" stroke-width="2.5"/>
+  <text x="675.0" y="354.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="bold" fill="#166534">Jobs (create)</text>
+  <text x="675.0" y="376.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#166534">job_id in PK</text>
+  <rect x="480" y="420" width="180" height="75" rx="14" fill="#dcfce7" stroke="#16a34a" stroke-width="2.5"/>
+  <text x="570.0" y="451.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="bold" fill="#166534">Outbox</text>
+  <text x="570.0" y="473.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#166534">job_id + dispatch_id</text>
+  <rect x="835" y="285" width="220" height="115" rx="14" fill="#f3e8ff" stroke="#9333ea" stroke-width="2.5"/>
+  <text x="945.0" y="314.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="bold" fill="#6b21a8">Outbox changefeed</text>
+  <text x="945.0" y="336.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#6b21a8">one record per committed</text>
+  <text x="945.0" y="358.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#6b21a8">row change</text>
+  <text x="945.0" y="380.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#6b21a8">read may repeat</text>
+  <rect x="835" y="430" width="220" height="80" rx="14" fill="#ccfbf1" stroke="#0d9488" stroke-width="2.5"/>
+  <text x="945.0" y="464.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="bold" fill="#115e59">Coordination (optional)</text>
+  <text x="945.0" y="486.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#115e59">session lease only</text>
+  <rect x="375" y="600" width="180" height="75" rx="14" fill="#dcfce7" stroke="#16a34a" stroke-width="2.5"/>
+  <text x="465.0" y="631.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="bold" fill="#166534">Jobs (update)</text>
+  <text x="465.0" y="653.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#166534">final status</text>
+  <rect x="585" y="600" width="180" height="75" rx="14" fill="#dcfce7" stroke="#16a34a" stroke-width="2.5"/>
+  <text x="675.0" y="631.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="bold" fill="#166534">JobResults</text>
+  <text x="675.0" y="653.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#166534">job_id + result</text>
+  <rect x="375" y="700" width="180" height="70" rx="14" fill="#dcfce7" stroke="#16a34a" stroke-width="2.5"/>
+  <text x="465.0" y="729.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="bold" fill="#166534">IdempotencyKeys</text>
+  <text x="465.0" y="751.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#166534">job_id + operation</text>
+  <rect x="585" y="700" width="180" height="70" rx="14" fill="#dcfce7" stroke="#16a34a" stroke-width="2.5"/>
+  <text x="675.0" y="729.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="bold" fill="#166534">StatusOutbox</text>
+  <text x="675.0" y="751.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#166534">status event</text>
+  <rect x="835" y="545" width="220" height="100" rx="14" fill="#f3e8ff" stroke="#9333ea" stroke-width="2.5"/>
+  <text x="945.0" y="578.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="bold" fill="#6b21a8">Status changefeed</text>
+  <text x="945.0" y="600.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#6b21a8">one record per committed</text>
+  <text x="945.0" y="622.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#6b21a8">row change</text>
+  <rect x="835" y="680" width="220" height="100" rx="14" fill="#f3e8ff" stroke="#9333ea" stroke-width="2.5"/>
+  <text x="945.0" y="702.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="bold" fill="#6b21a8">Status Topic</text>
+  <text x="945.0" y="724.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#6b21a8">producer_id =</text>
+  <text x="945.0" y="746.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#6b21a8">message_group_id = job_id</text>
+  <text x="945.0" y="768.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#6b21a8">named YDB Consumers</text>
+  <rect x="1110" y="270" width="150" height="120" rx="14" fill="#dbeafe" stroke="#2563eb" stroke-width="2.5"/>
+  <text x="1185.0" y="302.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="bold" fill="#1e40af">Outbox relay</text>
+  <text x="1185.0" y="324.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="12" fill="#1e40af">outside YDB</text>
+  <text x="1185.0" y="346.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="12" fill="#1e40af">record may repeat</text>
+  <text x="1185.0" y="368.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="12" fill="#1e40af">stable dispatch_id</text>
+  <rect x="1110" y="470" width="150" height="145" rx="14" fill="#dbeafe" stroke="#2563eb" stroke-width="2.5"/>
+  <text x="1185.0" y="503.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="bold" fill="#1e40af">Worker</text>
+  <text x="1185.0" y="525.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="12" fill="#1e40af">outside YDB</text>
+  <text x="1185.0" y="547.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="12" fill="#1e40af">extend visibility</text>
+  <text x="1185.0" y="569.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="12" fill="#1e40af">idempotent effect</text>
+  <text x="1185.0" y="591.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="12" fill="#1e40af">commit then ack</text>
+  <rect x="1110" y="685" width="150" height="100" rx="14" fill="#dbeafe" stroke="#2563eb" stroke-width="2.5"/>
+  <text x="1185.0" y="718.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="bold" fill="#1e40af">Status relay</text>
+  <text x="1185.0" y="740.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#1e40af">outside YDB</text>
+  <text x="1185.0" y="762.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#1e40af">repeat-safe</text>
+  <rect x="1310" y="275" width="230" height="125" rx="14" fill="#ffedd5" stroke="#f97316" stroke-width="2.5"/>
+  <text x="1425.0" y="309.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="bold" fill="#9a3412">YMQ job queue</text>
+  <text x="1425.0" y="331.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="12" fill="#9a3412">YMQ message_id</text>
+  <text x="1425.0" y="353.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="12" fill="#9a3412">body: job_id + dispatch_id</text>
+  <text x="1425.0" y="375.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="12" fill="#9a3412">visibility timeout</text>
+  <rect x="1310" y="470" width="230" height="100" rx="14" fill="#fee2e2" stroke="#dc2626" stroke-width="2.5"/>
+  <text x="1425.0" y="503.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="bold" fill="#991b1b">DLQ</text>
+  <text x="1425.0" y="525.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#991b1b">redrive after retries</text>
+  <text x="1425.0" y="547.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#991b1b">manual decision</text>
+  <rect x="20" y="650" width="240" height="105" rx="14" fill="#dbeafe" stroke="#2563eb" stroke-width="2.5"/>
+  <text x="140.0" y="685.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="bold" fill="#1e40af">External service</text>
+  <text x="140.0" y="707.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#1e40af">idempotency: job_id</text>
+  <text x="140.0" y="729.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#1e40af">effect may be retried</text>
+  <path d="M 260 342 L 350 342" fill="none" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+  <text x="305" y="327" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">single ACID tx</text>
+  <path d="M 660 447 L 810 447 L 810 342 L 835 342" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
+  <text x="760" y="432" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">committed Outbox row</text>
+  <path d="M 1055 342 L 1110 330" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
+  <text x="1080" y="320" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">CDC record</text>
+  <path d="M 1260 310 L 1310 310" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
+  <text x="1285" y="295" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">send</text>
+  <path d="M 1310 350 L 1285 350 L 1285 510 L 1260 510" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
+  <text x="1278" y="450" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">claim/receive + visibility</text>
+  <path d="M 1260 570 L 1275 570 L 1275 385 L 1310 385" fill="none" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+  <text x="1185" y="635" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">ack/delete after commit</text>
+  <path d="M 1185 615 L 1185 660 L 1450 660 L 1450 400" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
+  <text x="1360" y="650" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">no ack → visibility expiry / retry</text>
+  <path d="M 1450 400 L 1450 470" fill="none" stroke="#dc2626" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#redArrow)"/>
+  <text x="1460" y="450" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#dc2626">redrive after retry limit</text>
+  <path d="M 1110 540 L 1080 540 L 1080 525 L 820 525 L 820 650 L 800 650" fill="none" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+  <text x="930" y="530" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">commit result first</text>
+  <path d="M 1110 575 L 1070 575 L 1070 805 L 280 805 L 280 702 L 260 702" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
+    <path d="M 765 720 L 800 720 L 800 670 L 820 670 L 820 595 L 835 595" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
+  <text x="810" y="665" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">committed status row</text>
+  <path d="M 1055 595 L 1080 595 L 1080 725 L 1110 725" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
+  <text x="1090" y="650" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">CDC record</text>
+  <path d="M 1110 760 L 1080 760 L 1080 730 L 1055 730" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
+  <text x="1080" y="782" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">publish status</text>
+
+  <rect x="90" y="830" width="1420" height="155" rx="12" fill="#fff7ed" stroke="#f97316" stroke-width="2"/>
+  <text x="800" y="855" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="bold" fill="#9a3412">Guarantees and boundaries</text>
+  <text x="800" y="880" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#7c2d12">YMQ → Worker: claim/receive with visibility; Worker → YMQ: ack/delete only after commit.</text>
+  <text x="800" y="903" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#7c2d12">No ack or visibility expiry causes retry; retry limit redrives the message to DLQ.</text>
+  <text x="800" y="926" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#7c2d12">CDC creates one change record per committed row change; reading and processing may repeat.</text>
+  <text x="800" y="949" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#7c2d12">Status Topic uses producer_id = message_group_id = job_id; order is within producer_id.</text>
+  <text x="800" y="972" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#7c2d12">Queue delivery and external effects are not exactly-once processing.</text>
 </svg>

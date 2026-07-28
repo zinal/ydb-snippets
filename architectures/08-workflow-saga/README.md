@@ -19,32 +19,35 @@ Saga не создает распределенную ACID-транзакцию:
 
 | Компонент | Роль |
 |---|---|
-| API / Orchestrator | Конечный автомат, проверяющий версию workflow и выбирающий следующий шаг |
+| API / Orchestrator | Внешнее приложение конечного автомата, проверяющее версию workflow и выбирающее следующий шаг |
 | WorkflowInstances | Строковая таблица состояния, версии и результата экземпляра; ключ `workflow_id` |
 | Steps | Строковая таблица попыток и результатов шагов; ключ начинается с `workflow_id` |
 | Timers | Строковая таблица дедлайнов; ключ распределяет bucket времени и включает `workflow_id` |
 | CommandOutbox | Строковая таблица команд, атомарно записанных с переходом состояния |
 | Inbox | Строковая таблица дедупликации результатов и входных сообщений |
 | DispatcherEpoch / TimerDispatchLease | Строковая таблица монотонного epoch и lease таймеров; именно она является источником fencing epoch |
-| Timer dispatcher | Лидер сканирует наступившие buckets таймеров и инициирует переходы |
+| Timer dispatcher | Внешнее приложение: сканирует/claim наступившие таймеры и транзакционно записывает ack/переход |
 | Coordination | Только session-bound leader lease; Coordination не создает монотонный fencing token |
 | Command queues | Yandex Message Queue: отдельный SQS-совместимый сервис поверх YDB, вне транзакционной границы базы |
-| Workers | Competing consumers выполняют обычные и компенсационные команды |
-| Result Topic | YDB Topic: pub/sub log результатов с партициями и consumer offsets |
+| Workers | Внешние competing consumers выполняют обычные и компенсационные команды |
+| Result Topic | YDB Topic результатов; publisher задает `producer_id = message_group_id = workflow_id` |
+| Result consumer | Внешний именованный YDB Consumer передает результаты оркестратору |
 | DLQ | Изолирует команды после исчерпания retry для ручного разбора |
 
 YMQ предоставляет competing consumers, visibility timeout, retry и DLQ. YDB Topics — другая модель: долговечный pub/sub log для нескольких подписчиков. Результаты публикуются в Topic, а не трактуются как сообщения той же очереди. Визуально и логически YMQ находится вне границы YDB: внутреннее хранение сервиса поверх YDB не включает операцию с очередью в ACID-транзакцию приложения.
+
+Внутри границы YDB находятся только row tables, Result Topic, его changefeed/CDC при использовании, Coordination и встроенные сервисы YDB. API, orchestrator, outbox relay, timer dispatcher, command workers и result consumer расположены снаружи. YMQ также находится снаружи как отдельный сервис.
 
 ## Основной поток
 
 1. API создает `WorkflowInstances` и начальный `Steps`, а в той же ACID-транзакции добавляет команду в `CommandOutbox`.
 2. Publisher асинхронно переносит outbox-запись в соответствующую YMQ command queue; повторная отправка безопасна благодаря стабильному `command_id`.
-3. Один из competing workers получает команду, выполняет идемпотентный внешний side effect и публикует результат в Result Topic.
-4. Orchestrator читает результат, дедуплицирует его по `message_id` в `Inbox` и в одной транзакции обновляет `Steps`, версию `WorkflowInstances`, необходимые `Timers` и следующую `CommandOutbox`.
+3. Один из competing workers получает команду, выполняет идемпотентный внешний side effect и публикует результат в Result Topic с `producer_id = message_group_id = workflow_id`.
+4. Внешний result consumer читает Topic через именованный YDB Consumer и передает результат orchestrator. Тот дедуплицирует `message_id` в `Inbox` и в одной транзакции обновляет `Steps`, версию `WorkflowInstances`, необходимые `Timers` и следующую `CommandOutbox`.
 5. При успехе автомат переходит к следующему шагу или завершает workflow.
 6. При окончательной ошибке автомат в обратном порядке создает команды компенсации для уже выполненных шагов.
 7. Новый лидер получает session-bound lease в Coordination, затем в транзакции YDB увеличивает `DispatcherEpoch` и запоминает полученный epoch. Coordination сама epoch не выдает.
-8. Timer dispatcher создает или обновляет `TimerDispatchLease` с этим epoch. Каждая команда таймера несет epoch, а worker и транзакция записи сверяют его с текущим `DispatcherEpoch`; устаревший лидер не может зафиксировать переход.
+8. Внешний timer dispatcher сканирует due-диапазон `Timers`, транзакционно claim-запись в `TimerDispatchLease` с текущим epoch, а после dispatch записывает ack/переход обратно в YDB. Каждая команда таймера несет epoch, а worker и транзакция записи сверяют его с текущим `DispatcherEpoch`; устаревший лидер не может зафиксировать переход.
 9. После исчерпания retry команда отправляется в DLQ; оператор сверяет внешний результат и явно возобновляет, компенсирует либо завершает процесс вручную.
 
 ## Согласованность и надежность
@@ -55,13 +58,13 @@ YMQ и Result Topic работают асинхронно и дают доста
 
 Coordination не заменяет ACID и предоставляет только lease, привязанный к сессии. Монотонный fencing epoch создается транзакционным увеличением `DispatcherEpoch` в строковой таблице YDB; `TimerDispatchLease`, workers и все записи переходов проверяют этот epoch. Потеря сессии не мгновенно останавливает старый процесс, но сравнение epoch не дает ему зафиксировать состояние. Если timer worker делает внешний side effect, внешняя система должна проверять epoch либо операция должна быть идемпотентной.
 
-Если relay для `CommandOutbox` использует CDC, CDC exactly-once создает change record для зафиксированного изменения. Доставка и обработка этого record подписчиком могут повторяться, поэтому `command_id` остается обязательным.
+Если relay для `CommandOutbox` использует CDC, CDC создает одну change record на каждое committed row change. Чтение, доставка и обработка record могут повторяться, поэтому `command_id` остается обязательным; exactly-once processing не обещается.
 
 ## Масштабирование и ключи партиционирования
 
-`workflow_id` должен хорошо распределяться и быть первым компонентом ключей `WorkflowInstances`, `Steps`, `CommandOutbox` и `Inbox`, когда запросы адресованы одному workflow. YMQ масштабирует workers как competing consumers. Result Topic ключуется по `workflow_id`, чтобы сохранить порядок результатов одного процесса.
+`workflow_id` остается в PK таблиц `WorkflowInstances`, `Steps`, `CommandOutbox` и `Inbox`. Если требуется hash-sharding, хеш служит только shard prefix: `(hash(workflow_id) % N, workflow_id, ...)`; исходный `workflow_id` не заменяется хешем. YMQ масштабирует workers как competing consumers. Для Result Topic используется `producer_id = message_group_id = workflow_id`, поэтому порядок результатов одного процесса сохраняется внутри `producer_id`; result consumer — именованный YDB Consumer.
 
-Для `Timers` нельзя использовать голый монотонный timestamp первым ключом: применяются временные buckets с хеш-солью. Несколько dispatcher-процессов могут обслуживать разные buckets, а Coordination выбирает лидера только там, где требуется эксклюзивное назначение. `DispatcherEpoch` — намеренно сериализуемая редкая точка записи при смене лидера, а не счетчик на каждое задание.
+Для `Timers` нельзя использовать голый монотонный timestamp первым ключом: применяются временной bucket и shard prefix, например `(bucket, hash(workflow_id) % N, deadline, workflow_id)`. Хеш только распределяет shard, исходный `workflow_id` остается в PK. Несколько dispatcher-процессов могут обслуживать разные buckets, а Coordination выдает только session-bound leader lease там, где требуется эксклюзивное назначение. `DispatcherEpoch` отдельно создает монотонный epoch транзакцией row table и является редкой точкой записи при смене лидера.
 
 ## Отказы и восстановление
 

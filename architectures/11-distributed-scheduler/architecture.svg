@@ -37,7 +37,7 @@
 
   <rect class="boundary" x="310" y="135" width="900" height="650" rx="22"/>
   <text class="txt box-title" x="340" y="173">YDB boundary</text>
-  <text class="txt small" x="500" y="173">Coordination, row tables, CDC and Topics</text>
+  <text class="txt small" x="500" y="173">row tables, Topics/changefeed, CDC, Coordination</text>
 
   <rect class="tx" x="345" y="345" width="830" height="310" rx="18"/>
   <text class="txt box-title" x="370" y="378">ACID row-table transactions</text>
@@ -50,16 +50,17 @@
   <path class="flow" d="M750 475 H780"/>
   <path class="flow" d="M905 520 V535"/>
   <path class="event" d="M1145 585 H1188 V255 H1180"/>
-  <path class="queue" d="M1180 255 H1230 V410 H1260"/>
-  <path class="recovery" d="M870 320 V330 H1155 V535 H1145"/>
-  <path class="queue" d="M1350 470 V540"/>
-  <path class="queue" d="M1460 540 V470"/>
+  <path class="event" d="M1180 255 H1260"/>
+  <path class="queue" d="M1405 290 V330"/>
+  <path class="recovery" d="M1260 270 H1215 V330 H1155 V535 H1145"/>
+  <path class="queue" d="M1350 450 V540"/>
+  <path class="queue" d="M1460 540 V450"/>
   <path class="flow" d="M1260 640 H1225 V665 H680 V650"/>
   <path class="flow" d="M680 665 H455 V650"/>
   <path class="event" d="M420 650 V680"/>
-  <path class="event" d="M590 722 H620"/>
-  <path class="event" d="M840 722 H870"/>
-  <path class="error-flow" d="M1490 470 H1570 V737 H1550"/>
+  <path class="event" d="M330 722 H270"/>
+  <path class="event" d="M270 750 H300 V800 H1025 V775"/>
+  <path class="error-flow" d="M1490 450 H1570 V737 H1550"/>
 
   <rect class="label-bg" x="282" y="217" width="59" height="22" rx="5"/>
   <text class="txt small" x="290" y="233">сессия</text>
@@ -67,8 +68,6 @@
   <text class="txt small" x="310" y="318">leader lease only; no epoch</text>
   <rect class="label-bg" x="289" y="411" width="111" height="22" rx="5"/>
   <text class="txt small" x="298" y="427">dispatch due</text>
-  <rect class="label-bg" x="1190" y="230" width="105" height="22" rx="5"/>
-  <text class="txt small" x="1200" y="246">idempotent enqueue</text>
   <rect class="label-bg" x="1055" y="307" width="95" height="22" rx="5"/>
   <text class="txt small" x="1065" y="323">recovery scan</text>
   <rect class="label-bg" x="1360" y="493" width="78" height="22" rx="5"/>
@@ -88,11 +87,11 @@
   <text class="txt body" x="380" y="263">session-bound leader lease only</text>
   <text class="txt body" x="380" y="286">does NOT issue epoch; not ACID</text>
 
-  <rect class="app" x="850" y="190" width="330" height="130" rx="14"/>
-  <text class="txt box-title" x="880" y="223">ExecutionOutbox CDC / relay</text>
-  <text class="txt small" x="880" y="249">exactly-once change record in changefeed</text>
-  <text class="txt small" x="880" y="273">read / processing may retry</text>
-  <text class="txt small" x="880" y="297">idempotent enqueue + recovery scan</text>
+  <rect class="topic" x="850" y="190" width="330" height="130" rx="14"/>
+  <text class="txt box-title" x="880" y="223">ExecutionOutbox changefeed</text>
+  <text class="txt small" x="880" y="249">one record per committed row change</text>
+  <text class="txt small" x="880" y="273">read / process may repeat</text>
+  <text class="txt small" x="880" y="297">source: ExecutionOutbox</text>
 
   <rect class="table" x="370" y="420" width="170" height="110" rx="12"/>
   <text class="txt box-title" x="395" y="453">Schedules</text>
@@ -128,25 +127,28 @@
   <text class="txt small" x="860" y="614">created_by_epoch: audit only</text>
   <text class="txt small" x="860" y="636">dispatch survives epoch change</text>
 
-  <rect class="topic" x="330" y="680" width="260" height="85" rx="14"/>
-  <text class="txt box-title" x="355" y="708">ResultEvents CDC</text>
-  <text class="txt small" x="355" y="732">ExecutionResultEvents only</text>
-  <text class="txt small" x="355" y="753">exactly-once record; read may retry</text>
+  <rect class="topic" x="330" y="670" width="260" height="105" rx="14"/>
+  <text class="txt body" x="355" y="696" font-weight="700">ExecutionResultEvents CDC</text>
+  <text class="txt small" x="355" y="719">one record per committed</text>
+  <text class="txt small" x="355" y="740">row change</text>
+  <text class="txt small" x="355" y="761">read / process may repeat</text>
 
-  <rect class="app" x="620" y="680" width="220" height="85" rx="14"/>
-  <text class="txt box-title" x="645" y="708">Result relay / filter</text>
-  <text class="txt small" x="645" y="732">stable event contract</text>
-  <text class="txt small" x="645" y="753">idempotent publish</text>
+  <rect class="topic" x="870" y="670" width="310" height="105" rx="14"/>
+  <text class="txt box-title" x="895" y="698">execution.results Topic</text>
+  <text class="txt small" x="895" y="721">producer_id = schedule_id</text>
+  <text class="txt small" x="895" y="742">message_group_id = schedule_id</text>
+  <text class="txt small" x="895" y="763">YDB Consumer: result-handler</text>
 
-  <rect class="topic" x="870" y="680" width="310" height="85" rx="14"/>
-  <text class="txt box-title" x="895" y="708">execution.results Topic</text>
-  <text class="txt small" x="895" y="732">pub/sub consumer groups</text>
-  <text class="txt small" x="895" y="753">at-least-once; dedupe by event key</text>
+  <rect class="app" x="1260" y="170" width="290" height="120" rx="14"/>
+  <text class="txt box-title" x="1290" y="204">Dispatch relay</text>
+  <text class="txt small" x="1290" y="230">YDB Consumer: dispatch-relay</text>
+  <text class="txt small" x="1290" y="252">idempotent enqueue + mark</text>
+  <text class="txt small" x="1290" y="274">recovery scan pending rows</text>
 
-  <rect class="ymq" x="1260" y="350" width="290" height="120" rx="14"/>
-  <text class="txt box-title" x="1290" y="385">YMQ tasks — outside YDB</text>
-  <text class="txt body" x="1290" y="413">SQS-compatible queue</text>
-  <text class="txt body" x="1290" y="440">at-least-once, retries</text>
+  <rect class="ymq" x="1260" y="330" width="290" height="120" rx="14"/>
+  <text class="txt box-title" x="1290" y="365">YMQ tasks — outside YDB</text>
+  <text class="txt body" x="1290" y="393">SQS-compatible queue</text>
+  <text class="txt body" x="1290" y="420">at-least-once, retries</text>
 
   <rect class="app" x="1260" y="540" width="290" height="145" rx="14"/>
   <text class="txt box-title" x="1290" y="575">Workers</text>
@@ -155,14 +157,20 @@
   <text class="txt small" x="1290" y="647">idempotent effect; one terminal commit</text>
   <text class="txt small" x="1290" y="669">never check global SchedulerEpoch</text>
 
+  <rect class="app" x="40" y="650" width="230" height="110" rx="14"/>
+  <text class="txt box-title" x="65" y="683">Result relay / filter</text>
+  <text class="txt small" x="65" y="708">YDB Consumer: result-relay</text>
+  <text class="txt small" x="65" y="730">stable event contract</text>
+  <text class="txt small" x="65" y="752">idempotent Topic publish</text>
+
   <rect class="error" x="1400" y="700" width="150" height="75" rx="12"/>
   <text class="txt box-title" x="1455" y="731">DLQ</text>
   <text class="txt small" x="1425" y="755">retry limit reached</text>
 
   <rect x="40" y="825" width="1500" height="130" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
   <text class="txt box-title" x="65" y="859">Гарантии</text>
-  <text class="txt body" x="65" y="890">SchedulerEpoch fences only new dispatcher writes • Committed History + Outbox survive leader change</text>
-  <text class="txt body" x="65" y="918">Worker checks execution_id + nonterminal state • Result + ResultEvents commit exactly once</text>
+  <text class="txt body" x="65" y="890">SchedulerEpoch fences new dispatcher writes • Full IDs remain in PK; optional hash is shard prefix only</text>
+  <text class="txt body" x="65" y="918">CDC: one record per committed row change; read/process may repeat • Worker uses one terminal commit</text>
 
   <rect class="app" x="1020" y="852" width="26" height="18" rx="3"/>
   <text class="txt small" x="1055" y="866">app</text>

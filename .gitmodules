@@ -1,0 +1,18 @@
+[submodule "contrib/third_party/fmt"]
+	path = contrib/third_party/fmt
+	url = https://github.com/fmtlib/fmt.git
+[submodule "contrib/third_party/spdlog"]
+	path = contrib/third_party/spdlog
+	url = https://github.com/gabime/spdlog.git
+[submodule "contrib/third_party/gflags"]
+	path = contrib/third_party/gflags
+	url = https://github.com/gflags/gflags.git
+[submodule "contrib/third_party/libpqxx"]
+	path = contrib/third_party/libpqxx
+	url = https://github.com/jtv/libpqxx.git
+[submodule "contrib/third_party/ftxui"]
+	path = contrib/third_party/ftxui
+	url = https://github.com/ArthurSonzogni/FTXUI.git
+[submodule "contrib/third_party/googletest"]
+	path = contrib/third_party/googletest
+	url = https://github.com/google/googletest.git

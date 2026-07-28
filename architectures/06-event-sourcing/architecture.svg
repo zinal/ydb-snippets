@@ -120,10 +120,10 @@
   <text font-family="DejaVu Sans, Arial, sans-serif" x="1117" y="702" class="small">version + diagnostic lag</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="1117" y="723" class="small">not a resume offset</text>
 
-  <rect x="1385" y="645" width="145" height="90" rx="11" class="coord"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="1407" y="676" class="box-title">Coordination</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="1407" y="702" class="small">Projector / replay lease</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="1407" y="723" class="small">Не заменяет ACID</text>
+  <rect x="1370" y="645" width="160" height="90" rx="11" class="coord"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1385" y="676" class="box-title">Coordination</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1385" y="700" class="small">projector / replay</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1385" y="721" class="small">lease • not ACID</text>
 
   <path d="M270 225 L270 311" class="blue-flow"/>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="283" y="260" class="flow">load + append</text>

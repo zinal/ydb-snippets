@@ -14,7 +14,7 @@
 ## Компоненты
 
 - **Document API** создает и редактирует черновики, запускает проведение и отмену.
-- Строковые таблицы YDB: `Documents(tenant_hash, document_id, ...)`, `DocumentLines(tenant_hash, document_id, line_no, ...)`, `Registers(tenant_hash, register_id, period_bucket, dimension_hash, document_id, line_no, ...)`, `Balances(tenant_hash, register_id, dimension_hash, ...)`, `PostingAttempts(tenant_hash, document_id, operation_id, ...)`, `PostingEvents(tenant_hash, document_id, event_seq, ...)`.
+- Строковые таблицы YDB: `Documents(tenant_hash, document_id, ...)`, `DocumentLines(tenant_hash, document_id, line_no, ...)`, `Registers(tenant_hash, register_id, period_bucket, dimension_hash, document_id, line_no, ...)`, `Balances(tenant_hash, register_id, dimension_hash, ...)`, `PostingAttempts(tenant_hash, document_id, operation_id, ...)`; для `PostingEvents` PK — `(tenant_hash, document_id, event_seq)`.
 - **Posting service** проверяет версию и статус, рассчитывает движения и выполняет одну ACID-транзакцию.
 - **`PostingEvents`** — append-only row table: posting service атомарно с проведением добавляет доменное событие, поэтому changefeed не должен фильтровать изменения `Documents` по `status=POSTED`.
 - **CDC `PostingEvents`** exactly-once записывает change record во внутренний changefeed topic и сохраняет порядок для полного PK `(tenant_hash, document_id, event_seq)`. YDB Topics — журнал pub/sub, а не очередь задач.
@@ -39,7 +39,7 @@ YMQ применяет competing consumers, visibility timeout, ограниче
 
 ## Масштабирование и ключи партиционирования
 
-Первые части ключей содержат равномерный `tenant_hash`; крупные tenants дополнительно шардируются по `document_hash` или `dimension_hash`. `DocumentLines` группируются по документу для чтения диапазоном. `Registers` использует временной bucket после распределяющих частей ключа, чтобы избежать горячего монотонного хвоста. `Balances` распределяется по `dimension_hash`; слишком крупный агрегат разбивается на независимые измерения. Внутренний changefeed topic `PostingEvents` партиционируется по полному PK исходной таблицы, а не по произвольно выбранному `document_id`. Если получателям нужен прикладной YDB Topic с key=`document_id`, отдельный идемпотентный consumer публикует в него после чтения changefeed. YMQ workers масштабируются числом competing consumers.
+Первые части ключей содержат равномерный `tenant_hash`; крупные tenants дополнительно шардируются по `document_hash` или `dimension_hash`. `DocumentLines` группируются по документу для чтения диапазоном. `Registers` использует временной bucket после распределяющих частей ключа, чтобы избежать горячего монотонного хвоста. `Balances` распределяется по `dimension_hash`; слишком крупный агрегат разбивается на независимые измерения. Внутренний changefeed topic `PostingEvents` партиционируется по полному PK `(tenant_hash, document_id, event_seq)`, а не по произвольно выбранному `document_id`. Если получателям нужен прикладной YDB Topic с key=`document_id`, отдельный идемпотентный consumer публикует в него после чтения changefeed. YMQ workers масштабируются числом competing consumers.
 
 ## Отказы и восстановление
 

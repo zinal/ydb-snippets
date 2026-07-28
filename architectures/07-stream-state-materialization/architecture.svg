@@ -5,7 +5,7 @@
   <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#334155"/></marker></defs>
   <rect x="0" y="0" width="1600" height="1000" fill="#f8fafc"/>
   <text x="800" y="44" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="30" font-weight="bold" fill="#0f172a">Потоковая материализация операционного состояния в YDB</text>
-  <text x="800" y="75" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" fill="#475569">YDB Topic transaction · row tables · downstream Topic / CDC</text>
+  <text x="800" y="75" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" fill="#475569">Input Topic → one ACID transaction → row tables + Downstream Topic; optional CDC</text>
   <rect x="65" y="98" width="1470" height="82" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
   <text x="88" y="130" text-anchor="start" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="bold" fill="#0f172a">Легенда:</text>
   <rect x="185" y="113" width="27" height="21" rx="4" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
@@ -20,9 +20,9 @@
   <text x="1410" y="130" text-anchor="start" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#334155">асинхронно</text>
   <rect x="155" y="205" width="1290" height="610" rx="24" fill="#ffffff" stroke="#0f6cbd" stroke-width="4"/>
   <text x="185" y="242" text-anchor="start" font-family="DejaVu Sans, Arial, sans-serif" font-size="23" font-weight="bold" fill="#0f6cbd">Граница YDB</text>
-  <rect x="700" y="255" width="475" height="430" rx="20" fill="#f0fdf4" stroke="#15803d" stroke-width="3" stroke-dasharray="9 6"/>
-  <text x="937.5" y="287" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="18" font-weight="bold" fill="#166534">Одна ACID-транзакция YDB</text>
-  <text x="937.5" y="309" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#166534">Topic read + row changes + consumer offset commit</text>
+  <rect x="700" y="255" width="715" height="430" rx="20" fill="#f0fdf4" stroke="#15803d" stroke-width="3" stroke-dasharray="9 6"/>
+  <text x="1057.5" y="287" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="18" font-weight="bold" fill="#166534">Одна ACID-транзакция YDB</text>
+  <text x="1057.5" y="309" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#166534">Input read + row changes + downstream write + offset commit</text>
   <rect x="20" y="370" width="110" height="110" rx="14" fill="#dbeafe" stroke="#2563eb" stroke-width="2.5"/>
   <text x="75.0" y="406.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="bold" fill="#1e40af">Producers</text>
   <text x="75.0" y="430.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" fill="#1e40af">event_id</text>
@@ -53,34 +53,38 @@
   <text x="1045.0" y="513.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="bold" fill="#166534">Alerts</text>
   <text x="1045.0" y="537.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" fill="#166534">active alerts</text>
   <text x="1045.0" y="561.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" fill="#166534">by entity_id</text>
-  <text x="937" y="630" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" font-weight="bold" fill="#166534">No application ConsumerOffsets table</text>
-  <rect x="1220" y="315" width="190" height="115" rx="14" fill="#f3e8ff" stroke="#9333ea" stroke-width="2.5"/>
-  <text x="1315.0" y="353.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="bold" fill="#6b21a8">Downstream Topic</text>
-  <text x="1315.0" y="377.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" fill="#6b21a8">derived events</text>
-  <text x="1315.0" y="401.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" fill="#6b21a8">pub/sub log</text>
-  <rect x="1220" y="500" width="190" height="115" rx="14" fill="#f3e8ff" stroke="#9333ea" stroke-width="2.5"/>
-  <text x="1315.0" y="538.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="bold" fill="#6b21a8">CDC changefeed</text>
-  <text x="1315.0" y="562.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" fill="#6b21a8">exactly-once</text>
-  <text x="1315.0" y="586.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" fill="#6b21a8">change record</text>
+  <text x="1057.5" y="625" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" font-weight="bold" fill="#166534">Atomic visibility: tables + input offset + downstream event</text>
+  <text x="1057.5" y="651" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#166534">No application ConsumerOffsets table</text>
+  <rect x="1170" y="320" width="210" height="110" rx="14" fill="#f3e8ff" stroke="#9333ea" stroke-width="2.5"/>
+  <text x="1275.0" y="356.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="bold" fill="#6b21a8">Downstream Topic</text>
+  <text x="1275.0" y="380.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" fill="#6b21a8">transactional write</text>
+  <text x="1275.0" y="404.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" fill="#6b21a8">derived event</text>
+  <rect x="1190" y="700" width="210" height="95" rx="14" fill="#f3e8ff" stroke="#9333ea" stroke-width="2.5"/>
+  <text x="1295.0" y="722.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="bold" fill="#6b21a8">CDC (optional)</text>
+  <text x="1295.0" y="742.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#6b21a8">additional table changes</text>
+  <text x="1295.0" y="762.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#6b21a8">exactly-once change record</text>
+  <text x="1295.0" y="782.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#6b21a8">subscriber may repeat</text>
   <rect x="460" y="650" width="200" height="105" rx="14" fill="#dbeafe" stroke="#2563eb" stroke-width="2.5"/>
   <text x="560.0" y="683.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="bold" fill="#1e40af">Transfer (optional)</text>
   <text x="560.0" y="707.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" fill="#1e40af">stateless transform</text>
   <text x="560.0" y="731.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="15" fill="#1e40af">+ UPSERT</text>
+  <path d="M 925 375 L 950 375" fill="none" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
   <path d="M 130 425 L 195 425" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
   <text x="162" y="410" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#334155">publish</text>
   <path d="M 405 425 L 460 425" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
   <text x="432" y="410" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#334155">read</text>
   <path d="M 660 425 L 700 425" fill="none" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
   <text x="680" y="410" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#334155">begin tx</text>
-  <path d="M 1175 370 L 1220 370" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
-  <text x="1198" y="354" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#334155">async output</text>
-  <path d="M 1175 555 L 1220 555" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
-  <text x="1198" y="539" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#334155">CDC</text>
+  <path d="M 1140 375 L 1170 375" fill="none" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+  <text x="1155" y="359" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">same tx</text>
+  <path d="M 1140 540 L 1155 540 L 1155 747 L 1190 747" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
+  <text x="1172" y="731" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">optional CDC</text>
   <path d="M 300 490 L 300 702 L 460 702" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
   <text x="380" y="686" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#334155">simple path</text>
   <rect x="105" y="850" width="1380" height="135" rx="12" fill="#fff7ed" stroke="#f97316" stroke-width="2"/>
   <text x="795" y="877" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="bold" fill="#9a3412">Гарантии и границы</text>
-  <text x="795" y="903" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#9a3412">Transaction: Topic read + row-table changes + consumer offset commit.</text>
-  <text x="795" y="926" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#9a3412">CDC writes each change record exactly once.</text>
-  <text x="795" y="949" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#9a3412">Subscriber processing may repeat; subscribers keep progress and stay idempotent.</text>
+  <text x="795" y="903" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#9a3412">One transaction: Input Topic read + row-table changes + Downstream Topic write.</text>
+  <text x="795" y="926" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#9a3412">Input offset, row tables and downstream event become visible atomically.</text>
+  <text x="795" y="949" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#9a3412">CDC is an optional additional table-change stream, not the reliability path.</text>
+  <text x="795" y="972" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#9a3412">External subscriber processing may repeat and remains idempotent.</text>
 </svg>

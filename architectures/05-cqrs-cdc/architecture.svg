@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
   <title id="title">CQRS с CDC и версионируемыми проекциями</title>
-  <desc id="desc">Command API записывает нормализованные строковые таблицы YDB. CDC ровно один раз записывает change record каждого committed change в topic. Projectors атомарно изменяют read models и встроенные consumer offsets; Query API читает активную версию.</desc>
+  <desc id="desc">Command Handler атомарно изменяет Orders и OrderLines и добавляет строки в OrderEvents. Changefeed только этой таблицы передает записи projectors. Identity и порядок задает PK order_id, event_seq; read model и consumer offset коммитятся одной topic+table транзакцией.</desc>
   <defs>
     <marker id="arrow-blue" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
       <path d="M0,0 L0,6 L9,3 z" fill="#2563eb"/>
@@ -50,41 +50,41 @@
   <rect x="35" y="255" width="1530" height="565" rx="18" class="boundary"/>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="60" y="287" class="box-title">YDB — только строковые таблицы и Topics</text>
 
-  <rect x="65" y="320" width="390" height="205" rx="14" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="90" y="350" class="box-title">Нормализованная write model</text>
-  <rect x="90" y="370" width="155" height="60" rx="8" class="table"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="110" y="395" class="box-title">Customers</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="110" y="416" class="small">PK: customer_id</text>
-  <rect x="265" y="370" width="165" height="60" rx="8" class="table"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="285" y="395" class="box-title">Orders</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="285" y="416" class="small">PK: order_id</text>
-  <rect x="90" y="448" width="165" height="60" rx="8" class="table"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="110" y="473" class="box-title">OrderLines</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="110" y="494" class="small">PK: order_id, line_no</text>
-  <rect x="275" y="448" width="155" height="60" rx="8" class="table"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="295" y="473" class="box-title">CommandResults</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="295" y="494" class="small">PK: command_id</text>
+  <rect x="65" y="320" width="430" height="205" rx="14" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="90" y="350" class="box-title">Write model + append-only events</text>
+  <rect x="90" y="370" width="150" height="60" rx="8" class="table"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="110" y="395" class="box-title">Orders</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="110" y="416" class="small">PK: order_id</text>
+  <rect x="260" y="370" width="210" height="60" rx="8" class="table"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="280" y="395" class="box-title">OrderLines</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="280" y="416" class="small">PK: order_id, line_no</text>
+  <rect x="90" y="448" width="155" height="60" rx="8" class="table"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="105" y="474" class="body">CommandResults</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="105" y="497" class="small">PK: command_id</text>
+  <rect x="265" y="448" width="205" height="60" rx="8" class="table"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="280" y="470" class="box-title">OrderEvents</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="280" y="489" class="small">PK: order_id,<tspan font-family="DejaVu Sans, Arial, sans-serif" x="280" dy="15">event_seq • append-only</tspan></text>
 
-  <rect x="505" y="350" width="210" height="115" rx="12" class="topic"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="530" y="382" class="box-title">CDC / changefeed</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="530" y="406" class="body">exactly-once write</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="530" y="430" class="small">1 committed change</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="530" y="451" class="small">→ 1 change record</text>
+  <rect x="520" y="350" width="220" height="115" rx="12" class="topic"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="545" y="382" class="box-title">CDC: OrderEvents</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="545" y="406" class="body">one source table</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="545" y="430" class="small">1 committed row</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="545" y="451" class="small">→ 1 change record</text>
 
-  <rect x="760" y="350" width="330" height="115" rx="12" class="topic"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="785" y="382" class="box-title">Topic: orders.changefeed</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="785" y="408" class="body">YDB Topics = pub/sub log</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="785" y="432" class="small">partition key: order_id</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="785" y="451" class="small">Consumer groups на каждую проекцию</text>
+  <rect x="780" y="350" width="320" height="115" rx="12" class="topic"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="805" y="382" class="box-title">order-events.changefeed</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="805" y="408" class="body">YDB Topic = pub/sub log</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="805" y="432" class="small">identity + order:</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="805" y="451" class="small">order_id, event_seq</text>
 
   <rect x="1135" y="320" width="395" height="205" rx="14" class="app"/>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="1160" y="352" class="box-title">Projectors</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="1160" y="380" class="body">orders-summary-v1</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="1160" y="404" class="body">orders-by-customer-v1</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="1160" y="428" class="body">CG: orders-summary-v2-rebuild</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="1160" y="456" class="small">read model + ProcessedEvents</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="1160" y="478" class="small">+ built-in consumer offset</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="1160" y="502" class="small">one topic+table transaction</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1160" y="456" class="small">ProcessedEvents identity:</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1160" y="478" class="small">source + order_id + event_seq</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1160" y="502" class="small">read model + offset: topic+table tx</text>
 
   <rect x="65" y="585" width="255" height="100" rx="11" class="table"/>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="88" y="616" class="box-title">OrderSummary_v1</text>
@@ -92,9 +92,9 @@
   <text font-family="DejaVu Sans, Arial, sans-serif" x="88" y="665" class="small">активная версия</text>
 
   <rect x="345" y="585" width="300" height="100" rx="11" class="table"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="368" y="616" class="box-title">OrdersByCustomer_v1</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="368" y="642" class="body">PK: customer_id, updated_bucket, order_id</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="368" y="665" class="small">активная версия</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="368" y="610" class="box-title">OrdersByCustomer_v1</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="368" y="634" class="small">PK: customer_id, updated_bucket,<tspan font-family="DejaVu Sans, Arial, sans-serif" x="368" dy="18">order_id</tspan></text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="368" y="674" class="small">active v1</text>
 
   <rect x="670" y="585" width="255" height="100" rx="11" class="table"/>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="693" y="616" class="box-title">OrderSummary_v2</text>
@@ -112,21 +112,20 @@
   <text font-family="DejaVu Sans, Arial, sans-serif" x="1268" y="665" class="small">атомарное переключение</text>
 
   <rect x="685" y="720" width="350" height="72" rx="11" class="coord"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="710" y="750" class="box-title">YDB Coordination</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="710" y="775" class="body">Lease rebuild + сериализация switch; не ACID</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="710" y="746" class="box-title">YDB Coordination</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="710" y="769" class="small">rebuild lease + switch guard</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="710" y="787" class="small">Coordination ≠ ACID</text>
 
   <rect x="1080" y="720" width="330" height="72" rx="11" class="error"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="1105" y="750" class="box-title">Poison event / blocked</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="1105" y="775" class="body">Диагностика, исправление, controlled replay</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1105" y="746" class="box-title">Poison event / blocked</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1105" y="769" class="small">diagnose + fix identity</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1105" y="787" class="small">controlled replay; no offset commit</text>
 
   <path d="M225 215 L225 311" class="blue-flow"/>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="238" y="252" class="flow">ACID write</text>
-  <path d="M455 405 L496 405" class="purple-flow"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="462" y="391" class="flow">CDC</text>
-  <path d="M715 405 L751 405" class="purple-flow"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="727" y="391" class="flow">1:1</text>
-  <path d="M1090 405 L1126 405" class="purple-flow"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="1092" y="391" class="flow">consume</text>
+  <path d="M470 478 L505 478 L505 420 L511 420" class="purple-flow"/>
+  <path d="M740 405 L771 405" class="purple-flow"/>
+  <path d="M1100 405 L1126 405" class="purple-flow"/>
 
   <path d="M1260 525 L1260 550 L190 550 L190 576" class="purple-flow"/>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="1060" y="544" class="flow">project v1</text>
@@ -147,8 +146,8 @@
 
   <rect x="50" y="850" width="1500" height="76" rx="12" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="75" y="875" class="box-title">Гарантии</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="75" y="899" class="body">CDC: exactly-once write of each change record • subscriber may retry → idempotency</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="75" y="919" class="small">Read model + built-in consumer offset: one topic+table transaction • read models: eventual consistency</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="75" y="899" class="body">CDC: one OrderEvents row → one change record • subscriber may retry</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="75" y="919" class="small">identity: source + order_id + event_seq • read model + built-in consumer offset: one topic+table tx</text>
 
   <text font-family="DejaVu Sans, Arial, sans-serif" x="50" y="968" class="box-title">Легенда:</text>
   <rect x="150" y="950" width="24" height="18" rx="3" class="app"/>

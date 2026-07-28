@@ -19,12 +19,14 @@
 - Row table **SchedulerEpoch**, ключ `scheduler_name`: текущий монотонный epoch dispatcher.
 - Row table **ExecutionLeases**, ключ `execution_id`: epoch, владелец, срок попытки и статус.
 - Row table **ExecutionHistory**, ключ `(schedule_id, execution_id)`: запланированное время, попытки и итог.
+- Append-only row table **ExecutionResultEvents**, ключ `(schedule_id, execution_id, result_seq)`: версия результата, epoch, статус и payload события.
 - Row table **ExecutionOutbox**, ключ `execution_id`: payload задачи, epoch и состояние relay.
 - Несколько **scheduler instances** сканируют сроки; выбранный dispatcher создает исполнения.
 - **Coordination leader election** предоставляет только session-bound leader lease. Coordination не выдает epoch и не заменяет ACID.
 - **Execution relay** читает changefeed `ExecutionOutbox`, ставит задачи в YMQ и выполняет recovery scan pending или зависших строк.
 - **YMQ tasks** — отдельная SQS-совместимая очередь поверх YDB для competing consumers.
-- **Workers** выполняют задания; committed-изменения `ExecutionHistory` поступают через CDC в **result Topic**, который является pub/sub.
+- **Workers** выполняют задания и атомарно обновляют `ExecutionHistory` вместе с добавлением `ExecutionResultEvents`.
+- **Result relay/filter** читает CDC только `ExecutionResultEvents`, отбирает контрактные события и идемпотентно публикует их в pub/sub Topic **`execution.results`**.
 - Политика retries повторно ставит временно неуспешные задачи, а исчерпанные попытки направляет в красный **DLQ**.
 
 ## Основной поток
@@ -35,20 +37,21 @@
 4. Одна условная транзакция проверяет равенство текущего `SchedulerEpoch`, резервирует уникальный `execution_id`, создает `ExecutionHistory`, `ExecutionLeases` и `ExecutionOutbox`, затем передвигает `next_run_at`.
 5. CDC exactly-once записывает change record committed-вставки `ExecutionOutbox` в changefeed Topic. Relay идемпотентно ставит задачу в YMQ; recovery scan повторяет enqueue для pending или зависших строк.
 6. Один из competing workers получает задачу и условно захватывает попытку в `ExecutionLeases`, проверяя `execution_id` и epoch.
-7. Перед commit результата worker снова транзакционно проверяет `execution_id`, epoch и актуальную попытку, затем обновляет `ExecutionHistory`; CDC этой таблицы формирует change record для result Topic.
-8. Временная ошибка приводит к retry с теми же `execution_id` и epoch; после лимита сообщение и контекст направляются в DLQ.
+7. Перед commit результата worker снова транзакционно проверяет `execution_id`, epoch и актуальную попытку. В той же ACID-транзакции он финально обновляет `ExecutionHistory` и append-only добавляет `ExecutionResultEvents` с очередным `result_seq`.
+8. CDC именно `ExecutionResultEvents` exactly-once записывает change record committed-вставки в changefeed Topic. Result relay/filter преобразует его в стабильный контракт и идемпотентно публикует в `execution.results`; повтор чтения или publish допустим и дедуплицируется по `(schedule_id, execution_id, result_seq)`.
+9. Временная ошибка приводит к retry с теми же `execution_id` и epoch; после лимита сообщение и контекст направляются в DLQ.
 
 ## Согласованность и надежность
 
 Lease сам по себе не доказывает уникальность выполнения: пауза процесса или сетевое разделение оставляют старого worker активным. Истинная защита создания запуска — уникальная условная транзакционная запись `execution_id`. Epoch хранится в `SchedulerEpoch`, транзакционно увеличивается новым лидером и проверяется каждой записью dispatcher и каждым commit результата worker. Session-bound leader lease Coordination лишь определяет кандидата на лидерство.
 
-Атомарная запись `ExecutionOutbox` устраняет окно между созданием execution, продвижением `next_run_at` и enqueue YMQ. Доставка YMQ и обработка результата рассматриваются как at-least-once. Обработчики и все внешние эффекты идемпотентны по `execution_id` и номеру шага. Coordination не заменяет ACID-транзакции YDB.
+Атомарная запись `ExecutionOutbox` устраняет окно между созданием execution, продвижением `next_run_at` и enqueue YMQ. Атомарная запись `ExecutionHistory` и `ExecutionResultEvents` не оставляет окна между финальным состоянием и намерением опубликовать результат. Доставка YMQ и публикация в `execution.results` рассматриваются как at-least-once. Обработчики и все внешние эффекты идемпотентны по `execution_id` и номеру шага. Coordination не заменяет ACID-транзакции YDB.
 
-CDC exactly-once создает change record в changefeed Topic для каждого committed изменения исходной строки. При чтении или обработке relay/consumer возможен повтор, поэтому enqueue, результат и подписчики дедуплицируются по стабильному идентификатору.
+CDC exactly-once создает change record в changefeed Topic для каждого committed изменения исходной строки. Для результатов исходной таблицей является только append-only `ExecutionResultEvents`, а не вся `ExecutionHistory`. При чтении или обработке relay/consumer возможен повтор, поэтому dispatch и result event дедуплицируются по стабильному идентификатору.
 
 ## Масштабирование и ключи партиционирования
 
-Расписания распределяются по `schedule_id`; для выборки сроков используется вычисляемый временной bucket с последующим подтверждением строки в транзакции. `ExecutionHistory` сохраняет `schedule_id` в ключе для истории конкретного расписания, а `ExecutionOutbox` распределяется по hash-prefix `execution_id`. При экстремально горячем расписании применяют hash-prefix исполнения. Relay и workers масштабируются независимо, YMQ распределяет задачи между competing consumers, а Topic обслуживает независимые consumer groups.
+Расписания распределяются по `schedule_id`; для выборки сроков используется вычисляемый временной bucket с последующим подтверждением строки в транзакции. `ExecutionHistory` и `ExecutionResultEvents` сохраняют `schedule_id` в ключе для истории конкретного расписания, а `ExecutionOutbox` распределяется по hash-prefix `execution_id`. При экстремально горячем расписании применяют hash-prefix исполнения. Dispatch relay, result relay и workers масштабируются независимо, YMQ распределяет задачи между competing consumers, а `execution.results` обслуживает независимые consumer groups.
 
 ## Отказы и восстановление
 
@@ -57,12 +60,14 @@ CDC exactly-once создает change record в changefeed Topic для каж�
 - Остановка relay после commit не теряет задачу: recovery scan находит `ExecutionOutbox`; сбой после enqueue создает допустимый дубликат.
 - Worker может завершить внешний эффект и не записать результат; повтор исполнения возможен, поэтому эффект обязан быть идемпотентным.
 - Истекший worker lease разрешает новую попытку, но не останавливает старый процесс; проверка `execution_id`, epoch и попытки отклоняет его commit.
-- Недоступные подписчики дочитывают result Topic, а сообщения DLQ разбираются и переотправляются оператором после устранения причины.
+- Сбой result relay после publish, но до фиксации позиции может повторить событие; стабильный ключ `ExecutionResultEvents` делает повтор безопасным.
+- Недоступные подписчики дочитывают `execution.results` со своей позиции, а сообщения DLQ разбираются и переотправляются оператором после устранения причины.
 
 ## Ограничения и антипаттерны
 
 - Нельзя считать leader lease или worker lease гарантией exactly-once.
 - Нельзя генерировать случайный `execution_id` при каждом повторе одного планового интервала.
 - Нельзя принимать запись от dispatcher без проверки epoch.
+- Нельзя публиковать всю `ExecutionHistory` как готовый result Topic: это mutable operational state, а не append-only интеграционный контракт.
 - Нельзя бесконечно повторять постоянную ошибку без лимита и DLQ.
 - Решение не предназначено для DWH/OLAP и реляционной аналитики; column tables и YDB External Data Source не используются.

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
   <title id="title">Архитектура распределенного планировщика в YDB</title>
-  <desc id="desc">Coordination provides only a session-bound leader lease. A new leader increments SchedulerEpoch in a transaction. Execution, next_run_at, and ExecutionOutbox commit atomically; CDC relay and recovery scan enqueue external YMQ tasks.</desc>
+  <desc id="desc">ExecutionOutbox safely dispatches YMQ tasks. After execution_id and epoch checks, a worker atomically updates ExecutionHistory and appends ExecutionResultEvents. CDC of only that append-only table feeds a result relay which publishes execution.results.</desc>
   <defs>
     <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
       <path d="M0,0 L0,6 L9,3 z" fill="#334155"/>
@@ -40,8 +40,8 @@
   <text class="txt small" x="500" y="173">Coordination, row tables, CDC and Topics</text>
 
   <rect class="tx" x="345" y="345" width="830" height="310" rx="18"/>
-  <text class="txt box-title" x="370" y="378">ACID-транзакция планирования</text>
-  <text class="txt small" x="370" y="401">check epoch + reserve execution_id + next_run_at + ExecutionOutbox</text>
+  <text class="txt box-title" x="370" y="378">ACID row-table transactions</text>
+  <text class="txt small" x="370" y="401">dispatch: epoch + execution_id + next_run_at + Outbox | worker final: verify id/epoch + History + ResultEvent</text>
 
   <path class="coord-flow" d="M270 245 H350"/>
   <path class="coord-flow" d="M350 285 H290 V285 H270"/>
@@ -55,7 +55,10 @@
   <path class="queue" d="M1350 470 V540"/>
   <path class="queue" d="M1460 540 V470"/>
   <path class="flow" d="M1260 640 H1225 V665 H680 V650"/>
-  <path class="event" d="M680 650 V722 H900"/>
+  <path class="flow" d="M680 665 H455 V650"/>
+  <path class="event" d="M420 650 V680"/>
+  <path class="event" d="M590 722 H620"/>
+  <path class="event" d="M840 722 H870"/>
   <path class="error-flow" d="M1490 470 H1570 V737 H1550"/>
 
   <rect class="label-bg" x="282" y="217" width="59" height="22" rx="5"/>
@@ -72,8 +75,6 @@
   <text class="txt small" x="1370" y="509">competing</text>
   <rect class="label-bg" x="1070" y="640" width="126" height="22" rx="5"/>
   <text class="txt small" x="1080" y="656">verify id + epoch</text>
-  <rect class="label-bg" x="760" y="694" width="122" height="22" rx="5"/>
-  <text class="txt small" x="770" y="710">committed result</text>
 
   <rect class="app" x="40" y="200" width="230" height="210" rx="14"/>
   <text class="txt box-title" x="70" y="235">Scheduler instances</text>
@@ -108,6 +109,13 @@
   <text class="txt body" x="805" y="479">key: execution_id</text>
   <text class="txt small" x="805" y="504">owner, epoch, attempt, deadline</text>
 
+  <rect class="table" x="370" y="535" width="170" height="115" rx="12"/>
+  <text class="txt small" x="382" y="558" font-weight="700">ExecutionResultEvents</text>
+  <text class="txt small" x="385" y="580">append-only key:</text>
+  <text class="txt small" x="385" y="598">schedule_id</text>
+  <text class="txt small" x="385" y="616">execution_id</text>
+  <text class="txt small" x="385" y="634">result_seq, ...</text>
+
   <rect class="table" x="560" y="535" width="245" height="115" rx="12"/>
   <text class="txt box-title" x="585" y="568">ExecutionHistory</text>
   <text class="txt body" x="585" y="594">schedule_id, execution_id</text>
@@ -118,10 +126,20 @@
   <text class="txt body" x="860" y="594">key: execution_id; epoch, payload</text>
   <text class="txt body" x="860" y="620">relay_state, stable task_id</text>
 
-  <rect class="topic" x="900" y="680" width="280" height="85" rx="14"/>
-  <text class="txt box-title" x="925" y="711">Result changefeed Topic</text>
-  <text class="txt small" x="925" y="735">exactly-once record; read may retry</text>
-  <text class="txt small" x="925" y="755">pub/sub consumer groups</text>
+  <rect class="topic" x="330" y="680" width="260" height="85" rx="14"/>
+  <text class="txt box-title" x="355" y="708">ResultEvents CDC</text>
+  <text class="txt small" x="355" y="732">ExecutionResultEvents only</text>
+  <text class="txt small" x="355" y="753">exactly-once record; read may retry</text>
+
+  <rect class="app" x="620" y="680" width="220" height="85" rx="14"/>
+  <text class="txt box-title" x="645" y="708">Result relay / filter</text>
+  <text class="txt small" x="645" y="732">stable event contract</text>
+  <text class="txt small" x="645" y="753">idempotent publish</text>
+
+  <rect class="topic" x="870" y="680" width="310" height="85" rx="14"/>
+  <text class="txt box-title" x="895" y="708">execution.results Topic</text>
+  <text class="txt small" x="895" y="732">pub/sub consumer groups</text>
+  <text class="txt small" x="895" y="753">at-least-once; dedupe by event key</text>
 
   <rect class="ymq" x="1260" y="350" width="290" height="120" rx="14"/>
   <text class="txt box-title" x="1290" y="385">YMQ tasks — outside YDB</text>
@@ -140,8 +158,8 @@
 
   <rect x="40" y="825" width="1500" height="130" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
   <text class="txt box-title" x="65" y="859">Гарантии</text>
-  <text class="txt body" x="65" y="890">Execution + next_run_at + ExecutionOutbox commit atomically; relay recovery closes the enqueue gap</text>
-  <text class="txt body" x="65" y="918">Coordination is session lease only; epoch lives in SchedulerEpoch; worker verifies execution_id + epoch</text>
+  <text class="txt body" x="65" y="890">Dispatch: ExecutionOutbox closes enqueue gap • Result: History + ExecutionResultEvents commit atomically</text>
+  <text class="txt body" x="65" y="918">CDC reads only append-only ResultEvents • execution.results publish is at-least-once and idempotent</text>
 
   <rect class="app" x="1020" y="852" width="26" height="18" rx="3"/>
   <text class="txt small" x="1055" y="866">app</text>

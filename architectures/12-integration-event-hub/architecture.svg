@@ -54,9 +54,9 @@
   <path class="flow" d="M710 505 H730"/>
   <path class="flow" d="M880 505 H900"/>
   <path class="flow" d="M1030 505 H1050"/>
-  <path class="event" d="M805 570 V650 H705 V670"/>
+  <path class="event" d="M805 570 V650 H705 V660"/>
   <path class="event" d="M770 720 H780 V340 H1135 V325"/>
-  <path class="event" d="M1130 570 V650 H915 V670"/>
+  <path class="event" d="M1130 570 V650 H915 V660"/>
   <path class="event" d="M790 720 H780 V790 H530 V625 H520"/>
   <path class="event" d="M520 610 H530 V190 H1135 V205"/>
   <path class="queue" d="M520 640 H540 V805 H1275 V460 H1300"/>
@@ -158,17 +158,19 @@
   <text class="txt small" x="1065" y="534">destination_id, route</text>
   <text class="txt small" x="1065" y="554">stable id, pending</text>
 
-  <rect class="topic" x="560" y="670" width="210" height="100" rx="14"/>
-  <text class="txt body" x="580" y="698" font-weight="700">CanonicalState CDC</text>
-  <text class="txt small" x="580" y="722">one record / committed</text>
-  <text class="txt small" x="580" y="742">row change</text>
-  <text class="txt small" x="580" y="761">read/process may repeat</text>
+  <rect class="topic" x="560" y="660" width="210" height="120" rx="14"/>
+  <text class="txt body" x="580" y="686" font-weight="700">CanonicalState CDC</text>
+  <text class="txt small" x="580" y="708">one record / committed</text>
+  <text class="txt small" x="580" y="729">row change</text>
+  <text class="txt small" x="580" y="750">read/process may repeat</text>
+  <text class="txt small" x="580" y="771">no custom producer_id</text>
 
-  <rect class="topic" x="790" y="670" width="250" height="100" rx="14"/>
-  <text class="txt body" x="815" y="698" font-weight="700">DispatchIntent changefeed</text>
-  <text class="txt small" x="815" y="722">one record / committed row change</text>
-  <text class="txt small" x="815" y="742">read / process may repeat</text>
-  <text class="txt small" x="815" y="761">YDB Consumer: dispatch-relay</text>
+  <rect class="topic" x="790" y="660" width="250" height="120" rx="14"/>
+  <text class="txt body" x="815" y="686" font-weight="700">DispatchIntent changefeed</text>
+  <text class="txt small" x="815" y="708">one record / committed row change</text>
+  <text class="txt small" x="815" y="729">read / process may repeat</text>
+  <text class="txt small" x="815" y="750">YDB Consumer: dispatch-relay</text>
+  <text class="txt small" x="815" y="771">no custom producer_id</text>
 
   <rect class="coord" x="1060" y="670" width="180" height="100" rx="14"/>
   <text class="txt box-title" x="1080" y="702">Coordination</text>

@@ -41,6 +41,7 @@
   <text x="505.0" y="398.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#6b21a8">entity_id</text>
   <text x="505.0" y="419.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#6b21a8">YDB Consumer:</text>
   <text x="505.0" y="440.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#6b21a8">materializer</text>
+  <text x="505.0" y="458.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="12" fill="#6b21a8">order within producer_id</text>
   <rect x="665" y="305" width="190" height="100" rx="14" fill="#dcfce7" stroke="#16a34a" stroke-width="2.5"/>
   <text x="760.0" y="338.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="bold" fill="#166534">CurrentState</text>
   <text x="760.0" y="360.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#166534">entity_id in PK</text>
@@ -59,15 +60,17 @@
   <text x="1230.0" y="387.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#6b21a8">message_group_id =</text>
   <text x="1230.0" y="409.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#6b21a8">entity_id</text>
   <text x="1230.0" y="431.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#6b21a8">transactional write</text>
+  <text x="1230.0" y="451.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="12" fill="#6b21a8">order within producer_id</text>
   <rect x="390" y="635" width="220" height="110" rx="14" fill="#e2e8f0" stroke="#64748b" stroke-width="2.5"/>
   <text x="500.0" y="673.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="bold" fill="#334155">Built-in Transfer</text>
   <text x="500.0" y="695.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#334155">optional</text>
   <text x="500.0" y="717.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#334155">stateless + UPSERT</text>
   <rect x="1130" y="625" width="240" height="125" rx="14" fill="#f3e8ff" stroke="#9333ea" stroke-width="2.5"/>
-  <text x="1250.0" y="659.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="bold" fill="#6b21a8">CDC (optional)</text>
-  <text x="1250.0" y="681.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#6b21a8">one change record per</text>
-  <text x="1250.0" y="703.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#6b21a8">committed row change</text>
-  <text x="1250.0" y="725.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#6b21a8">read/process may repeat</text>
+  <text x="1250.0" y="650.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="bold" fill="#6b21a8">CDC (optional)</text>
+  <text x="1250.0" y="670.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#6b21a8">one change record per</text>
+  <text x="1250.0" y="690.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#6b21a8">committed row change</text>
+  <text x="1250.0" y="710.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#6b21a8">read/process may repeat</text>
+  <text x="1250.0" y="730.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="12" fill="#6b21a8">no custom producer_id</text>
   <text x="850" y="600" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" font-weight="bold" fill="#166534">Atomic commit: row tables + input Consumer offset</text>
   <text x="850" y="620" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" font-weight="bold" fill="#166534">Downstream event becomes visible in the same commit</text>
   <path d="M 105 315 L 390 345" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>

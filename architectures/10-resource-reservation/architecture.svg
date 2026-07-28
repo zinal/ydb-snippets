@@ -48,8 +48,8 @@
   <path class="flow" d="M860 350 H900"/>
   <path class="flow" d="M750 410 V438"/>
   <path class="queue" d="M1270 500 H1230 V810 H290 V650 H270"/>
-  <path class="event" d="M500 410 V590 H1030 V620"/>
-  <path class="event" d="M1040 538 V620"/>
+  <path class="event" d="M500 410 V590 H1030 V610"/>
+  <path class="event" d="M1040 538 V610"/>
   <path class="event" d="M1160 650 H1270"/>
   <path class="event" d="M900 650 H870"/>
   <path class="queue" d="M1410 585 V560"/>
@@ -121,11 +121,12 @@
   <text class="txt small" x="605" y="707">порядок внутри producer_id</text>
   <text class="txt small" x="605" y="728">YDB Consumer: availability-view</text>
 
-  <rect class="topic" x="900" y="620" width="260" height="110" rx="12"/>
-  <text class="txt box-title" x="930" y="650">CDC changefeeds</text>
-  <text class="txt small" x="930" y="674">one record per committed</text>
-  <text class="txt small" x="930" y="695">row change</text>
-  <text class="txt small" x="930" y="716">read / process may repeat</text>
+  <rect class="topic" x="900" y="610" width="260" height="130" rx="12"/>
+  <text class="txt box-title" x="930" y="640">CDC changefeeds</text>
+  <text class="txt small" x="930" y="663">one record per committed</text>
+  <text class="txt small" x="930" y="684">row change</text>
+  <text class="txt small" x="930" y="705">read / process may repeat</text>
+  <text class="txt small" x="930" y="726">no custom producer_id</text>
 
   <rect class="ymq" x="1270" y="440" width="280" height="120" rx="14"/>
   <text class="txt box-title" x="1300" y="478">YMQ expiration jobs</text>

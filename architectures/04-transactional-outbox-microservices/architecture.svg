@@ -57,7 +57,7 @@
   <text font-family="DejaVu Sans, Arial, sans-serif" x="772" y="204" class="small">Inbox • идемпотентные effects</text>
 
   <rect x="1090" y="100" width="460" height="125" rx="14" class="app"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="1112" y="132" class="box-title">Outbox Relay — отдельное приложение</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1112" y="132" class="box-title">B3 • Outbox Relay (outside YDB)</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="1112" y="158" class="body">YDB Consumer order-outbox-relay</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="1112" y="182" class="small">publish → offset commit; retry keeps event_id</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="1112" y="204" class="small">Вне границы YDB</text>
@@ -93,13 +93,14 @@
   <rect x="55" y="465" width="510" height="155" rx="12" class="lane"/>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="75" y="489" font-size="21" font-weight="700">B — выбрать<tspan font-family="DejaVu Sans, Arial, sans-serif" x="75" dy="20" class="small">ровно один путь для типа события • table + Outbox + CDC</tspan></text>
   <rect x="78" y="518" width="225" height="76" rx="9" class="table"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="95" y="543" class="box-title">OrderOutbox</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="95" y="543" class="box-title">B1 • OrderOutbox</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="95" y="564" class="small">PK: shard_prefix, created_at,</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="95" y="583" class="small">event_id • never hash-only</text>
   <rect x="330" y="518" width="210" height="76" rx="9" class="topic"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="348" y="543" class="box-title">CDC/changefeed</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="348" y="565" class="small">1 change record /</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="348" y="583" class="small">committed row change</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="348" y="539" font-size="16" font-weight="700">B2 • CDC/changefeed</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="348" y="556" class="small">1 record / committed row</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="348" y="574" class="small">change • internal changefeed</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="348" y="590" class="small">no custom producer_id</text>
 
   <rect x="590" y="465" width="335" height="155" rx="12" class="lane"/>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="610" y="489" font-size="21" font-weight="700">A — выбрать<tspan font-family="DejaVu Sans, Arial, sans-serif" x="610" dy="20" class="small">ровно один путь для типа события • table + Topic tx</tspan></text>
@@ -129,8 +130,10 @@
   <text font-family="DejaVu Sans, Arial, sans-serif" x="1122" y="716" class="small">порядок внутри producer_id</text>
 
   <path d="M185 245 L25 245 L25 537 L55 537" fill="none" stroke="#d97706" stroke-width="2.4" stroke-dasharray="7 5"/>  <path d="M225 245 L1550 245 L1550 750 L760 750 L760 610" fill="none" stroke="#d97706" stroke-width="2.4" stroke-dasharray="7 5"/>  <path d="M303 556 L321 556" class="purple-flow"/>
-  <path d="M435 518 L435 450 L502 450 L502 270 L1240 270 L1240 234" fill="none" stroke="#7c3aed" stroke-width="2.4" stroke-dasharray="7 5"/>
-  <path d="M1320 225 L1320 270 L1545 270 L1545 455 L930 455 L930 532" fill="none" stroke="#7c3aed" stroke-width="2.4" stroke-dasharray="7 5"/>
+  <path d="M435 518 L435 450 L502 450 L502 270 L1240 270 L1240 234" fill="none" stroke="#7c3aed" stroke-width="3" marker-end="url(#arrow-purple)"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="710" y="263" class="flow">B2 → B3 • consume changefeed</text>
+  <path d="M1320 225 L1320 270 L1545 270 L1545 455 L930 455 L930 532" fill="none" stroke="#7c3aed" stroke-width="3" marker-end="url(#arrow-purple)"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1120" y="448" class="flow">B4 • publish orders.events → XOR merge</text>
   <path d="M895 550 L915 547" fill="none" stroke="#d97706" stroke-width="2.4" stroke-dasharray="7 5"/>
   <polygon points="915,547 930,532 945,547 930,562" fill="#fff7ed" stroke="#d97706" stroke-width="2"/>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="884" y="610" class="small">XOR merge</text>

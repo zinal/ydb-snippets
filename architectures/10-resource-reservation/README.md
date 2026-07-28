@@ -23,7 +23,7 @@
 - Row table **ExpirationOutbox**, ключ `(resource_id, reservation_id)`: неизменяемое намерение поставить проверку `expires_at`, payload и состояние relay.
 - **YMQ expiration jobs** — отдельная SQS-совместимая очередь поверх YDB для competing consumers, обрабатывающих истечение резервов.
 - **Expiration relay** читает changefeed `ExpirationOutbox`, идемпотентно ставит задания в YMQ и выполняет recovery scan необработанных строк.
-- **CDC availability events** публикует изменения `Resources` в пользовательский Topic: `producer_id = message_group_id = resource_id`; подписчики используют отдельные именованные **YDB Consumers**.
+- **CDC availability events** публикует изменения `Resources` в пользовательский Topic: `producer_id = message_group_id = resource_id`; гарантия порядка — «порядок внутри producer_id». Подписчики используют отдельные именованные **YDB Consumers**.
 - **Coordination semaphore** ограничивает число одновременно допущенных запросов к горячему ресурсу.
 
 ## Основной поток
@@ -33,7 +33,7 @@
 3. Commit атомарно сохраняет резерв и намерение фоновой проверки; прямого enqueue после commit в критическом пути нет.
 4. CDC создает одну change record на committed-вставку `ExpirationOutbox` в changefeed Topic. Relay может повторно прочитать или обработать record и идемпотентно ставит YMQ job; сбой между enqueue и отметкой relay может создать дубликат.
 5. Consumer задания в транзакции проверяет текущее состояние и `expires_at`; только активный просроченный резерв переводится в `EXPIRED`, а остаток возвращается в `Resources`.
-6. Отдельный changefeed `Resources` создает одну change record на committed-изменение доступности. Availability publisher пишет событие с `producer_id = message_group_id = resource_id`; чтение и обработка могут повториться, поэтому каждый именованный YDB Consumer дедуплицирует события.
+6. Отдельный changefeed `Resources` создает одну change record на committed-изменение доступности. Availability publisher пишет событие с `producer_id = message_group_id = resource_id`; порядок сохраняется внутри `producer_id`. Чтение и обработка могут повториться, поэтому каждый именованный YDB Consumer дедуплицирует события.
 7. Подтверждение или отмена также выполняются условным переходом состояния и атомарным изменением остатка, если оно требуется.
 8. Recovery scan relay периодически находит pending или зависшие строки `ExpirationOutbox` и повторяет enqueue с тем же идентификатором задания.
 

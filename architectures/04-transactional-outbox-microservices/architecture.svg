@@ -63,6 +63,7 @@
   <text font-family="DejaVu Sans, Arial, sans-serif" x="1112" y="204" class="small">Вне границы YDB</text>
 
   <polygon points="185,245 205,225 225,245 205,265" fill="#fff7ed" stroke="#d97706" stroke-width="2"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="232" y="260" class="small">XOR split</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="950" y="72" font-size="18" font-weight="700">A XOR B — выбрать один путь на тип события</text>
 
   <rect x="35" y="280" width="1530" height="500" rx="18" class="boundary"/>
@@ -89,22 +90,22 @@
   <rect x="1280" y="362" width="240" height="56" rx="8" class="table"/>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="1297" y="386" class="box-title">DeliveryInbox</text><text font-family="DejaVu Sans, Arial, sans-serif" x="1297" y="407" class="small">PK: event_id</text>
 
-  <rect x="55" y="465" width="510" height="145" rx="12" class="lane"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="75" y="490" class="box-title">B • table + Outbox, CDC, external relay</text>
-  <rect x="78" y="510" width="225" height="76" rx="9" class="table"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="95" y="535" class="box-title">OrderOutbox</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="95" y="556" class="small">PK: shard_prefix, created_at,</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="95" y="575" class="small">event_id • never hash-only</text>
-  <rect x="330" y="510" width="210" height="76" rx="9" class="topic"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="348" y="535" class="box-title">CDC/changefeed</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="348" y="557" class="small">1 change record /</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="348" y="575" class="small">committed row change</text>
+  <rect x="55" y="465" width="510" height="155" rx="12" class="lane"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="75" y="489" font-size="21" font-weight="700">B — выбрать<tspan font-family="DejaVu Sans, Arial, sans-serif" x="75" dy="20" class="small">ровно один путь для типа события • table + Outbox + CDC</tspan></text>
+  <rect x="78" y="518" width="225" height="76" rx="9" class="table"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="95" y="543" class="box-title">OrderOutbox</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="95" y="564" class="small">PK: shard_prefix, created_at,</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="95" y="583" class="small">event_id • never hash-only</text>
+  <rect x="330" y="518" width="210" height="76" rx="9" class="topic"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="348" y="543" class="box-title">CDC/changefeed</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="348" y="565" class="small">1 change record /</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="348" y="583" class="small">committed row change</text>
 
-  <rect x="590" y="465" width="335" height="145" rx="12" class="lane"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="610" y="490" class="box-title">A • table + Topic transaction</text>
-  <rect x="620" y="515" width="275" height="64" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="642" y="541" class="body">Orders tables + orders.events</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="642" y="563" class="small">one atomic commit</text>
+  <rect x="590" y="465" width="335" height="155" rx="12" class="lane"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="610" y="489" font-size="21" font-weight="700">A — выбрать<tspan font-family="DejaVu Sans, Arial, sans-serif" x="610" dy="20" class="small">ровно один путь для типа события • table + Topic tx</tspan></text>
+  <rect x="620" y="518" width="275" height="64" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="642" y="544" class="body">Orders tables + orders.events</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="642" y="566" class="small">one atomic commit</text>
 
   <rect x="955" y="485" width="330" height="100" rx="12" class="topic"/>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="978" y="515" class="box-title">Topic: orders.events</text>
@@ -117,19 +118,23 @@
   <text font-family="DejaVu Sans, Arial, sans-serif" x="1330" y="540" class="small">relay lease only</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="1330" y="562" class="small">not ACID</text>
 
-  <rect x="520" y="650" width="370" height="82" rx="11" class="topic"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="542" y="678" class="box-title">Topic: payments.events</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="542" y="701" class="small">producer_id = message_group_id = order_id</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="542" y="721" class="small">YDB Consumer delivery-payments</text>
-  <rect x="1100" y="650" width="330" height="82" rx="11" class="topic"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="1122" y="680" class="box-title">Topic: delivery.events</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="1122" y="704" class="small">producer_id = message_group_id = order_id</text>
+  <rect x="520" y="645" width="370" height="90" rx="11" class="topic"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="542" y="673" class="box-title">Topic: payments.events</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="542" y="696" class="small">producer_id = message_group_id = order_id</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="542" y="714" class="small">порядок внутри producer_id</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="542" y="730" class="small">YDB Consumer delivery-payments</text>
+  <rect x="1100" y="645" width="330" height="90" rx="11" class="topic"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1122" y="673" class="box-title">Topic: delivery.events</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1122" y="696" class="small">producer_id = message_group_id = order_id</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1122" y="716" class="small">порядок внутри producer_id</text>
 
-  <path d="M185 245 L25 245 L25 537 L55 537" fill="none" stroke="#d97706" stroke-width="2.4" stroke-dasharray="7 5"/>  <path d="M225 245 L1550 245 L1550 750 L760 750 L760 610" fill="none" stroke="#d97706" stroke-width="2.4" stroke-dasharray="7 5"/>  <path d="M303 548 L321 548" class="purple-flow"/>
-  <path d="M435 510 L435 450 L10 450 L10 80 L1320 80 L1320 91" class="purple-flow"/>
-  <path d="M1550 160 L1580 160 L1580 760 L1120 760 L1120 594" class="purple-flow"/>
-  <path d="M895 547 L946 547" class="blue-flow"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="900" y="535" class="small">A</text>
+  <path d="M185 245 L25 245 L25 537 L55 537" fill="none" stroke="#d97706" stroke-width="2.4" stroke-dasharray="7 5"/>  <path d="M225 245 L1550 245 L1550 750 L760 750 L760 610" fill="none" stroke="#d97706" stroke-width="2.4" stroke-dasharray="7 5"/>  <path d="M303 556 L321 556" class="purple-flow"/>
+  <path d="M435 518 L435 450 L502 450 L502 270 L1240 270 L1240 234" fill="none" stroke="#7c3aed" stroke-width="2.4" stroke-dasharray="7 5"/>
+  <path d="M1320 225 L1320 270 L1545 270 L1545 455 L930 455 L930 532" fill="none" stroke="#7c3aed" stroke-width="2.4" stroke-dasharray="7 5"/>
+  <path d="M895 550 L915 547" fill="none" stroke="#d97706" stroke-width="2.4" stroke-dasharray="7 5"/>
+  <polygon points="915,547 930,532 945,547 930,562" fill="#fff7ed" stroke="#d97706" stroke-width="2"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="884" y="610" class="small">XOR merge</text>
+  <path d="M945 547 L946 547" class="blue-flow"/>
 
   <path d="M1000 485 L1000 448 L502 448 L502 240 L560 240 L560 225" class="purple-flow"/>
   <path d="M1050 485 L1050 448 L990 448 L990 240 L900 240 L900 225" class="purple-flow"/>
@@ -137,8 +142,8 @@
   <path d="M560 225 L560 321 L650 321 L650 353" class="blue-flow"/>
   <path d="M705 418 L705 641" class="purple-flow"/>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="350" y="640" class="small">publish: table + Topic tx</text>
-  <path d="M890 691 L1000 691 L1000 255 L900 255 L900 234" class="purple-flow"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="1010" y="640" class="flow">PaymentAuthorized</text>
+  <path d="M890 690 L890 770 L1545 770 L1545 245 L900 245 L900 234" class="purple-flow"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1050" y="764" class="flow">PaymentAuthorized</text>
   <path d="M900 225 L900 320 L1145 320 L1145 353" class="blue-flow"/>
   <path d="M1250 418 L1250 641" class="purple-flow"/>
 

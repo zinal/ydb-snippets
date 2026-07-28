@@ -103,6 +103,8 @@
   <rect x="1380" y="645" width="150" height="90" rx="11" class="coord"/>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="1395" y="675" class="body">Coordination</text><text font-family="DejaVu Sans, Arial, sans-serif" x="1395" y="699" class="small">replay lease</text><text font-family="DejaVu Sans, Arial, sans-serif" x="1395" y="721" class="small">not ACID</text>
 
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="400" y="622" font-size="20" font-weight="700">A XOR B — один источник live-события</text>
+
   <rect x="60" y="635" width="590" height="100" rx="12" class="error"/>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="82" y="665" class="box-title">Topic retention ≠ source of truth</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="82" y="691" class="body">Full replay always reads durable EventLog</text>
@@ -110,11 +112,22 @@
 
   <path d="M215 225 L215 326" class="blue-flow"/><text font-family="DejaVu Sans, Arial, sans-serif" x="227" y="270" class="flow">load + append</text>
   <path d="M337 423 L351 423" class="blue-flow"/>
-  <path d="M650 407 L681 407" class="purple-flow"/>  <path d="M650 552 L681 552" class="purple-flow"/>  <path d="M865 345 L865 234" class="purple-flow"/><text font-family="DejaVu Sans, Arial, sans-serif" x="878" y="270" class="small">named YDB Consumers</text>
-  <path d="M690 552 L670 552 L670 250 L650 250 L650 225" class="purple-flow"/>
-  <path d="M82 423 L45 423 L45 250 L500 250 L500 225" class="purple-flow"/>  <path d="M1060 225 L1060 420 L1071 420" class="blue-flow"/>
-  <path d="M1060 500 L1060 625 L1185 625 L1185 615" class="blue-flow"/>
-  <path d="M1060 625 L1420 625 L1420 615" class="blue-flow"/>
+  <path d="M650 480 L655 480" class="blue-flow"/>
+  <polygon points="655,480 670,465 685,480 670,495" fill="#fff7ed" stroke="#d97706" stroke-width="2"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="615" y="455" class="small">XOR split</text>
+  <path d="M670 465 L670 407 L681 407" fill="none" stroke="#d97706" stroke-width="2.4" stroke-dasharray="7 5"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="675" y="430" class="flow">A</text>
+  <path d="M670 495 L670 552 L681 552" fill="none" stroke="#d97706" stroke-width="2.4" stroke-dasharray="7 5"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="675" y="530" class="flow">B</text>
+  <path d="M1040 407 L1055 407 L1055 465" fill="none" stroke="#d97706" stroke-width="2.4" stroke-dasharray="7 5"/>
+  <path d="M1040 552 L1055 552 L1055 495" fill="none" stroke="#d97706" stroke-width="2.4" stroke-dasharray="7 5"/>
+  <polygon points="1040,480 1055,465 1070,480 1055,495" fill="#fff7ed" stroke="#d97706" stroke-width="2"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="980" y="620" class="small">XOR merge</text>
+  <path d="M1055 465 L1050 455 L1050 234" class="purple-flow"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="900" y="270" class="small">selected live source → named YDB Consumer</text>
+  <path d="M82 423 L45 423 L45 250 L500 250 L500 225" class="purple-flow"/>  <path d="M1070 225 L1070 420 L1071 420" class="blue-flow"/>
+  <path d="M1070 500 L1070 625 L1185 625 L1185 615" class="blue-flow"/>
+  <path d="M1070 625 L1420 625 L1420 615" class="blue-flow"/>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="1070" y="510" class="small">topic+table tx • offset per partition</text>
   <path d="M1530 570 L1550 570 L1550 245 L1360 245 L1360 234" class="blue-flow"/><text font-family="DejaVu Sans, Arial, sans-serif" x="1430" y="560" class="small">query read</text>
   <path d="M1455 645 L1455 635 L1300 635 L1300 505 L1210 505 L1210 504" fill="none" stroke="#0f766e" stroke-width="2.4" stroke-dasharray="6 4"/>

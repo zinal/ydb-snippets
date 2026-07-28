@@ -14,6 +14,8 @@
   <text x="380" y="122" text-anchor="start" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">row table</text>
   <rect x="500" y="106" width="26" height="20" rx="4" fill="#f3e8ff" stroke="#9333ea" stroke-width="2"/>
   <text x="535" y="122" text-anchor="start" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">Topic / CDC</text>
+  <rect x="700" y="106" width="26" height="20" rx="4" fill="#e2e8f0" stroke="#64748b" stroke-width="2"/>
+  <text x="735" y="122" text-anchor="start" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">YDB internal mechanism</text>
   <path d="M 1190 117 L 1240 117" fill="none" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
   <text x="1250" y="122" text-anchor="start" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">transactional / sync</text>
   <path d="M 1400 117 L 1450 117" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
@@ -57,10 +59,10 @@
   <text x="1230.0" y="387.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#6b21a8">message_group_id =</text>
   <text x="1230.0" y="409.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#6b21a8">entity_id</text>
   <text x="1230.0" y="431.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#6b21a8">transactional write</text>
-  <rect x="390" y="635" width="220" height="110" rx="14" fill="#dbeafe" stroke="#2563eb" stroke-width="2.5"/>
-  <text x="500.0" y="673.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="bold" fill="#1e40af">Built-in Transfer</text>
-  <text x="500.0" y="695.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#1e40af">optional</text>
-  <text x="500.0" y="717.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#1e40af">stateless + UPSERT</text>
+  <rect x="390" y="635" width="220" height="110" rx="14" fill="#e2e8f0" stroke="#64748b" stroke-width="2.5"/>
+  <text x="500.0" y="673.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="bold" fill="#334155">Built-in Transfer</text>
+  <text x="500.0" y="695.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#334155">optional</text>
+  <text x="500.0" y="717.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="14" fill="#334155">stateless + UPSERT</text>
   <rect x="1130" y="625" width="240" height="125" rx="14" fill="#f3e8ff" stroke="#9333ea" stroke-width="2.5"/>
   <text x="1250.0" y="659.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="bold" fill="#6b21a8">CDC (optional)</text>
   <text x="1250.0" y="681.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#6b21a8">one change record per</text>

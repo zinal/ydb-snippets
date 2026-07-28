@@ -109,8 +109,10 @@
   <path d="M 145 465 L 145 405" fill="none" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
   <text x="210" y="438" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">result to orchestrator</text>
   <path d="M 370 470 L 300 470 L 300 690 L 260 690" fill="none" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
-  <text x="305" y="610" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">due timer scan / claim</text>
+  <rect x="120" y="580" width="170" height="30" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+  <text x="205" y="600" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">due timer scan / claim</text>
   <path d="M 260 745 L 320 745 L 320 670 L 830 670 L 830 627 L 850 627" fill="none" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+  <rect x="395" y="642" width="210" height="27" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
   <text x="500" y="660" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">transactional claim / ack</text>
   <path d="M 585 735 L 280 735 L 280 720 L 260 720" fill="none" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
   <text x="425" y="722" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">session-bound lease only</text>

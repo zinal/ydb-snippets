@@ -26,7 +26,7 @@
 - **Execution relay** читает changefeed `ExecutionOutbox` как именованный `YDB Consumer: execution-dispatch-relay`, ставит задачи в YMQ и выполняет recovery scan pending или зависших строк.
 - **YMQ tasks** — отдельная SQS-совместимая очередь поверх YDB для competing consumers.
 - **Workers** выполняют задания и атомарно обновляют `ExecutionHistory` вместе с добавлением `ExecutionResultEvents`.
-- **Result relay/filter** читает CDC только `ExecutionResultEvents` как именованный `YDB Consumer: execution-result-relay`, отбирает контрактные события и публикует их в Topic **`execution.results`** с `producer_id = message_group_id = schedule_id`. Получатели используют собственные именованные YDB Consumers.
+- **Result relay/filter** читает CDC только `ExecutionResultEvents` как именованный `YDB Consumer: execution-result-relay`, отбирает контрактные события и публикует их в Topic **`execution.results`** с `producer_id = message_group_id = schedule_id`; гарантия порядка — «порядок внутри producer_id». Получатели используют собственные именованные YDB Consumers.
 - Политика retries повторно ставит временно неуспешные задачи, а исчерпанные попытки направляет в красный **DLQ**.
 
 ## Основной поток
@@ -38,7 +38,7 @@
 5. CDC создает одну change record на committed-вставку `ExecutionOutbox` в changefeed Topic. Dispatch relay может повторно прочитать или обработать record, поэтому идемпотентно ставит задачу в YMQ; recovery scan повторяет enqueue для pending или зависших строк.
 6. Один из competing workers получает задачу и условно захватывает попытку в `ExecutionLeases`, проверяя стабильный `execution_id`, ожидаемое нетерминальное состояние и номер попытки. Worker не сравнивает `created_by_epoch` задачи с текущим глобальным `SchedulerEpoch`.
 7. Перед commit результата worker снова транзакционно проверяет `execution_id`, актуальную попытку и ожидаемое нетерминальное состояние. Условный переход в terminal state побеждает один раз; в той же ACID-транзакции worker обновляет `ExecutionHistory` и append-only добавляет `ExecutionResultEvents` с очередным `result_seq`.
-8. CDC именно `ExecutionResultEvents` создает одну change record на committed-вставку в changefeed Topic. Result relay/filter может повторно прочитать или обработать record, преобразует его в стабильный контракт и публикует в `execution.results` с `producer_id = message_group_id = schedule_id`; повтор publish дедуплицируется по `(schedule_id, execution_id, result_seq)`.
+8. CDC именно `ExecutionResultEvents` создает одну change record на committed-вставку в changefeed Topic. Result relay/filter может повторно прочитать или обработать record, преобразует его в стабильный контракт и публикует в `execution.results` с `producer_id = message_group_id = schedule_id`; порядок сохраняется внутри `producer_id`, а повтор publish дедуплицируется по `(schedule_id, execution_id, result_seq)`.
 9. Временная ошибка приводит к retry с тем же `execution_id`; смена глобального epoch не инвалидирует уже созданное исполнение. После лимита сообщение и контекст направляются в DLQ.
 
 ## Согласованность и надежность

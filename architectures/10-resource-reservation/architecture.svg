@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
   <title id="title">Архитектура резервирования ограниченных ресурсов в YDB</title>
-  <desc id="desc">Resource reservation and ExpirationOutbox commit in one table transaction. CDC and an external relay enqueue duplicate-safe jobs into the built-in YDB SQS queue; workers use visibility timeout and ack/delete.</desc>
+  <desc id="desc">Резервирование и ExpirationOutbox в одной транзакции таблиц. CDC и внешний relay ставят задания в очередь SQS YDB; workers используют visibility timeout и ack/delete.</desc>
   <defs>
     <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
       <path d="M0,0 L0,6 L9,3 z" fill="#334155"/>
@@ -37,12 +37,12 @@
   <text class="txt subtitle" x="50" y="88">ACID-инвариант остатка, идемпотентные команды и at-least-once фоновые процессы</text>
 
   <rect class="boundary" x="330" y="145" width="890" height="650" rx="22"/>
-  <text class="txt box-title" x="360" y="183">YDB boundary</text>
-  <text class="txt small" x="510" y="183">row tables, Topics/changefeed, CDC, Coordination, SQS</text>
+  <text class="txt box-title" x="360" y="183">Граница YDB</text>
+  <text class="txt small" x="510" y="183">строковые таблицы, Topic/CDC, Coordination, SQS</text>
 
   <rect class="tx" x="375" y="215" width="800" height="355" rx="18"/>
   <text class="txt box-title" x="400" y="248">ACID-транзакция резервирования</text>
-  <text class="txt small" x="400" y="270">reserve + result + ExpirationOutbox in one commit</text>
+  <text class="txt small" x="400" y="270">резерв + результат + Outbox</text>
 
   <path class="coord-flow" d="M455 620 V585 H350 V300 H375"/>
   <path class="flow" d="M270 350 H375"/>
@@ -64,8 +64,8 @@
   <text class="txt small" x="620" y="338">создать</text>
   <rect class="label-bg" x="856" y="322" width="72" height="22" rx="5"/>
   <text class="txt small" x="864" y="338">результат</text>
-  <rect class="label-bg" x="650" y="578" width="143" height="23" rx="5"/>
-  <text class="txt small" x="660" y="595">committed row change</text>
+  <rect class="label-bg" x="650" y="578" width="130" height="23" rx="5"/>
+  <text class="txt small" x="660" y="595">изменение строки</text>
   <rect class="label-bg" x="1173" y="624" width="91" height="23" rx="5"/>
   <text class="txt small" x="1183" y="641">changefeed</text>
   <rect class="label-bg" x="1188" y="534" width="75" height="23" rx="5"/>
@@ -75,13 +75,13 @@
   <text class="txt small" x="1090" y="607">и expires_at</text>
 
   <rect class="app" x="50" y="285" width="220" height="130" rx="14"/>
-  <text class="txt box-title" x="80" y="323">Reservation API</text>
-  <text class="txt body" x="80" y="351">create / confirm / cancel</text>
+  <text class="txt box-title" x="80" y="323">API резервирования</text>
+  <text class="txt body" x="80" y="351">создать / подтвердить / отменить</text>
   <text class="txt body" x="80" y="377">idempotency_key</text>
 
   <rect class="app" x="50" y="585" width="220" height="130" rx="14"/>
-  <text class="txt box-title" x="80" y="623">Expiration worker</text>
-  <text class="txt body" x="80" y="651">competing consumer</text>
+  <text class="txt box-title" x="80" y="623">Worker истечения</text>
+  <text class="txt body" x="80" y="651">конкурирующие</text>
   <text class="txt body" x="80" y="677">условный expire</text>
 
   <rect class="table" x="400" y="300" width="190" height="110" rx="12"/>
@@ -112,14 +112,13 @@
   <text class="txt small" x="950" y="529">expires_at, pending</text>
 
   <rect class="coord" x="350" y="600" width="170" height="160" rx="12"/>
-  <text class="txt body" x="370" y="630" font-weight="700">Coordination</text>
-  <text class="txt body" x="370" y="650" font-weight="700">semaphore</text>
-  <text class="txt small" x="370" y="678">admission control</text>
-  <text class="txt small" x="370" y="699">only; not an</text>
-  <text class="txt small" x="370" y="720">invariant guard</text>
+  <text class="txt body" x="370" y="630" font-weight="700">Семафор</text>
+  <text class="txt body" x="370" y="650" font-weight="700">Coordination</text>
+  <text class="txt small" x="370" y="678">только</text>
+  <text class="txt small" x="370" y="699">admission control</text>
 
   <rect class="topic" x="535" y="600" width="250" height="160" rx="12"/>
-  <text class="txt body" x="555" y="630" font-weight="700">Availability Topic</text>
+  <text class="txt body" x="555" y="630" font-weight="700">Topic доступности</text>
   <text class="txt small" x="555" y="654">producer_id = resource_id</text>
   <text class="txt small" x="555" y="675">message_group_id = resource_id</text>
   <text class="txt small" x="555" y="696">порядок внутри producer_id</text>
@@ -127,42 +126,41 @@
   <text class="txt small" x="555" y="738">availability-view</text>
 
   <rect class="topic" x="800" y="600" width="200" height="160" rx="12"/>
-  <text class="txt body" x="820" y="630" font-weight="700">CDC changefeeds</text>
-  <text class="txt small" x="820" y="654">one record per</text>
-  <text class="txt small" x="820" y="675">committed row change</text>
-  <text class="txt small" x="820" y="696">read/process may repeat</text>
-  <text class="txt small" x="820" y="717">no custom producer_id</text>
+  <text class="txt body" x="820" y="630" font-weight="700">CDC changefeed</text>
+  <text class="txt small" x="820" y="654">1 record / commit</text>
+  <text class="txt small" x="820" y="675">чтение может</text>
+  <text class="txt small" x="820" y="696">повторяться</text>
+  <text class="txt small" x="820" y="717">без custom producer_id</text>
 
   <rect class="sqs" x="1015" y="600" width="185" height="110" rx="12"/>
-  <text class="txt body" x="1030" y="623" font-weight="700">SQS expiration jobs</text>
-  <text class="txt tiny" x="1030" y="643">SQS-compatible protocol,</text>
-  <text class="txt tiny" x="1030" y="661">built into YDB</text>
-  <text class="txt tiny" x="1030" y="679">competing; visibility</text>
-  <text class="txt tiny" x="1030" y="697">ack/delete + retries</text>
+  <text class="txt body" x="1030" y="623" font-weight="700">Очередь истечения SQS</text>
+  <text class="txt tiny" x="1030" y="643">протокол SQS в YDB</text>
+  <text class="txt tiny" x="1030" y="661">конкурирующие; visibility</text>
+  <text class="txt tiny" x="1030" y="679">ack/delete + retries</text>
 
   <rect class="error" x="1015" y="720" width="185" height="40" rx="10"/>
-  <text class="txt body" x="1048" y="746" font-weight="700">Expiration DLQ</text>
+  <text class="txt body" x="1048" y="746" font-weight="700">DLQ истечения</text>
 
   <rect class="app" x="1270" y="585" width="280" height="95" rx="14"/>
-  <text class="txt box-title" x="1300" y="617">Expiration relay</text>
-  <text class="txt small" x="1300" y="642">idempotent enqueue + mark sent</text>
-  <text class="txt small" x="1300" y="663">recovery scan pending rows</text>
+  <text class="txt box-title" x="1300" y="617">Relay истечения</text>
+  <text class="txt small" x="1300" y="642">идемпотентный enqueue</text>
+  <text class="txt small" x="1300" y="663">recovery scan</text>
 
   <rect x="50" y="835" width="1500" height="120" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
   <text class="txt box-title" x="75" y="869">Гарантии</text>
-  <text class="txt body" x="75" y="900">SQS-compatible protocol, built into YDB • Outbox bridges table → SQS; no shared table+SQS transaction</text>
-  <text class="txt body" x="75" y="928">SQS: competing, visibility timeout, ack/delete, retries/DLQ • CDC read/process may repeat • Idempotent effects</text>
+  <text class="txt body" x="75" y="900">Outbox: таблица → SQS; нет общей table+SQS транзакции · протокол SQS в YDB</text>
+  <text class="txt body" x="75" y="928">SQS: конкурирующие, visibility, ack/delete, DLQ · CDC может повторяться · идемпотентные эффекты</text>
 
   <rect class="app" x="1040" y="867" width="26" height="18" rx="3"/>
-  <text class="txt small" x="1075" y="881">app</text>
-  <rect class="table" x="1130" y="867" width="26" height="18" rx="3"/>
-  <text class="txt small" x="1165" y="881">row table</text>
-  <rect class="topic" x="1260" y="867" width="26" height="18" rx="3"/>
-  <text class="txt small" x="1295" y="881">Topic / CDC</text>
-  <rect class="sqs" x="1415" y="867" width="26" height="18" rx="3"/>
-  <text class="txt small" x="1450" y="881">SQS</text>
+  <text class="txt small" x="1075" y="881">приложение</text>
+  <rect class="table" x="1165" y="867" width="26" height="18" rx="3"/>
+  <text class="txt small" x="1200" y="881">строковая таблица</text>
+  <rect class="topic" x="1345" y="867" width="26" height="18" rx="3"/>
+  <text class="txt small" x="1380" y="881">Topic / CDC</text>
+  <rect class="sqs" x="1475" y="867" width="26" height="18" rx="3"/>
+  <text class="txt small" x="1510" y="881">SQS</text>
   <rect class="coord" x="1040" y="910" width="26" height="18" rx="3"/>
   <text class="txt small" x="1075" y="924">Coordination</text>
   <rect class="error" x="1235" y="910" width="26" height="18" rx="3"/>
-  <text class="txt small" x="1270" y="924">DLQ / error</text>
+  <text class="txt small" x="1270" y="924">DLQ</text>
 </svg>

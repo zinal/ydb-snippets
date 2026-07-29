@@ -34,6 +34,7 @@
 9. Внешние эффекты выполняются идемпотентно по (`source`, `aggregate_id`, `aggregate_version`) либо `command_id`, поскольку чтение и replay допускают повторы.
 
 ## Согласованность и надежность
+На схеме A XOR B — один live-источник событий (Topic или CDC); Topic retention не заменяет EventLog как источник истины.
 Добавление событий, смена aggregate version, запись idempotency result и предпочтительная публикация атомарны. В альтернативе CDC создает ровно одну change record на committed row change; чтение и обработка могут повториться. Topic+table транзакция атомарно фиксирует read model и встроенный consumer offset по партициям, а полный ключ `ProcessedEvents` и идемпотентность защищают replay и внешние эффекты. `domain.events` сохраняет порядок внутри `producer_id = aggregate_id`; глобального порядка нет. Topic retention не является источником истины: полная долговечная история остается в `EventLog`. Coordination распределяет lease, но не добавляет транзакционность.
 
 Встроенная в YDB реализация SQS-совместимого протокола может опционально применяться для команд и ограниченных повторов. SQS queues используют competing consumers, visibility timeout, ack/delete, retries и DLQ; это deployment-neutral механизм, не замена `EventLog` или YDB Topic. Атомарность row table + SQS enqueue не предполагается: если enqueue должен быть связан с записью, нужен Outbox/CDC/relay.

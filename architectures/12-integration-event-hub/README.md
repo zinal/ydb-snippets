@@ -15,20 +15,20 @@
 
 ## Компоненты
 
-- Исходные и целевые **системы** находятся снаружи YDB и подключаются только через app API, producers и consumers.
-- **Incoming Topics** — pub/sub logs с именованными YDB Consumers; они принимают события по SDK или Kafka API. Writer использует `producer_id = message_group_id = business_id`, где `business_id` по контракту равен полному `entity_id`, `source_id` или `message_id`. Гарантия порядка — «порядок внутри producer_id».
-- **Validator/Normalizer** снаружи YDB читает Incoming Topic как именованный `YDB Consumer: integration-normalizer`, проверяет envelope и версию схемы, затем преобразует payload в канонический контракт.
+- Исходные и целевые **системы** (Система A/B/C) находятся снаружи YDB и подключаются только через app API, **API / Producer** и consumers.
+- **Входящий Topic** — pub/sub log с именованными YDB Consumers; принимает события по SDK или Kafka API. Writer использует `producer_id = message_group_id = business_id`, где `business_id` по контракту равен полному `entity_id`, `source_id` или `message_id`. Гарантия порядка — «порядок внутри producer_id».
+- **Валидатор / нормализатор** снаружи YDB читает входящий Topic как именованный `YDB Consumer: integration-normalizer`, проверяет envelope и версию схемы, затем преобразует payload в канонический контракт. Offset consumer фиксируется (commit offset / ack) только после успешной ACID-транзакции приема.
 - Row table **SchemaRegistry**, ключ `(schema_id, schema_version)`: контракт, состояние версии и policy совместимости.
 - Row table **Inbox**, ключ `(source_id, message_id)`: дедупликация, версия схемы и результат проверки.
-- Row table **CanonicalState**, ключ `(entity_type, entity_id)`: актуальная каноническая версия сущности.
-- Row table **DeliveryStatus**, ключ `(message_id, destination_id)`: состояние, попытка и последняя ошибка.
-- Row table **DeliveryOutbox/DispatchIntent**, ключ `(message_id, destination_id)`: тип маршрута `TOPIC` или `SQS`, payload, стабильный event/command id и состояние relay.
-- **Outgoing Topics** — pub/sub logs; каждый получатель использует собственный именованный YDB Consumer.
-- **SQS commands** — встроенная в YDB реализация SQS-совместимого протокола, доступная во всех поддерживаемых вариантах развертывания. Competing consumers используют visibility timeout и ack/delete; временные ошибки повторяются, исчерпанные попытки направляются в Delivery DLQ.
+- Row table **Canonical State**, ключ `(entity_type, entity_id)`: актуальная каноническая версия сущности.
+- Row table **Delivery Status**, ключ `(message_id, destination_id)`: состояние, попытка и последняя ошибка.
+- Row table **DeliveryOutbox / DispatchIntent**, ключ `(message_id, destination_id)`: тип маршрута `TOPIC` или `SQS`, payload, стабильный event/command id и состояние relay.
+- **Исходящий Topic** — pub/sub log; каждый получатель использует собственный именованный YDB Consumer.
+- **Команды SQS** — встроенная в YDB реализация SQS-совместимого протокола, доступная во всех поддерживаемых вариантах развертывания. Competing consumers используют visibility timeout и ack/delete (receive / claim); временные ошибки повторяются, исчерпанные попытки направляются в **Delivery DLQ**.
 - **Dispatch relay** находится снаружи YDB, читает changefeed именованным YDB Consumer, публикует намерения доставки и выполняет recovery scan pending или зависших `DispatchIntent`.
-- **CDC CanonicalState** напрямую образует outgoing changefeed Topic, когда источником события является изменение row table.
-- **Quarantine/DLQ** хранит невалидные сообщения и доставки, исчерпавшие повторы.
-- **Schema Registry/Policy** управляет поддерживаемыми версиями и правилами совместимости.
+- **CDC CanonicalState** идет напрямую в исходящий Topic (без SQS/DLQ), когда источником события является изменение row table.
+- **Карантин / Delivery DLQ** хранит невалидные сообщения и доставки, исчерпавшие повторы.
+- **SchemaRegistry** управляет поддерживаемыми версиями и правилами совместимости.
 
 ## Основной поток
 

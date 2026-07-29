@@ -21,12 +21,12 @@
 - Row table **ExecutionHistory**, ключ `(schedule_id, execution_id)`: запланированное время, попытки и итог.
 - Append-only row table **ExecutionResultEvents**, ключ `(schedule_id, execution_id, result_seq)`: версия результата, статус и payload события.
 - Row table **ExecutionOutbox**, ключ `execution_id`: payload задачи, стабильный task id, состояние relay и неизменяемый `created_by_epoch` только для аудита.
-- Несколько **scheduler instances** снаружи YDB сканируют сроки; выбранный dispatcher создает исполнения.
-- **Coordination leader election** предоставляет только session-bound leader lease. Coordination не выдает epoch и не заменяет ACID.
-- **Execution relay** снаружи YDB читает changefeed `ExecutionOutbox` как именованный `YDB Consumer: execution-dispatch-relay`, ставит задачи в SQS и выполняет recovery scan pending или зависших строк.
-- **SQS tasks** — встроенная в YDB реализация SQS-совместимого протокола, доступная во всех поддерживаемых вариантах развертывания. Competing workers используют visibility timeout и ack/delete; временные ошибки повторяются, исчерпанные попытки направляются в SQS DLQ.
-- **Workers** снаружи YDB выполняют задания и атомарно обновляют `ExecutionHistory` вместе с добавлением `ExecutionResultEvents`.
-- **Result relay/filter** снаружи YDB читает CDC только `ExecutionResultEvents` как именованный `YDB Consumer: execution-result-relay`, отбирает контрактные события и публикует их в pub/sub log **`execution.results`** с `producer_id = message_group_id = schedule_id`; гарантия порядка — «порядок внутри producer_id». Получатели используют собственные именованные YDB Consumers.
+- Несколько **экземпляров планировщика** снаружи YDB сканируют сроки; выбранный диспетчер (= лидер) создает исполнения.
+- **Leader election** (Coordination) предоставляет только session-bound leader lease. Coordination не выдает epoch и не заменяет ACID.
+- **Dispatch relay** снаружи YDB читает changefeed `ExecutionOutbox` как именованный `YDB Consumer: dispatch-relay`, ставит задачи в SQS и выполняет recovery scan pending или зависших строк.
+- **Очередь задач SQS** — встроенная в YDB реализация SQS-совместимого протокола, доступная во всех поддерживаемых вариантах развертывания. Competing workers используют visibility timeout и ack/delete; временные ошибки повторяются, исчерпанные попытки направляются в **DLQ SQS**.
+- **Workers** снаружи YDB выполняют задания и атомарно обновляют `ExecutionHistory` вместе с добавлением `ExecutionResultEvents`. Финальная ACID-транзакция worker проверяет `execution_id` и nonterminal state и никогда не сверяет глобальный `SchedulerEpoch`; транзакция dispatch проверяет epoch.
+- **Result relay** снаружи YDB читает CDC только `ExecutionResultEvents` как именованный `YDB Consumer: result-relay`, отбирает контрактные события и публикует их в pub/sub log **`execution.results`** с `producer_id = message_group_id = schedule_id`; гарантия порядка — «порядок внутри producer_id». Получатели используют собственные именованные YDB Consumers.
 - Политика retries повторно ставит временно неуспешные задачи, а исчерпанные попытки направляет в красный **DLQ**.
 
 ## Основной поток

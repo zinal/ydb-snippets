@@ -15,16 +15,16 @@
 
 ## Компоненты
 
-- **Reservation API** снаружи YDB принимает команды создания, подтверждения и отмены.
+- **API резервирования** снаружи YDB принимает команды create / confirm / cancel.
 - Row table **Resources**, ключ `resource_id`: общий лимит, доступный остаток и версия.
 - Row table **Reservations**, ключ `(resource_id, reservation_id)`: количество, состояние, `expires_at` и версия.
 - Row table **Operations**, ключ `operation_id`: состояние асинхронной операции и результат.
 - Row table **IdempotencyKeys**, ключ `(client_id, idempotency_key)`: связь повторного запроса с операцией и сохраненный ответ.
-- Row table **ExpirationOutbox**, ключ `(resource_id, reservation_id)`: неизменяемое намерение поставить проверку `expires_at`, payload и состояние relay.
-- **SQS expiration jobs** — встроенная в YDB реализация SQS-совместимого протокола, доступная во всех поддерживаемых вариантах развертывания. Competing consumers используют visibility timeout, после успеха выполняют ack/delete, временные ошибки приводят к retry, исчерпанные попытки — в expiration DLQ.
-- **Expiration relay** и expiration workers находятся снаружи YDB. Relay читает changefeed `ExpirationOutbox`, идемпотентно ставит задания в SQS и выполняет recovery scan необработанных строк.
-- **CDC availability events** публикует изменения `Resources` в пользовательский Topic — pub/sub log: `producer_id = message_group_id = resource_id`; гарантия порядка — «порядок внутри producer_id». Подписчики используют отдельные именованные **YDB Consumers**.
-- **Coordination semaphore** ограничивает число одновременно допущенных запросов к горячему ресурсу.
+- Row table **ExpirationOutbox**, ключ `(resource_id, reservation_id)`: неизменяемое намерение поставить проверку `expires_at`, payload и состояние relay. В одной ACID-транзакции резервирования вместе с остатком и результатом фиксируются reserve + result + `ExpirationOutbox`.
+- **Очередь истечения SQS** — встроенная в YDB реализация SQS-совместимого протокола, доступная во всех поддерживаемых вариантах развертывания. Competing consumers используют visibility timeout, после успеха выполняют ack/delete, временные ошибки приводят к retry, исчерпанные попытки — в **DLQ истечения**.
+- **Relay истечения** и **Worker истечения** находятся снаружи YDB. Relay читает changefeed `ExpirationOutbox`, идемпотентно ставит задания в SQS и выполняет recovery scan необработанных строк.
+- **Topic доступности** публикует изменения `Resources` — pub/sub log: `producer_id = message_group_id = resource_id`; гарантия порядка — «порядок внутри producer_id». Подписчики используют отдельные именованные **YDB Consumers**. CDC changefeed дает одну change record на committed-изменение строки; чтение и обработка могут повторяться, без custom `producer_id`.
+- **Семафор Coordination** ограничивает число одновременно допущенных запросов к горячему ресурсу и служит только admission control, не защищая инвариант остатка.
 
 ## Основной поток
 

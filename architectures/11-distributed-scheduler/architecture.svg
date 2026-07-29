@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
   <title id="title">Архитектура распределенного планировщика в YDB</title>
-  <desc id="desc">SchedulerEpoch fences only new scheduler transactions. ExecutionOutbox CDC and an external relay enqueue committed work into the built-in YDB SQS queue; leader changes do not invalidate it.</desc>
+  <desc id="desc">SchedulerEpoch ограничивает только новый dispatch. CDC ExecutionOutbox и внешний relay ставят задачи в очередь SQS YDB; смена лидера не инвалидирует committed executions.</desc>
   <defs>
     <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
       <path d="M0,0 L0,6 L9,3 z" fill="#334155"/>
@@ -35,15 +35,15 @@
 
   <rect x="0" y="0" width="1600" height="1000" fill="#f8fafc"/>
   <text class="txt title" x="50" y="58">Распределенный планировщик заданий</text>
-  <text class="txt subtitle" x="50" y="88">SchedulerEpoch fences new dispatch only; committed executions survive leader changes</text>
+  <text class="txt subtitle" x="50" y="88">SchedulerEpoch только для нового dispatch; executions переживают смену лидера</text>
 
   <rect class="boundary" x="310" y="135" width="900" height="650" rx="22"/>
-  <text class="txt box-title" x="340" y="173">YDB boundary</text>
-  <text class="txt small" x="500" y="173">row tables, Topics/changefeed, CDC, Coordination, SQS</text>
+  <text class="txt box-title" x="340" y="173">Граница YDB</text>
+  <text class="txt small" x="500" y="173">строковые таблицы, Topic/CDC, Coordination, SQS</text>
 
   <rect class="tx" x="345" y="345" width="830" height="310" rx="18"/>
-  <text class="txt box-title" x="370" y="378">ACID row-table transactions</text>
-  <text class="txt small" x="370" y="401">dispatch tx: check global epoch | worker final tx: check execution_id + nonterminal state, never global epoch</text>
+  <text class="txt box-title" x="370" y="378">ACID-транзакции таблиц</text>
+  <text class="txt small" x="370" y="401">dispatch: проверка epoch · worker: execution_id + state, не epoch</text>
 
   <path class="coord-flow" d="M270 245 H350"/>
   <path class="coord-flow" d="M350 285 H290 V285 H270"/>
@@ -66,14 +66,14 @@
 
   <rect class="label-bg" x="282" y="217" width="59" height="22" rx="5"/>
   <text class="txt small" x="290" y="233">сессия</text>
-  <rect class="label-bg" x="300" y="298" width="205" height="30" rx="5"/>
-  <text class="txt small" x="310" y="318">leader lease only; no epoch</text>
+  <rect class="label-bg" x="300" y="298" width="150" height="30" rx="5"/>
+  <text class="txt small" x="310" y="318">только leader lease</text>
   <rect class="label-bg" x="289" y="411" width="111" height="22" rx="5"/>
-  <text class="txt small" x="298" y="427">dispatch due</text>
+  <text class="txt small" x="298" y="427">due dispatch</text>
   <rect class="label-bg" x="1055" y="307" width="95" height="22" rx="5"/>
   <text class="txt small" x="1065" y="323">recovery scan</text>
   <rect class="label-bg" x="715" y="315" width="126" height="22" rx="5"/>
-  <text class="txt small" x="725" y="331">verify id + state</text>
+  <text class="txt small" x="725" y="331">проверить id + state</text>
   <rect class="label-bg" x="1160" y="445" width="75" height="22" rx="5"/>
   <text class="txt small" x="1170" y="461">enqueue</text>
   <rect class="label-bg" x="1185" y="720" width="55" height="22" rx="5"/>
@@ -82,21 +82,21 @@
   <text class="txt small" x="960" y="824">ack/delete</text>
 
   <rect class="app" x="40" y="200" width="230" height="210" rx="14"/>
-  <text class="txt box-title" x="70" y="235">Scheduler instances</text>
+  <text class="txt box-title" x="70" y="235">Экземпляры планировщика</text>
   <text class="txt body" x="70" y="268">scheduler-1</text>
   <text class="txt body" x="70" y="298">scheduler-2</text>
   <text class="txt body" x="70" y="328">scheduler-N</text>
-  <text class="txt body" x="70" y="370">dispatcher = leader</text>
+  <text class="txt body" x="70" y="370">диспетчер = лидер</text>
 
   <rect class="coord" x="350" y="200" width="360" height="105" rx="14"/>
-  <text class="txt box-title" x="380" y="235">Coordination leader election</text>
-  <text class="txt body" x="380" y="263">session-bound leader lease only</text>
-  <text class="txt body" x="380" y="286">does NOT issue epoch; not ACID</text>
+  <text class="txt box-title" x="380" y="235">Выбор лидера</text>
+  <text class="txt body" x="380" y="263">только session lease</text>
+  <text class="txt body" x="380" y="286">не выдает epoch; не ACID</text>
 
   <rect class="topic" x="850" y="190" width="330" height="130" rx="14"/>
   <text class="txt box-title" x="880" y="223">ExecutionOutbox changefeed</text>
-  <text class="txt small" x="880" y="249">one record per committed row change</text>
-  <text class="txt small" x="880" y="273">read / process may repeat</text>
+  <text class="txt small" x="880" y="249">1 record / commit</text>
+  <text class="txt small" x="880" y="273">чтение может повторяться</text>
   <text class="txt small" x="880" y="297">source: ExecutionOutbox</text>
 
   <rect class="table" x="370" y="420" width="170" height="110" rx="12"/>
@@ -107,8 +107,8 @@
   <rect class="table" x="560" y="420" width="190" height="110" rx="12"/>
   <text class="txt box-title" x="580" y="453">SchedulerEpoch</text>
   <text class="txt body" x="580" y="479">key: scheduler_name</text>
-  <text class="txt small" x="580" y="502">epoch++ fences only</text>
-  <text class="txt small" x="580" y="520">new dispatch writes</text>
+  <text class="txt small" x="580" y="502">epoch++ только для</text>
+  <text class="txt small" x="580" y="520">нового dispatch</text>
 
   <rect class="table" x="780" y="420" width="250" height="110" rx="12"/>
   <text class="txt box-title" x="805" y="453">ExecutionLeases</text>
@@ -117,7 +117,7 @@
 
   <rect class="table" x="370" y="535" width="170" height="115" rx="12"/>
   <text class="txt small" x="382" y="558" font-weight="700">ExecutionResultEvents</text>
-  <text class="txt small" x="385" y="580">append-only key:</text>
+  <text class="txt small" x="385" y="580">append-only ключ:</text>
   <text class="txt small" x="385" y="598">schedule_id</text>
   <text class="txt small" x="385" y="616">execution_id</text>
   <text class="txt small" x="385" y="634">result_seq, ...</text>
@@ -130,14 +130,14 @@
   <rect class="table" x="835" y="535" width="310" height="115" rx="12"/>
   <text class="txt box-title" x="860" y="568">ExecutionOutbox</text>
   <text class="txt small" x="860" y="592">key: execution_id; payload, stable task_id</text>
-  <text class="txt small" x="860" y="614">created_by_epoch: audit only</text>
-  <text class="txt small" x="860" y="636">dispatch survives epoch change</text>
+  <text class="txt small" x="860" y="614">created_by_epoch: только аудит</text>
+  <text class="txt small" x="860" y="636">dispatch переживает смену epoch</text>
 
   <rect class="topic" x="330" y="670" width="260" height="105" rx="14"/>
   <text class="txt body" x="355" y="696" font-weight="700">ExecutionResultEvents CDC</text>
-  <text class="txt small" x="355" y="719">one record per committed</text>
-  <text class="txt small" x="355" y="740">row change</text>
-  <text class="txt small" x="355" y="761">read / process may repeat</text>
+  <text class="txt small" x="355" y="719">1 record / commit</text>
+  <text class="txt small" x="355" y="740">чтение может</text>
+  <text class="txt small" x="355" y="761">повторяться</text>
 
   <rect class="topic" x="870" y="660" width="310" height="120" rx="14"/>
   <text class="txt box-title" x="895" y="686">execution.results Topic</text>
@@ -149,46 +149,46 @@
   <rect class="app" x="1260" y="170" width="290" height="120" rx="14"/>
   <text class="txt box-title" x="1290" y="204">Dispatch relay</text>
   <text class="txt small" x="1290" y="230">YDB Consumer: dispatch-relay</text>
-  <text class="txt small" x="1290" y="252">idempotent enqueue + mark</text>
-  <text class="txt small" x="1290" y="274">recovery scan pending rows</text>
+  <text class="txt small" x="1290" y="252">идемпотентный enqueue</text>
+  <text class="txt small" x="1290" y="274">recovery scan</text>
 
   <rect class="sqs" x="610" y="670" width="220" height="75" rx="12"/>
-  <text class="txt body" x="630" y="689" font-weight="700">SQS tasks</text>
-  <text class="txt tiny" x="630" y="706">SQS-compatible protocol,</text>
-  <text class="txt tiny" x="630" y="722">built into YDB</text>
-  <text class="txt tiny" x="630" y="738">competing; visibility</text>
+  <text class="txt body" x="630" y="689" font-weight="700">Очередь задач SQS</text>
+  <text class="txt tiny" x="630" y="706">протокол SQS в YDB</text>
+  <text class="txt tiny" x="630" y="722">конкурирующие; visibility</text>
+  <text class="txt tiny" x="630" y="738">ack/delete + retries</text>
 
   <rect class="error" x="610" y="752" width="220" height="28" rx="8"/>
-  <text class="txt small" x="686" y="772" font-weight="700">SQS DLQ</text>
+  <text class="txt small" x="686" y="772" font-weight="700">DLQ SQS</text>
 
   <rect class="app" x="1260" y="540" width="290" height="145" rx="14"/>
   <text class="txt box-title" x="1290" y="575">Workers</text>
-  <text class="txt small" x="1290" y="603">claim stable execution_id + attempt</text>
-  <text class="txt small" x="1290" y="625">require expected nonterminal state</text>
-  <text class="txt small" x="1290" y="647">idempotent effect; one terminal commit</text>
-  <text class="txt small" x="1290" y="669">never check global SchedulerEpoch</text>
+  <text class="txt small" x="1290" y="603">claim execution_id + attempt</text>
+  <text class="txt small" x="1290" y="625">ожидаемое nonterminal-состояние</text>
+  <text class="txt small" x="1290" y="647">идемпотентный эффект; 1 commit</text>
+  <text class="txt small" x="1290" y="669">не проверять SchedulerEpoch</text>
 
   <rect class="app" x="40" y="650" width="230" height="110" rx="14"/>
-  <text class="txt box-title" x="65" y="683">Result relay / filter</text>
+  <text class="txt box-title" x="65" y="683">Result relay</text>
   <text class="txt small" x="65" y="708">YDB Consumer: result-relay</text>
-  <text class="txt small" x="65" y="730">stable event contract</text>
-  <text class="txt small" x="65" y="752">idempotent Topic publish</text>
+  <text class="txt small" x="65" y="730">стабильный контракт</text>
+  <text class="txt small" x="65" y="752">идемпотентный publish</text>
 
   <rect x="40" y="845" width="1500" height="110" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
   <text class="txt box-title" x="65" y="879">Гарантии</text>
-  <text class="txt body" x="65" y="906">ExecutionOutbox bridges table → SQS; no shared table+SQS transaction • SchedulerEpoch fences new dispatch</text>
-  <text class="txt body" x="65" y="932">SQS: competing, visibility timeout, ack/delete, retries/DLQ • CDC may repeat • One terminal worker commit</text>
+  <text class="txt body" x="65" y="906">ExecutionOutbox: таблица → SQS; нет общей table+SQS транзакции · SchedulerEpoch для нового dispatch</text>
+  <text class="txt body" x="65" y="932">SQS: конкурирующие, visibility, ack/delete, DLQ · CDC может повторяться · один terminal commit</text>
 
   <rect class="app" x="1020" y="872" width="26" height="18" rx="3"/>
-  <text class="txt small" x="1055" y="886">app</text>
-  <rect class="table" x="1110" y="872" width="26" height="18" rx="3"/>
-  <text class="txt small" x="1145" y="886">row table</text>
-  <rect class="topic" x="1240" y="872" width="26" height="18" rx="3"/>
-  <text class="txt small" x="1275" y="886">Topic / CDC</text>
-  <rect class="sqs" x="1390" y="872" width="26" height="18" rx="3"/>
-  <text class="txt small" x="1425" y="886">SQS</text>
+  <text class="txt small" x="1055" y="886">приложение</text>
+  <rect class="table" x="1145" y="872" width="26" height="18" rx="3"/>
+  <text class="txt small" x="1180" y="886">строковая таблица</text>
+  <rect class="topic" x="1325" y="872" width="26" height="18" rx="3"/>
+  <text class="txt small" x="1360" y="886">Topic / CDC</text>
+  <rect class="sqs" x="1460" y="872" width="26" height="18" rx="3"/>
+  <text class="txt small" x="1495" y="886">SQS</text>
   <rect class="coord" x="1020" y="919" width="26" height="18" rx="3"/>
   <text class="txt small" x="1055" y="933">Coordination</text>
   <rect class="error" x="1215" y="919" width="26" height="18" rx="3"/>
-  <text class="txt small" x="1250" y="933">DLQ / error</text>
+  <text class="txt small" x="1250" y="933">DLQ</text>
 </svg>

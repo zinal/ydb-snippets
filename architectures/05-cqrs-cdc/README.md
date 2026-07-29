@@ -32,6 +32,7 @@ CQRS разделяет модель записи и модели чтения. 
 8. Любые внешние эффекты projector выполняет идемпотентно по (`source`, `order_id`, `event_seq`); предпочтительно отделять их от построения проекции.
 
 ## Согласованность и надежность
+На схеме подписи краткие: проектор коммитит read model, ProcessedEvents и consumer offset одной topic+table транзакцией (см. основной поток).
 Write model и append в `OrderEvents` согласованы одной ACID-транзакцией, read models — eventual consistency. CDC создает ровно одну change record на committed row change; именованный YDB Consumer может повторно прочитать или начать обработку записи после сбоя. Topic+table транзакция атомарно фиксирует изменение read model и встроенный offset по партициям, а identity (`source`, `order_id`, `event_seq`) защищает replay. Внешние эффекты идемпотентны по этой identity. Coordination управляет владением работой, но не обеспечивает атомарность таблиц.
 
 ## Масштабирование и ключи партиционирования

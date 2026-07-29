@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
   <title id="title">Архитектура интеграционного событийного хаба в YDB</title>
-  <desc id="desc">Systems connect through APIs, SDK, and Kafka API. CanonicalState CDC goes directly to the Outgoing Topic; an external recovery relay publishes explicit intents or enqueues the built-in YDB SQS commands.</desc>
+  <desc id="desc">Системы подключаются через API, SDK и Kafka API. CDC CanonicalState идет напрямую в исходящий Topic; внешний relay публикует intents или ставит команды в очередь SQS YDB.</desc>
   <defs>
     <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
       <path d="M0,0 L0,6 L9,3 z" fill="#334155"/>
@@ -38,8 +38,8 @@
   <text class="txt subtitle" x="50" y="88">Версионированные контракты, каноническое состояние, наблюдаемая at-least-once доставка</text>
 
   <rect class="boundary" x="540" y="135" width="745" height="660" rx="22"/>
-  <text class="txt box-title" x="570" y="173">YDB boundary</text>
-  <text class="txt small" x="730" y="173">row tables, Topics/changefeed, CDC, Coordination, SQS</text>
+  <text class="txt box-title" x="570" y="173">Граница YDB</text>
+  <text class="txt small" x="730" y="173">строковые таблицы, Topic/CDC, Coordination, SQS</text>
 
   <rect class="tx" x="575" y="365" width="660" height="270" rx="18"/>
   <text class="txt box-title" x="600" y="398">ACID-транзакция приема</text>
@@ -68,71 +68,71 @@
   <path class="flow" d="M1300 630 H1250 V620 H965 V570"/>
   <path class="error-flow" d="M300 550 H260 V725 H280"/>
 
-  <rect class="label-bg" x="452" y="248" width="118" height="22" rx="5"/>
-  <text class="txt small" x="460" y="264">schema + version</text>
-  <rect class="label-bg" x="40" y="348" width="230" height="42" rx="5"/>
-  <text class="txt small" x="50" y="365">commit consumer offset</text>
-  <text class="txt small" x="50" y="383">after successful ACID tx (ack)</text>
-  <rect class="label-bg" x="850" y="326" width="210" height="22" rx="5"/>
-  <text class="txt small" x="860" y="342">direct to Outgoing; no SQS/DLQ</text>
+  <rect class="label-bg" x="452" y="248" width="110" height="22" rx="5"/>
+  <text class="txt small" x="460" y="264">схема + version</text>
+  <rect class="label-bg" x="40" y="348" width="175" height="42" rx="5"/>
+  <text class="txt small" x="50" y="365">commit offset (ack)</text>
+  <text class="txt small" x="50" y="383">после ACID tx</text>
+  <rect class="label-bg" x="840" y="326" width="230" height="22" rx="5"/>
+  <text class="txt small" x="850" y="342">напрямую в исходящий Topic</text>
   <rect class="label-bg" x="1000" y="790" width="65" height="22" rx="5"/>
   <text class="txt small" x="1010" y="806">enqueue</text>
   <rect class="label-bg" x="1275" y="238" width="60" height="22" rx="5"/>
   <text class="txt small" x="1285" y="254">pub/sub</text>
-  <rect class="label-bg" x="1020" y="88" width="300" height="24" rx="5"/>
-  <text class="txt small" x="1030" y="105">commit consumer offset (ack)</text>
-  <rect class="label-bg" x="1080" y="605" width="110" height="22" rx="5"/>
-  <text class="txt small" x="1090" y="621">delivery result</text>
+  <rect class="label-bg" x="1020" y="88" width="175" height="24" rx="5"/>
+  <text class="txt small" x="1030" y="105">commit offset (ack)</text>
+  <rect class="label-bg" x="1080" y="605" width="140" height="22" rx="5"/>
+  <text class="txt small" x="1090" y="621">результат доставки</text>
   <rect class="label-bg" x="1320" y="675" width="110" height="22" rx="5"/>
   <text class="txt small" x="1330" y="691">receive / claim</text>
 
   <rect class="app" x="30" y="220" width="160" height="120" rx="14"/>
   <text class="txt box-title" x="60" y="255">Система A</text>
   <text class="txt body" x="60" y="282">источник</text>
-  <text class="txt body" x="60" y="308">app API</text>
+  <text class="txt body" x="60" y="308">API приложения</text>
 
   <rect class="app" x="230" y="220" width="220" height="120" rx="14"/>
   <text class="txt box-title" x="260" y="255">API / Producer</text>
   <text class="txt body" x="260" y="282">SDK, Kafka API</text>
-  <text class="txt body" x="260" y="308">service endpoint</text>
+  <text class="txt body" x="260" y="308">endpoint сервиса</text>
 
   <rect class="topic" x="570" y="205" width="240" height="120" rx="14"/>
-  <text class="txt box-title" x="590" y="231">Incoming Topic</text>
+  <text class="txt box-title" x="590" y="231">Входящий Topic</text>
   <text class="txt tiny" x="590" y="253">producer_id = business_id</text>
   <text class="txt tiny" x="590" y="274">message_group_id = business_id</text>
   <text class="txt tiny" x="590" y="295">порядок внутри producer_id</text>
-  <text class="txt tiny" x="590" y="316">business_id: full ID by contract</text>
+  <text class="txt tiny" x="590" y="316">business_id: полный ID по контракту</text>
 
   <rect class="table" x="820" y="205" width="190" height="120" rx="14"/>
   <text class="txt box-title" x="845" y="235">SchemaRegistry</text>
   <text class="txt small" x="845" y="257">schema_id</text>
   <text class="txt small" x="845" y="275">schema_version</text>
-  <text class="txt small" x="845" y="293">compatibility policy</text>
-  <text class="txt small" x="845" y="313">state, versioned contract</text>
+  <text class="txt small" x="845" y="293">политика совместимости</text>
+  <text class="txt small" x="845" y="313">версионированный контракт</text>
 
   <rect class="topic" x="1020" y="205" width="230" height="120" rx="14"/>
-  <text class="txt box-title" x="1045" y="231">Outgoing Topic</text>
+  <text class="txt box-title" x="1045" y="231">Исходящий Topic</text>
   <text class="txt tiny" x="1040" y="253">producer_id = business_id</text>
   <text class="txt tiny" x="1040" y="274">message_group_id = business_id</text>
   <text class="txt tiny" x="1040" y="295">порядок внутри producer_id</text>
-  <text class="txt tiny" x="1040" y="316">business_id: full ID by contract</text>
+  <text class="txt tiny" x="1040" y="316">business_id: полный ID по контракту</text>
 
   <rect class="app" x="260" y="380" width="260" height="180" rx="14"/>
-  <text class="txt box-title" x="310" y="414">Validator /</text>
-  <text class="txt box-title" x="310" y="438">Normalizer</text>
+  <text class="txt box-title" x="310" y="414">Валидатор /</text>
+  <text class="txt box-title" x="310" y="438">нормализатор</text>
   <text class="txt body" x="310" y="466">YDB Consumer:</text>
   <text class="txt body" x="310" y="488">integration-normalizer</text>
-  <text class="txt small" x="310" y="514">validate + normalize</text>
-  <text class="txt small" x="310" y="540">ACID commit, then offset ack</text>
+  <text class="txt small" x="310" y="514">валидация + нормализация</text>
+  <text class="txt small" x="310" y="540">ACID commit, затем offset ack</text>
 
   <rect class="app" x="280" y="580" width="240" height="90" rx="12"/>
   <text class="txt box-title" x="310" y="612">Dispatch relay</text>
   <text class="txt small" x="310" y="637">YDB Consumer: dispatch-relay</text>
-  <text class="txt small" x="310" y="658">recovery + idempotent publish</text>
+  <text class="txt small" x="310" y="658">recovery + идемпотентный publish</text>
 
   <rect class="error" x="280" y="690" width="240" height="80" rx="12"/>
-  <text class="txt box-title" x="310" y="722">Quarantine</text>
-  <text class="txt body" x="310" y="749">schema / validation error</text>
+  <text class="txt box-title" x="310" y="722">Карантин</text>
+  <text class="txt body" x="310" y="749">ошибка схемы / валидации</text>
 
   <rect class="table" x="600" y="445" width="110" height="125" rx="12"/>
   <text class="txt box-title" x="625" y="478">Inbox</text>
@@ -145,7 +145,7 @@
   <text class="txt box-title" x="750" y="496">State</text>
   <text class="txt small" x="750" y="518">entity_type,</text>
   <text class="txt small" x="750" y="538">entity_id, version</text>
-  <text class="txt small" x="750" y="558">canonical payload</text>
+  <text class="txt small" x="750" y="558">канонический payload</text>
 
   <rect class="table" x="900" y="445" width="130" height="125" rx="12"/>
   <text class="txt box-title" x="918" y="474">Delivery</text>
@@ -162,30 +162,29 @@
 
   <rect class="topic" x="550" y="650" width="180" height="130" rx="14"/>
   <text class="txt body" x="565" y="677" font-weight="700">CanonicalState CDC</text>
-  <text class="txt small" x="565" y="699">one record / committed</text>
-  <text class="txt small" x="565" y="720">row change</text>
-  <text class="txt small" x="565" y="741">read/process may repeat</text>
-  <text class="txt small" x="565" y="762">no custom producer_id</text>
+  <text class="txt small" x="565" y="699">1 record / commit</text>
+  <text class="txt small" x="565" y="720">чтение может</text>
+  <text class="txt small" x="565" y="741">повторяться</text>
+  <text class="txt small" x="565" y="762">без custom producer_id</text>
 
   <rect class="topic" x="740" y="650" width="220" height="130" rx="14"/>
   <text class="txt small" x="755" y="677" font-weight="700">DispatchIntent changefeed</text>
-  <text class="txt small" x="755" y="699">one record / committed</text>
-  <text class="txt small" x="755" y="720">row change</text>
-  <text class="txt small" x="755" y="741">read/process may repeat</text>
-  <text class="txt small" x="755" y="762">no custom producer_id</text>
+  <text class="txt small" x="755" y="699">1 record / commit</text>
+  <text class="txt small" x="755" y="720">чтение может</text>
+  <text class="txt small" x="755" y="741">повторяться</text>
+  <text class="txt small" x="755" y="762">без custom producer_id</text>
 
   <rect class="coord" x="970" y="650" width="115" height="130" rx="14"/>
   <text class="txt tiny" x="982" y="680" font-weight="700">Coordination</text>
-  <text class="txt tiny" x="982" y="706">service sessions</text>
-  <text class="txt tiny" x="982" y="727">only; does not</text>
-  <text class="txt tiny" x="982" y="748">replace ACID</text>
+  <text class="txt tiny" x="982" y="706">только сессии;</text>
+  <text class="txt tiny" x="982" y="727">не заменяет</text>
+  <text class="txt tiny" x="982" y="748">ACID</text>
 
   <rect class="sqs" x="1095" y="650" width="180" height="85" rx="12"/>
-  <text class="txt body" x="1110" y="669" font-weight="700">SQS commands</text>
-  <text class="txt tiny" x="1110" y="687">SQS-compatible protocol,</text>
-  <text class="txt tiny" x="1110" y="703">built into YDB</text>
-  <text class="txt tiny" x="1110" y="719">competing; visibility</text>
-  <text class="txt tiny" x="1110" y="733">ack/delete + retries</text>
+  <text class="txt body" x="1110" y="669" font-weight="700">Команды SQS</text>
+  <text class="txt tiny" x="1110" y="687">протокол SQS в YDB</text>
+  <text class="txt tiny" x="1110" y="703">конкурирующие; visibility</text>
+  <text class="txt tiny" x="1110" y="719">ack/delete + retries</text>
 
   <rect class="error" x="1095" y="745" width="180" height="35" rx="8"/>
   <text class="txt small" x="1136" y="768" font-weight="700">Delivery DLQ</text>
@@ -194,29 +193,29 @@
   <text class="txt box-title" x="1400" y="235">Система B</text>
   <text class="txt body" x="1400" y="262">YDB Consumer:</text>
   <text class="txt body" x="1400" y="284">system-b</text>
-  <text class="txt small" x="1400" y="310">idempotent handler</text>
+  <text class="txt small" x="1400" y="310">идемпотентный handler</text>
   <text class="txt small" x="1400" y="336">commit offset (ack)</text>
 
   <rect class="app" x="1300" y="550" width="260" height="120" rx="14"/>
   <text class="txt box-title" x="1330" y="583">Система C</text>
-  <text class="txt body" x="1330" y="610">SQS competing consumer</text>
-  <text class="txt small" x="1330" y="634">idempotent effect, then ack/delete</text>
+  <text class="txt body" x="1330" y="610">SQS конкурирующие</text>
+  <text class="txt small" x="1330" y="634">идемпотентный эффект, затем ack/delete</text>
 
   <rect x="30" y="825" width="1530" height="130" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
-  <text class="txt box-title" x="55" y="859">Гарантии и границы интеграции</text>
-  <text class="txt body" x="55" y="890">SQS-compatible protocol, built into YDB • DispatchIntent bridges table → SQS; no shared table+SQS transaction</text>
-  <text class="txt body" x="55" y="918">SQS: competing, visibility timeout, ack/delete, retries/DLQ • CDC may repeat • CanonicalState → Outgoing Topic</text>
+  <text class="txt box-title" x="55" y="859">Гарантии</text>
+  <text class="txt body" x="55" y="890">DispatchIntent: таблица → SQS; нет общей table+SQS транзакции · протокол SQS в YDB</text>
+  <text class="txt body" x="55" y="918">SQS: конкурирующие, visibility, ack/delete, DLQ · CDC может повторяться · CanonicalState → исходящий Topic</text>
 
   <rect class="app" x="1030" y="850" width="26" height="18" rx="3"/>
-  <text class="txt small" x="1065" y="864">app</text>
-  <rect class="table" x="1120" y="850" width="26" height="18" rx="3"/>
-  <text class="txt small" x="1155" y="864">row table</text>
-  <rect class="topic" x="1250" y="850" width="26" height="18" rx="3"/>
-  <text class="txt small" x="1285" y="864">Topic / CDC</text>
-  <rect class="sqs" x="1410" y="850" width="26" height="18" rx="3"/>
-  <text class="txt small" x="1445" y="864">SQS</text>
+  <text class="txt small" x="1065" y="864">приложение</text>
+  <rect class="table" x="1155" y="850" width="26" height="18" rx="3"/>
+  <text class="txt small" x="1190" y="864">строковая таблица</text>
+  <rect class="topic" x="1335" y="850" width="26" height="18" rx="3"/>
+  <text class="txt small" x="1370" y="864">Topic / CDC</text>
+  <rect class="sqs" x="1470" y="850" width="26" height="18" rx="3"/>
+  <text class="txt small" x="1505" y="864">SQS</text>
   <rect class="coord" x="1030" y="898" width="26" height="18" rx="3"/>
   <text class="txt small" x="1065" y="912">Coordination</text>
   <rect class="error" x="1225" y="898" width="26" height="18" rx="3"/>
-  <text class="txt small" x="1260" y="912">Quarantine / DLQ</text>
+  <text class="txt small" x="1260" y="912">Карантин / DLQ</text>
 </svg>

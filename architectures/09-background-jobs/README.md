@@ -23,7 +23,7 @@
 | Business tables | Строковые таблицы предметной области |
 | Jobs | Строковая таблица статуса, попытки, lease и параметров; ключ `job_id` |
 | Outbox | Строковая таблица ожидающей постановки задания; стабильный прикладной `dispatch_id` |
-| Dispatcher / CDC relay | Внешнее приложение: получает change record Outbox и повторяемо отправляет сообщение в SQS queue |
+| Outbox relay / dispatcher | Внешнее приложение: получает change record Outbox и повторяемо отправляет сообщение в SQS queue |
 | SQS queue | Встроенная реализация SQS-совместимого протокола, доступная во всех поддерживаемых развертываниях YDB, с competing consumers и visibility timeout |
 | Workers | Внешние приложения: claim/receive, продление visibility, выполнение, commit результата и ack/delete |
 | JobResults | Строковая таблица результата по `job_id` |

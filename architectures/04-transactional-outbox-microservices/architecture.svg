@@ -151,10 +151,10 @@
   <path d="M1250 418 L1250 641" class="purple-flow"/>
 
   <rect x="55" y="645" width="430" height="90" rx="12" class="queue"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="78" y="670" font-size="17" font-weight="700">Optional SQS protocol / queues</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="78" y="691" class="small">inside YDB • optional command/retry path</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="78" y="670" font-size="17" font-weight="700">Optional SQS commands / retries</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="78" y="691" class="small">SQS-compatible protocol, built into YDB</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="78" y="711" class="small">competing consumers • visibility timeout • ack/delete</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="78" y="730" class="small">retries → DLQ • no row table + enqueue transaction</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="78" y="730" class="small">retries → DLQ • no table + enqueue transaction</text>
   <rect x="55" y="815" width="1490" height="90" rx="12" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="80" y="844" class="box-title">Гарантии</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="80" y="868" class="body">A XOR B • ACID inside service • eventual consistency across services</text>

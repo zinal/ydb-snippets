@@ -50,7 +50,7 @@
   <path class="event" d="M685 325 V350 H430 V380"/>
   <path class="flow" d="M820 265 H790 V350 H500 V380"/>
   <path class="ack" d="M330 380 V365 H620 V325"/>
-  <path class="flow" d="M540 480 H575"/>
+  <path class="flow" d="M520 480 H575"/>
   <path class="flow" d="M710 505 H730"/>
   <path class="flow" d="M880 505 H900"/>
   <path class="flow" d="M1030 505 H1050"/>
@@ -63,7 +63,7 @@
   <path class="recovery" d="M520 600 H550 V640 H1130 V570"/>
   <path class="event" d="M1250 250 H1370"/>
   <path class="ack" d="M1370 220 H1320 V115 H1135 V205"/>
-  <path class="queue" d="M1275 690 H1320 V610 H1300"/>
+  <path class="queue" d="M1275 690 H1290 V700 H1430 V670"/>
   <path class="error-flow" d="M1185 735 V745"/>
   <path class="flow" d="M1300 630 H1250 V620 H965 V570"/>
   <path class="error-flow" d="M300 550 H260 V725 H280"/>
@@ -83,6 +83,8 @@
   <text class="txt small" x="1030" y="105">commit consumer offset (ack)</text>
   <rect class="label-bg" x="1080" y="605" width="110" height="22" rx="5"/>
   <text class="txt small" x="1090" y="621">delivery result</text>
+  <rect class="label-bg" x="1320" y="675" width="110" height="22" rx="5"/>
+  <text class="txt small" x="1330" y="691">receive / claim</text>
 
   <rect class="app" x="30" y="220" width="160" height="120" rx="14"/>
   <text class="txt box-title" x="60" y="255">Система A</text>
@@ -115,7 +117,7 @@
   <text class="txt tiny" x="1040" y="295">порядок внутри producer_id</text>
   <text class="txt tiny" x="1040" y="316">business_id: full ID by contract</text>
 
-  <rect class="app" x="280" y="380" width="260" height="180" rx="14"/>
+  <rect class="app" x="260" y="380" width="260" height="180" rx="14"/>
   <text class="txt box-title" x="310" y="414">Validator /</text>
   <text class="txt box-title" x="310" y="438">Normalizer</text>
   <text class="txt body" x="310" y="466">YDB Consumer:</text>
@@ -179,10 +181,11 @@
   <text class="txt tiny" x="982" y="748">replace ACID</text>
 
   <rect class="sqs" x="1095" y="650" width="180" height="85" rx="12"/>
-  <text class="txt body" x="1110" y="674" font-weight="700">SQS commands</text>
-  <text class="txt small" x="1110" y="695">built-in; competing</text>
-  <text class="txt small" x="1110" y="716">visibility + ack/delete</text>
-  <text class="txt small" x="1110" y="732">retries</text>
+  <text class="txt body" x="1110" y="669" font-weight="700">SQS commands</text>
+  <text class="txt tiny" x="1110" y="687">SQS-compatible protocol,</text>
+  <text class="txt tiny" x="1110" y="703">built into YDB</text>
+  <text class="txt tiny" x="1110" y="719">competing; visibility</text>
+  <text class="txt tiny" x="1110" y="733">ack/delete + retries</text>
 
   <rect class="error" x="1095" y="745" width="180" height="35" rx="8"/>
   <text class="txt small" x="1136" y="768" font-weight="700">Delivery DLQ</text>
@@ -201,8 +204,8 @@
 
   <rect x="30" y="825" width="1530" height="130" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
   <text class="txt box-title" x="55" y="859">Гарантии и границы интеграции</text>
-  <text class="txt body" x="55" y="890">SQS built into YDB: visibility timeout, ack/delete, retries/DLQ • DispatchIntent still bridges table → SQS</text>
-  <text class="txt body" x="55" y="918">CDC read/process may repeat • CanonicalState goes directly to Outgoing Topic • full business IDs remain in PK</text>
+  <text class="txt body" x="55" y="890">SQS-compatible protocol, built into YDB • DispatchIntent bridges table → SQS; no shared table+SQS transaction</text>
+  <text class="txt body" x="55" y="918">SQS: competing, visibility timeout, ack/delete, retries/DLQ • CDC may repeat • CanonicalState → Outgoing Topic</text>
 
   <rect class="app" x="1030" y="850" width="26" height="18" rx="3"/>
   <text class="txt small" x="1065" y="864">app</text>

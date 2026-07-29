@@ -13,6 +13,7 @@
       .box-title { font-size: 18px; font-weight: 700; }
       .body { font-size: 14px; }
       .small { font-size: 13px; }
+      .tiny { font-size: 12px; }
       .boundary { fill: #f8fbff; stroke: #2563a6; stroke-width: 3; }
       .tx { fill: #ffffff; stroke: #1d4ed8; stroke-width: 2; stroke-dasharray: 9 7; }
       .app { fill: #dbeafe; stroke: #2563eb; stroke-width: 2; }
@@ -24,6 +25,7 @@
       .flow { fill: none; stroke: #334155; stroke-width: 2.2; marker-end: url(#arrow); }
       .event { fill: none; stroke: #7e22ce; stroke-width: 2.2; marker-end: url(#arrow); }
       .queue { fill: none; stroke: #c2410c; stroke-width: 2.2; marker-end: url(#arrow); }
+      .queue-ack { fill: none; stroke: #c2410c; stroke-width: 2.2; stroke-dasharray: 7 5; marker-end: url(#arrow); }
       .coord-flow { fill: none; stroke: #0f766e; stroke-width: 2.2; stroke-dasharray: 7 5; marker-end: url(#arrow); }
       .error-flow { fill: none; stroke: #dc2626; stroke-width: 2.2; marker-end: url(#arrow); }
       .recovery { fill: none; stroke: #64748b; stroke-width: 2; stroke-dasharray: 7 5; marker-end: url(#arrow); }
@@ -51,15 +53,16 @@
   <path class="flow" d="M905 520 V535"/>
   <path class="event" d="M1145 585 H1188 V255 H1180"/>
   <path class="event" d="M1180 255 H1260"/>
-  <path class="queue" d="M1405 290 V800 H600 V695 H610"/>
+  <path class="queue" d="M1350 290 H1200 V805 H600 V707 H610"/>
   <path class="recovery" d="M1260 270 H1215 V330 H1155 V535 H1145"/>
-  <path class="queue" d="M830 695 H840 V810 H1225 V620 H1260"/>
-  <path class="error-flow" d="M720 740 V750"/>
+  <path class="queue" d="M830 700 H850 V820 H1225 V600 H1260"/>
+  <path class="queue-ack" d="M1260 650 H1245 V835 H850 V730 H830"/>
+  <path class="error-flow" d="M720 745 V752"/>
   <path class="flow" d="M1260 640 H1225 V330 H550 V590 H560"/>
   <path class="flow" d="M560 610 H540"/>
   <path class="event" d="M420 650 V680"/>
   <path class="event" d="M330 722 H270"/>
-  <path class="event" d="M270 750 H300 V800 H1025 V780"/>
+  <path class="event" d="M270 750 H300 V790 H1025 V780"/>
 
   <rect class="label-bg" x="282" y="217" width="59" height="22" rx="5"/>
   <text class="txt small" x="290" y="233">сессия</text>
@@ -71,6 +74,12 @@
   <text class="txt small" x="1065" y="323">recovery scan</text>
   <rect class="label-bg" x="715" y="315" width="126" height="22" rx="5"/>
   <text class="txt small" x="725" y="331">verify id + state</text>
+  <rect class="label-bg" x="1160" y="445" width="75" height="22" rx="5"/>
+  <text class="txt small" x="1170" y="461">enqueue</text>
+  <rect class="label-bg" x="1185" y="720" width="55" height="22" rx="5"/>
+  <text class="txt small" x="1195" y="736">claim</text>
+  <rect class="label-bg" x="950" y="808" width="82" height="22" rx="5"/>
+  <text class="txt small" x="960" y="824">ack/delete</text>
 
   <rect class="app" x="40" y="200" width="230" height="210" rx="14"/>
   <text class="txt box-title" x="70" y="235">Scheduler instances</text>
@@ -143,14 +152,14 @@
   <text class="txt small" x="1290" y="252">idempotent enqueue + mark</text>
   <text class="txt small" x="1290" y="274">recovery scan pending rows</text>
 
-  <rect class="sqs" x="610" y="650" width="220" height="90" rx="12"/>
-  <text class="txt body" x="630" y="674" font-weight="700">SQS tasks</text>
-  <text class="txt small" x="630" y="695">competing consumers</text>
-  <text class="txt small" x="630" y="716">visibility timeout</text>
-  <text class="txt small" x="630" y="735">ack/delete + retries</text>
+  <rect class="sqs" x="610" y="670" width="220" height="75" rx="12"/>
+  <text class="txt body" x="630" y="689" font-weight="700">SQS tasks</text>
+  <text class="txt tiny" x="630" y="706">SQS-compatible protocol,</text>
+  <text class="txt tiny" x="630" y="722">built into YDB</text>
+  <text class="txt tiny" x="630" y="738">competing; visibility</text>
 
-  <rect class="error" x="610" y="750" width="220" height="30" rx="8"/>
-  <text class="txt small" x="686" y="771" font-weight="700">SQS DLQ</text>
+  <rect class="error" x="610" y="752" width="220" height="28" rx="8"/>
+  <text class="txt small" x="686" y="772" font-weight="700">SQS DLQ</text>
 
   <rect class="app" x="1260" y="540" width="290" height="145" rx="14"/>
   <text class="txt box-title" x="1290" y="575">Workers</text>
@@ -165,21 +174,21 @@
   <text class="txt small" x="65" y="730">stable event contract</text>
   <text class="txt small" x="65" y="752">idempotent Topic publish</text>
 
-  <rect x="40" y="825" width="1500" height="130" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
-  <text class="txt box-title" x="65" y="859">Гарантии</text>
-  <text class="txt body" x="65" y="890">SchedulerEpoch fences new dispatch • SQS built into YDB: visibility timeout, ack/delete, retries/DLQ</text>
-  <text class="txt body" x="65" y="918">ExecutionOutbox still bridges table → SQS • CDC may repeat reads • Worker uses one terminal commit</text>
+  <rect x="40" y="845" width="1500" height="110" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text class="txt box-title" x="65" y="879">Гарантии</text>
+  <text class="txt body" x="65" y="906">ExecutionOutbox bridges table → SQS; no shared table+SQS transaction • SchedulerEpoch fences new dispatch</text>
+  <text class="txt body" x="65" y="932">SQS: competing, visibility timeout, ack/delete, retries/DLQ • CDC may repeat • One terminal worker commit</text>
 
-  <rect class="app" x="1020" y="852" width="26" height="18" rx="3"/>
-  <text class="txt small" x="1055" y="866">app</text>
-  <rect class="table" x="1110" y="852" width="26" height="18" rx="3"/>
-  <text class="txt small" x="1145" y="866">row table</text>
-  <rect class="topic" x="1240" y="852" width="26" height="18" rx="3"/>
-  <text class="txt small" x="1275" y="866">Topic / CDC</text>
-  <rect class="sqs" x="1390" y="852" width="26" height="18" rx="3"/>
-  <text class="txt small" x="1425" y="866">SQS</text>
-  <rect class="coord" x="1020" y="899" width="26" height="18" rx="3"/>
-  <text class="txt small" x="1055" y="913">Coordination</text>
-  <rect class="error" x="1215" y="899" width="26" height="18" rx="3"/>
-  <text class="txt small" x="1250" y="913">DLQ / error</text>
+  <rect class="app" x="1020" y="872" width="26" height="18" rx="3"/>
+  <text class="txt small" x="1055" y="886">app</text>
+  <rect class="table" x="1110" y="872" width="26" height="18" rx="3"/>
+  <text class="txt small" x="1145" y="886">row table</text>
+  <rect class="topic" x="1240" y="872" width="26" height="18" rx="3"/>
+  <text class="txt small" x="1275" y="886">Topic / CDC</text>
+  <rect class="sqs" x="1390" y="872" width="26" height="18" rx="3"/>
+  <text class="txt small" x="1425" y="886">SQS</text>
+  <rect class="coord" x="1020" y="919" width="26" height="18" rx="3"/>
+  <text class="txt small" x="1055" y="933">Coordination</text>
+  <rect class="error" x="1215" y="919" width="26" height="18" rx="3"/>
+  <text class="txt small" x="1250" y="933">DLQ / error</text>
 </svg>

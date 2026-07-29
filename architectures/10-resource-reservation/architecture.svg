@@ -13,6 +13,7 @@
       .box-title { font-size: 18px; font-weight: 700; }
       .body { font-size: 14px; }
       .small { font-size: 13px; }
+      .tiny { font-size: 12px; }
       .boundary { fill: #f8fbff; stroke: #2563a6; stroke-width: 3; }
       .tx { fill: #ffffff; stroke: #1d4ed8; stroke-width: 2; stroke-dasharray: 9 7; }
       .app { fill: #dbeafe; stroke: #2563eb; stroke-width: 2; }
@@ -54,7 +55,7 @@
   <path class="event" d="M800 650 H785"/>
   <path class="queue" d="M1270 640 H1200"/>
   <path class="queue" d="M1015 675 H1007 V810 H290 V650 H270"/>
-  <path class="error-flow" d="M1107 700 V715"/>
+  <path class="error-flow" d="M1107 710 V720"/>
   <path class="recovery" d="M1270 620 H1190 V520 H1145"/>
 
   <rect class="label-bg" x="278" y="319" width="90" height="23" rx="5"/>
@@ -132,14 +133,15 @@
   <text class="txt small" x="820" y="696">read/process may repeat</text>
   <text class="txt small" x="820" y="717">no custom producer_id</text>
 
-  <rect class="sqs" x="1015" y="600" width="185" height="100" rx="12"/>
-  <text class="txt body" x="1030" y="626" font-weight="700">SQS expiration jobs</text>
-  <text class="txt small" x="1030" y="648">competing consumers</text>
-  <text class="txt small" x="1030" y="669">visibility timeout</text>
-  <text class="txt small" x="1030" y="690">ack/delete + retries</text>
+  <rect class="sqs" x="1015" y="600" width="185" height="110" rx="12"/>
+  <text class="txt body" x="1030" y="623" font-weight="700">SQS expiration jobs</text>
+  <text class="txt tiny" x="1030" y="643">SQS-compatible protocol,</text>
+  <text class="txt tiny" x="1030" y="661">built into YDB</text>
+  <text class="txt tiny" x="1030" y="679">competing; visibility</text>
+  <text class="txt tiny" x="1030" y="697">ack/delete + retries</text>
 
-  <rect class="error" x="1015" y="715" width="185" height="45" rx="10"/>
-  <text class="txt body" x="1048" y="744" font-weight="700">Expiration DLQ</text>
+  <rect class="error" x="1015" y="720" width="185" height="40" rx="10"/>
+  <text class="txt body" x="1048" y="746" font-weight="700">Expiration DLQ</text>
 
   <rect class="app" x="1270" y="585" width="280" height="95" rx="14"/>
   <text class="txt box-title" x="1300" y="617">Expiration relay</text>
@@ -148,8 +150,8 @@
 
   <rect x="50" y="835" width="1500" height="120" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
   <text class="txt box-title" x="75" y="869">Гарантии</text>
-  <text class="txt body" x="75" y="900">SQS is built into YDB • visibility timeout + ack/delete + retries/DLQ • Outbox still bridges table → SQS</text>
-  <text class="txt body" x="75" y="928">CDC: one change record per committed row change; read/process may repeat • External effects are idempotent</text>
+  <text class="txt body" x="75" y="900">SQS-compatible protocol, built into YDB • Outbox bridges table → SQS; no shared table+SQS transaction</text>
+  <text class="txt body" x="75" y="928">SQS: competing, visibility timeout, ack/delete, retries/DLQ • CDC read/process may repeat • Idempotent effects</text>
 
   <rect class="app" x="1040" y="867" width="26" height="18" rx="3"/>
   <text class="txt small" x="1075" y="881">app</text>

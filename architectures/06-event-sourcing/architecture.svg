@@ -111,11 +111,12 @@
   <text font-family="DejaVu Sans, Arial, sans-serif" x="80" y="712" class="small">Snapshot = cache</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="80" y="734" class="small">poison event blocks projection</text>
   <rect x="360" y="635" width="290" height="110" rx="12" class="queue"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="380" y="662" font-size="17" font-weight="700">Optional SQS queues (YDB)</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="380" y="684" class="small">commands / retries • competing consumers</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="380" y="705" class="small">visibility timeout • ack/delete</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="380" y="726" class="small">retries → DLQ</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="380" y="742" font-size="11">no row table + enqueue transaction</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="380" y="659" font-size="17" font-weight="700">Optional SQS queues</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="380" y="678" class="small">SQS-compatible protocol,</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="380" y="695" class="small">built into YDB • commands/retries</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="380" y="712" class="small">competing • visibility timeout</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="380" y="729" class="small">ack/delete • retries → DLQ</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="380" y="743" font-size="11">no table + enqueue transaction</text>
 
   <path d="M215 225 L215 326" class="blue-flow"/><text font-family="DejaVu Sans, Arial, sans-serif" x="227" y="270" class="flow">load + append</text>
   <path d="M337 423 L351 423" class="blue-flow"/>

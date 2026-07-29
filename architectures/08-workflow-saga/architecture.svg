@@ -15,7 +15,7 @@
   <rect x="500" y="106" width="26" height="20" rx="4" fill="#f3e8ff" stroke="#9333ea" stroke-width="2"/>
   <text x="535" y="122" text-anchor="start" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">Topic / CDC</text>
   <rect x="670" y="106" width="26" height="20" rx="4" fill="#ffedd5" stroke="#f97316" stroke-width="2"/>
-  <text x="705" y="122" text-anchor="start" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">очередь SQS</text>
+  <text x="705" y="122" text-anchor="start" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">SQS queue</text>
   <rect x="815" y="106" width="26" height="20" rx="4" fill="#ccfbf1" stroke="#0d9488" stroke-width="2"/>
   <text x="850" y="122" text-anchor="start" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">Coordination</text>
   <rect x="985" y="106" width="26" height="20" rx="4" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
@@ -30,16 +30,16 @@
   <text x="545.0" y="282" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="bold" fill="#166534">ACID-переход Saga</text>
   <text x="545.0" y="303" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#166534">только таблицы; SQS enqueue вне транзакции</text>
   <rect x="25" y="280" width="230" height="125" rx="14" fill="#dbeafe" stroke="#2563eb" stroke-width="2.5"/>
-  <text x="140.0" y="316.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="bold" fill="#1e40af">Оркестратор</text>
+  <text x="140.0" y="316.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="bold" fill="#1e40af">API / Orchestrator</text>
   <text x="140.0" y="337.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#1e40af">приложение</text>
   <text x="140.0" y="358.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#1e40af">конечный автомат</text>
   <text x="140.0" y="379.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#1e40af">компенсации</text>
   <rect x="25" y="465" width="230" height="100" rx="14" fill="#dbeafe" stroke="#2563eb" stroke-width="2.5"/>
-  <text x="140.0" y="499.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="bold" fill="#1e40af">Потребитель результатов</text>
+  <text x="140.0" y="499.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="bold" fill="#1e40af">Result consumer</text>
   <text x="140.0" y="520.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#1e40af">YDB Consumer</text>
   <text x="140.0" y="541.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#1e40af">обработка может повторяться</text>
   <rect x="25" y="640" width="230" height="125" rx="14" fill="#dbeafe" stroke="#2563eb" stroke-width="2.5"/>
-  <text x="140.0" y="676.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="bold" fill="#1e40af">Диспетчер таймеров</text>
+  <text x="140.0" y="676.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="bold" fill="#1e40af">Timer dispatcher</text>
   <text x="140.0" y="697.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#1e40af">приложение</text>
   <text x="140.0" y="718.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#1e40af">due scan / claim</text>
   <text x="140.0" y="739.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#1e40af">транзакционный ack</text>
@@ -60,7 +60,7 @@
   <text x="545.0" y="572.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="bold" fill="#166534">Inbox</text>
   <text x="545.0" y="593.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#166534">message_id</text>
   <rect x="790" y="275" width="220" height="160" rx="14" fill="#f3e8ff" stroke="#9333ea" stroke-width="2.5"/>
-  <text x="900.0" y="310.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="bold" fill="#6b21a8">Topic результатов</text>
+  <text x="900.0" y="310.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="bold" fill="#6b21a8">Result Topic</text>
   <text x="900.0" y="330.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="12" fill="#6b21a8">producer_id =</text>
   <text x="900.0" y="350.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="12" fill="#6b21a8">message_group_id =</text>
   <text x="900.0" y="370.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="12" fill="#6b21a8">workflow_id</text>
@@ -76,12 +76,12 @@
   <text x="672.5" y="724.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="bold" fill="#115e59">Coordination</text>
   <text x="672.5" y="745.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#115e59">session lease лидера</text>
   <rect x="1040" y="285" width="220" height="115" rx="14" fill="#ffedd5" stroke="#f97316" stroke-width="2.5"/>
-  <text x="1150.0" y="316.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="bold" fill="#9a3412">Очередь команд SQS</text>
+  <text x="1150.0" y="316.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="bold" fill="#9a3412">SQS command queue</text>
   <text x="1150.0" y="337.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#9a3412">конкурирующие</text>
   <text x="1150.0" y="358.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#9a3412">visibility timeout</text>
   <text x="1150.0" y="379.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#9a3412">ack/delete + retry</text>
   <rect x="1040" y="445" width="220" height="95" rx="14" fill="#fee2e2" stroke="#dc2626" stroke-width="2.5"/>
-  <text x="1150.0" y="476.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="bold" fill="#991b1b">DLQ SQS</text>
+  <text x="1150.0" y="476.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="bold" fill="#991b1b">SQS DLQ</text>
   <text x="1150.0" y="497.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#991b1b">retry исчерпан</text>
   <text x="1150.0" y="518.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#991b1b">ручное действие</text>
   <text x="1150" y="267" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="12" font-weight="bold" fill="#9a3412">протокол SQS; вне транзакции таблиц</text>
@@ -90,7 +90,7 @@
   <text x="1440.0" y="337.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#1e40af">приложение</text>
   <text x="1440.0" y="358.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#1e40af">CDC/poll; идемпотентно</text>
   <rect x="1330" y="610" width="220" height="125" rx="14" fill="#dbeafe" stroke="#2563eb" stroke-width="2.5"/>
-  <text x="1440.0" y="646.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="bold" fill="#1e40af">Исполнители команд</text>
+  <text x="1440.0" y="646.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="bold" fill="#1e40af">Command workers</text>
   <text x="1440.0" y="667.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#1e40af">приложения</text>
   <text x="1440.0" y="688.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#1e40af">проверка epoch</text>
   <text x="1440.0" y="709.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#1e40af">идемпотентный эффект</text>

@@ -33,31 +33,31 @@
   <text font-family="DejaVu Sans, Arial, sans-serif" x="45" y="72" class="subtitle">Bounded context изолированы • сервисы и relay вне YDB • повторы → идемпотентность</text>
 
   <rect x="40" y="100" width="330" height="125" rx="14" class="app"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="62" y="132" class="box-title">Сервис заказов</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="62" y="132" class="box-title">Orders Service</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="62" y="158" class="body">CreateOrder • idempotency_key</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="62" y="182" class="small">Владеет только Orders context</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="62" y="204" class="small">Селектор: A XOR B</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="62" y="204" class="small">Selector: A XOR B</text>
 
   <rect x="410" y="100" width="300" height="125" rx="14" class="app"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="432" y="132" class="box-title">Сервис платежей</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="432" y="132" class="box-title">Payments Service</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="432" y="158" class="body">YDB Consumer payments</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="432" y="182" class="small">orders.events → PaymentInbox</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="432" y="204" class="small">Публикует payments.events</text>
 
   <rect x="750" y="100" width="300" height="125" rx="14" class="app"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="772" y="132" class="box-title">Сервис доставки</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="772" y="132" class="box-title">Delivery Service</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="772" y="158" class="body">YDB Consumer delivery</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="772" y="182" class="small">orders.events + payments.events</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="772" y="204" class="small">Inbox • идемпотентные эффекты</text>
 
   <rect x="1090" y="100" width="460" height="125" rx="14" class="app"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="1112" y="132" class="box-title">B3 • Outbox relay • вне YDB</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1112" y="132" class="box-title">B3 • Outbox Relay (outside YDB)</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="1112" y="158" class="body">YDB Consumer order-outbox-relay</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="1112" y="182" class="small">publish → commit offset; retry: тот же event_id</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="1112" y="204" class="small">Вне границы YDB</text>
 
   <polygon points="185,245 205,225 225,245 205,265" fill="#fff7ed" stroke="#d97706" stroke-width="2"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="232" y="260" class="small">XOR-разветвление</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="232" y="260" class="small">XOR split</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="950" y="72" font-size="18" font-weight="700">A XOR B — один путь на тип события</text>
 
   <rect x="35" y="280" width="1530" height="500" rx="18" class="boundary"/>
@@ -127,10 +127,10 @@
   <path d="M435 518 L435 450 L502 450 L502 270 L1240 270 L1240 234" fill="none" stroke="#7c3aed" stroke-width="3" marker-end="url(#arrow-purple)"/>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="710" y="263" class="flow">B2 → B3 • чтение changefeed</text>
   <path d="M1320 225 L1320 270 L1545 270 L1545 455 L919 455 L919 532 L955 532" fill="none" stroke="#7c3aed" stroke-width="3" marker-end="url(#arrow-purple)"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="1120" y="448" class="flow">B4 • publish orders.events → XOR-слияние</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1120" y="448" class="flow">B4 • publish orders.events → XOR merge</text>
   <path d="M895 550 L915 547" fill="none" stroke="#d97706" stroke-width="2.4" stroke-dasharray="7 5"/>
   <polygon points="915,547 930,532 945,547 930,562" fill="#fff7ed" stroke="#d97706" stroke-width="2"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="884" y="610" class="small">XOR-слияние</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="884" y="610" class="small">XOR merge</text>
   <path d="M919 547 L955 547" class="blue-flow"/>
 
   <path d="M1000 485 L1000 448 L502 448 L502 261 L560 261 L560 225" class="purple-flow"/>
@@ -145,7 +145,7 @@
   <path d="M1250 418 L1250 641" class="purple-flow"/>
 
   <rect x="55" y="645" width="430" height="90" rx="12" class="queue"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="78" y="670" font-size="17" font-weight="700">Опциональные очереди SQS</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="78" y="670" font-size="17" font-weight="700">Optional SQS commands / retries</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="78" y="691" class="small">SQS-протокол, встроен в YDB</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="78" y="711" class="small">конкурирующие; visibility • ack/delete</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="78" y="730" class="small">retries → DLQ • без tx table+enqueue</text>
@@ -158,7 +158,7 @@
   <rect x="155" y="940" width="24" height="18" rx="3" class="app"/><text font-family="DejaVu Sans, Arial, sans-serif" x="188" y="955" class="body">приложение</text>
   <rect x="345" y="940" width="24" height="18" rx="3" class="table"/><text font-family="DejaVu Sans, Arial, sans-serif" x="378" y="955" class="body">строковая таблица</text>
   <rect x="505" y="940" width="24" height="18" rx="3" class="topic"/><text font-family="DejaVu Sans, Arial, sans-serif" x="538" y="955" class="body">CDC / Topic</text>
-  <rect x="690" y="940" width="24" height="18" rx="3" class="queue"/><text font-family="DejaVu Sans, Arial, sans-serif" x="723" y="955" class="body">очередь SQS (YDB)</text>
+  <rect x="690" y="940" width="24" height="18" rx="3" class="queue"/><text font-family="DejaVu Sans, Arial, sans-serif" x="723" y="955" class="body">SQS queue (YDB)</text>
   <rect x="900" y="940" width="24" height="18" rx="3" class="coord"/><text font-family="DejaVu Sans, Arial, sans-serif" x="933" y="955" class="body">Coordination</text>
   <line x1="1100" y1="949" x2="1160" y2="949" class="purple-flow"/><text font-family="DejaVu Sans, Arial, sans-serif" x="1170" y="955" class="body">асинхронно</text>
 </svg>

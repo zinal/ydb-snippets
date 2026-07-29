@@ -3,10 +3,10 @@
 <title id="title">Документная учетная система на YDB: Outbox/CDC и очередь SQS</title>
 <desc id="desc">Внешний сервис проведения атомарно записывает строковые таблицы и PostingEvents. CDC создаёт 1 record / commit; внешний relay читает внутренний Topic и выполняет идемпотентный enqueue во встроенную очередь SQS (YDB). Workers используют visibility timeout и ack/delete; retries ведут в DLQ.</desc>
 <defs>
-<marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#334155"/></marker>
-<marker id="arrowPurple" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7c3aed"/></marker>
-<marker id="arrowOrange" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ea580c"/></marker>
-<marker id="arrowRed" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#dc2626"/></marker>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker>
+<marker id="arrowPurple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L10 5 L0 10 z" fill="#7c3aed"/></marker>
+<marker id="arrowOrange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L10 5 L0 10 z" fill="#ea580c"/></marker>
+<marker id="arrowRed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker>
 <style>
 text{font-family:"DejaVu Sans",Arial,sans-serif}.heading{font-size:32px;font-weight:700;fill:#172033}.subtitle{font-size:16px;fill:#526176}.boundary{font-size:20px;font-weight:700;fill:#334155}.box-title{font-weight:700}.body{fill:#172033}.small{font-size:11px;fill:#475569}.flow{font-size:12px;font-weight:700;fill:#334155}.arrow{fill:none;stroke:#334155;stroke-width:3}.async{fill:none;stroke:#7c3aed;stroke-width:3;stroke-dasharray:9 7}.queue{fill:none;stroke:#ea580c;stroke-width:3;stroke-dasharray:9 7}.red-arrow{fill:none;stroke:#dc2626;stroke-width:3}.tx{fill:none;stroke:#dc2626;stroke-width:2;stroke-dasharray:7 6}
 </style></defs>
@@ -36,18 +36,18 @@ text{font-family:"DejaVu Sans",Arial,sans-serif}.heading{font-size:32px;font-wei
 <text x="302" y="315" class="flow" text-anchor="start"><tspan x="302" dy="0">команда</tspan></text>
 <path d="M290 420 H370" class="arrow" marker-end="url(#arrow)"/>
 
-<path d="M370 640 H320 V675 H290" class="arrow" marker-end="url(#arrow)"/>
+<path d="M370 640 L326 640 L326 675 L290 675" class="arrow" marker-end="url(#arrow)"/>
 
 <path d="M890 315 H930" class="async" marker-end="url(#arrowPurple)"/>
 
 <path d="M1060 345 V415" class="async" marker-end="url(#arrowPurple)"/>
 <text x="1074" y="382" class="flow" text-anchor="start"><tspan x="1074" dy="0">1 record / commit</tspan></text>
-<path d="M1190 478 H1240 V245 H1270" class="async" marker-end="url(#arrowPurple)"/>
+<path d="M1190 478 L1234 478 L1234 245 L1270 245" class="async" marker-end="url(#arrowPurple)"/>
 
 <path d="M1415 310 V535 H1020 V590" class="queue" marker-end="url(#arrowOrange)"/>
 <text x="1240" y="522" class="flow"><tspan x="1240" dy="0">идемпотентный enqueue</tspan></text>
-<path d="M1110 610 V570 H1165 V590" class="red-arrow" marker-end="url(#arrowRed)"/>
-<path d="M1020 700 V735 H1240 V610 H1270" class="queue" marker-end="url(#arrowOrange)"/>
+<path d="M1110 610 L1110 554 L1165 554 L1165 590" class="red-arrow" marker-end="url(#arrowRed)"/>
+<path d="M1020 700 L1020 735 L1234 735 L1234 610 L1270 610" class="queue" marker-end="url(#arrowOrange)"/>
 <text x="1110" y="725" class="flow"><tspan x="1110" dy="0">получение</tspan></text>
 <path d="M1415 660 V710" class="arrow" marker-end="url(#arrow)"/>
 <text x="1430" y="694" class="flow" text-anchor="start"><tspan x="1430" dy="0">результат</tspan></text>

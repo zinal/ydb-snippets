@@ -3,10 +3,10 @@
 <title id="title">Финансовый ledger двойной записи на YDB</title>
 <desc id="desc">Внешний движок проводок выполняет topic/table transaction над строковыми таблицами и Topic ledger-events. Topic использует producer_id и message_group_id = operation_id. Проекторы читают Topic как именованные YDB Consumer; опциональный CDC и Coordination внутри YDB.</desc>
 <defs>
-<marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#334155"/></marker>
-<marker id="arrowPurple" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7c3aed"/></marker>
-<marker id="arrowOrange" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ea580c"/></marker>
-<marker id="arrowRed" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#dc2626"/></marker>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker>
+<marker id="arrowPurple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L10 5 L0 10 z" fill="#7c3aed"/></marker>
+<marker id="arrowOrange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L10 5 L0 10 z" fill="#ea580c"/></marker>
+<marker id="arrowRed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker>
 <style>
 text{font-family:"DejaVu Sans",Arial,sans-serif}.heading{font-size:32px;font-weight:700;fill:#172033}.subtitle{font-size:16px;fill:#526176}.boundary{font-size:20px;font-weight:700;fill:#334155}.box-title{font-weight:700}.body{fill:#172033}.small{font-size:11px;fill:#475569}.flow{font-size:12px;font-weight:700;fill:#334155}.arrow{fill:none;stroke:#334155;stroke-width:3}.async{fill:none;stroke:#7c3aed;stroke-width:3;stroke-dasharray:9 7}.queue{fill:none;stroke:#ea580c;stroke-width:3;stroke-dasharray:9 7}.red-arrow{fill:none;stroke:#dc2626;stroke-width:3}.tx{fill:none;stroke:#dc2626;stroke-width:2;stroke-dasharray:7 6}
 </style></defs>
@@ -48,12 +48,12 @@ text{font-family:"DejaVu Sans",Arial,sans-serif}.heading{font-size:32px;font-wei
 
 <path d="M890 480 H930" class="async" marker-end="url(#arrowPurple)"/>
 
-<path d="M1190 270 H1245 V260 H1270" class="async" marker-end="url(#arrowPurple)"/>
-<path d="M1190 300 H1245 V455 H1270" class="async" marker-end="url(#arrowPurple)"/>
+<path d="M1190 270 L1234 270 L1234 260 L1270 260" class="async" marker-end="url(#arrowPurple)"/>
+<path d="M1190 300 L1234 300 L1234 455 L1270 455" class="async" marker-end="url(#arrowPurple)"/>
 
-<path d="M930 657 H900 V745 H290 V675" class="arrow" marker-end="url(#arrow)"/>
+<path d="M930 657 L900 657 L900 745 L326 745 L326 675 L290 675" class="arrow" marker-end="url(#arrow)"/>
 <text x="560" y="737" class="flow" text-anchor="start"><tspan x="560" dy="0">lease сверки</tspan></text>
-<path d="M370 625 H320 V660 H290" class="arrow" marker-end="url(#arrow)"/>
+<path d="M370 625 L326 625 L326 660 L290 660" class="arrow" marker-end="url(#arrow)"/>
 
 <rect x="1270" y="600" width="290" height="105" rx="14" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
 <text x="1290" y="630" class="box-title" text-anchor="start" style="fill:#b91c1c;font-size:17px"><tspan x="1290" dy="0">Запрещено</tspan></text>

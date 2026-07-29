@@ -2,7 +2,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
   <title id="title">Надежные фоновые задания с YDB и SQS</title>
   <desc id="desc">Архитектура отделяет прием бизнес-запроса от длительной фоновой работы.</desc>
-  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#334155"/></marker><marker id="redArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#dc2626"/></marker></defs>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="redArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker></defs>
   <rect x="0" y="0" width="1600" height="1000" fill="#f8fafc"/>
   <text x="800" y="42" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="28" font-weight="bold" fill="#0f172a">Надежные фоновые задания с YDB и SQS</text>
   <text x="800" y="72" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" fill="#475569">Producer, relays и Worker · SQS внутри YDB · две транзакции таблиц</text>
@@ -20,9 +20,9 @@
   <text x="850" y="122" text-anchor="start" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">Coordination</text>
   <rect x="985" y="106" width="26" height="20" rx="4" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
   <text x="1020" y="122" text-anchor="start" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">DLQ</text>
-  <path d="M 1190 117 L 1240 117" fill="none" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M1190 117 L1240 117" fill="none" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
   <text x="1250" y="122" text-anchor="start" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">синхронно</text>
-  <path d="M 1400 117 L 1450 117" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
+  <path d="M1400 117 L1450 117" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
   <text x="1460" y="122" text-anchor="start" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">асинхронно</text>
   <rect x="300" y="205" width="1000" height="610" rx="24" fill="#ffffff" stroke="#0f6cbd" stroke-width="4"/>
   <text x="325" y="239" text-anchor="start" font-family="DejaVu Sans, Arial, sans-serif" font-size="21" font-weight="bold" fill="#0f6cbd">Граница YDB</text>
@@ -107,29 +107,29 @@
   <text x="137.5" y="728.5" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#1e40af">эффект может повториться</text>
   <path d="M 255 342 L 330 342" fill="none" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
   <text x="292" y="327" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">одна ACID tx</text>
-  <path d="M 635 457 L 775 457 L 775 342 L 800 342" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
+  <path d="M635 457 L764 457 L764 342 L800 342" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
   <text x="725" y="442" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">committed Outbox</text>
-  <path d="M 1000 342 L 1020 342 L 1020 250 L 1310 250 L 1310 330 L 1330 330" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
+  <path d="M1000 342 L1020 342 L1020 250 L1294 250 L1294 330 L1330 330" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
   <text x="1165" y="242" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">CDC record</text>
-  <path d="M 1330 315 L 1280 315 L 1280 335 L 1260 335" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
+  <path d="M1330 315 L1296 315 L1296 335 L1260 335" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
   <text x="1290" y="300" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">SQS enqueue</text>
-  <path d="M 1260 360 L 1300 360 L 1300 500 L 1330 500" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
+  <path d="M1260 360 L1294 360 L1294 500 L1330 500" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
   <rect x="1320" y="412" width="210" height="28" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
   <text x="1425" y="431" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="12" fill="#334155">claim + visibility</text>
-  <path d="M 1330 575 L 1280 575 L 1280 385 L 1260 385" fill="none" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M1330 575 L1296 575 L1296 385 L1260 385" fill="none" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
   <rect x="1010" y="590" width="290" height="28" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
   <text x="1155" y="609" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="12" fill="#334155">ack/delete после commit</text>
-  <path d="M 1410 605 L 1410 650 L 1010 650 L 1010 350 L 1040 350" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
+  <path d="M1410 605 L1410 650 L1004 650 L1004 350 L1040 350" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
   <rect x="1040" y="657" width="260" height="28" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
   <text x="1170" y="676" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="12" fill="#334155">нет ack / expiry → retry</text>
   <path d="M 1150 400 L 1150 450" fill="none" stroke="#dc2626" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#redArrow)"/>
   <text x="1195" y="433" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#dc2626">лимит retry → DLQ SQS</text>
-  <path d="M 1330 535 L 1310 535 L 1310 525 L 780 525 L 780 650 L 760 650" fill="none" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M1330 535 L1310 535 L1310 525 L796 525 L796 650 L760 650" fill="none" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
   <text x="900" y="512" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">сначала commit результата</text>
-  <path d="M 1330 565 L 1300 565 L 1300 805 L 275 805 L 275 702 L 255 702" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
-  <path d="M 735 735 L 775 735 L 775 595 L 800 595" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
+  <path d="M1330 565 L1300 565 L1300 805 L291 805 L291 702 L255 702" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
+  <path d="M735 735 L764 735 L764 595 L800 595" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
   <text x="780" y="665" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">committed статус</text>
-  <path d="M 1000 595 L 1020 595 L 1020 630 L 1320 630 L 1320 735 L 1330 735" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
+  <path d="M1000 595 L1020 595 L1020 630 L1294 630 L1294 735 L1330 735" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
   <path d="M 1330 765 L 1310 765 L 1310 730 L 1000 730" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
   <text x="1160" y="752" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">публикация статуса</text>
   <rect x="70" y="835" width="1460" height="150" rx="12" fill="#fff7ed" stroke="#f97316" stroke-width="2"/>

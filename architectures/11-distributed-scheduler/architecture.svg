@@ -3,9 +3,7 @@
   <title id="title">Архитектура распределенного планировщика в YDB</title>
   <desc id="desc">SchedulerEpoch ограничивает только новый dispatch. CDC ExecutionOutbox и внешний relay ставят задачи в очередь SQS YDB; смена лидера не инвалидирует committed executions.</desc>
   <defs>
-    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
-      <path d="M0,0 L0,6 L9,3 z" fill="#334155"/>
-    </marker>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker>
     <style>
       .txt { font-family: "DejaVu Sans", Arial, sans-serif; fill: #172033; }
       .title { font-size: 30px; font-weight: 700; }
@@ -46,23 +44,23 @@
   <text class="txt small" x="370" y="401">dispatch: проверка epoch · worker: execution_id + state, не epoch</text>
 
   <path class="coord-flow" d="M270 245 H350"/>
-  <path class="coord-flow" d="M350 285 H290 V285 H270"/>
-  <path class="flow" d="M270 340 H325 V445 H345"/>
-  <path class="flow" d="M540 475 H560"/>
-  <path class="flow" d="M750 475 H780"/>
-  <path class="flow" d="M905 520 V535"/>
-  <path class="event" d="M1145 585 H1188 V255 H1180"/>
+  <path class="coord-flow" d="M306 285 L270 285"/>
+  <path class="flow" d="M270 340 L309 340 L309 445 L345 445"/>
+  <path class="flow" d="M524 475 L560 475"/>
+  <path class="flow" d="M744 475 L780 475"/>
+  <path class="flow" d="M905 499 L905 535"/>
+  <path class="event" d="M1145 585 L1216 585 L1216 255 L1180 255"/>
   <path class="event" d="M1180 255 H1260"/>
-  <path class="queue" d="M1350 290 H1200 V805 H600 V707 H610"/>
-  <path class="recovery" d="M1260 270 H1215 V330 H1155 V535 H1145"/>
-  <path class="queue" d="M830 700 H850 V820 H1225 V600 H1260"/>
-  <path class="queue-ack" d="M1260 650 H1245 V835 H850 V730 H830"/>
-  <path class="error-flow" d="M720 745 V752"/>
-  <path class="flow" d="M1260 640 H1225 V330 H550 V590 H560"/>
-  <path class="flow" d="M560 610 H540"/>
-  <path class="event" d="M420 650 V680"/>
+  <path class="queue" d="M1350 290 L1200 290 L1200 805 L574 805 L574 707 L610 707"/>
+  <path class="recovery" d="M1260 270 L1215 270 L1215 330 L1181 330 L1181 535 L1145 535"/>
+  <path class="queue" d="M830 700 L850 700 L850 820 L1224 820 L1224 600 L1260 600"/>
+  <path class="queue-ack" d="M1260 650 L1245 650 L1245 835 L866 835 L866 730 L830 730"/>
+  <path class="error-flow" d="M720 716 L720 752"/>
+  <path class="flow" d="M1260 640 L1225 640 L1225 330 L524 330 L524 590 L560 590"/>
+  <path class="flow" d="M576 610 L540 610"/>
+  <path class="event" d="M420 634 L420 670"/>
   <path class="event" d="M330 722 H270"/>
-  <path class="event" d="M270 750 H300 V790 H1025 V780"/>
+  <path class="event" d="M270 750 L300 750 L300 816 L1025 816 L1025 780"/>
 
   <rect class="label-bg" x="282" y="217" width="59" height="22" rx="5"/>
   <text class="txt small" x="290" y="233">сессия</text>

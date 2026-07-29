@@ -2,7 +2,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
   <title id="title">Потоковая материализация операционного состояния в YDB</title>
   <desc id="desc">Архитектура поддерживает актуальное операционное состояние сущностей по потоку событий: последнее состояние, счетчики и активные предупреждения.</desc>
-  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#334155"/></marker><marker id="redArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#dc2626"/></marker></defs>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker><marker id="redArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker></defs>
   <rect x="0" y="0" width="1600" height="1000" fill="#f8fafc"/>
   <text x="800" y="42" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="28" font-weight="bold" fill="#0f172a">Потоковая материализация операционного состояния в YDB</text>
   <text x="800" y="72" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" fill="#475569">Producer/Процессор · транзакция Topic+таблицы · CDC опционально</text>
@@ -16,9 +16,9 @@
   <text x="535" y="122" text-anchor="start" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">Topic / CDC</text>
   <rect x="700" y="106" width="26" height="20" rx="4" fill="#e2e8f0" stroke="#64748b" stroke-width="2"/>
   <text x="735" y="122" text-anchor="start" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">механизм YDB</text>
-  <path d="M 1190 117 L 1240 117" fill="none" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M1190 117 L1240 117" fill="none" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
   <text x="1250" y="122" text-anchor="start" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">синхронно</text>
-  <path d="M 1400 117 L 1450 117" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
+  <path d="M1400 117 L1450 117" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
   <text x="1460" y="122" text-anchor="start" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">асинхронно</text>
   <rect x="350" y="205" width="1060" height="595" rx="24" fill="#ffffff" stroke="#0f6cbd" stroke-width="4"/>
   <text x="375" y="239" text-anchor="start" font-family="DejaVu Sans, Arial, sans-serif" font-size="21" font-weight="bold" fill="#0f6cbd">Граница YDB</text>
@@ -72,15 +72,15 @@
   <text x="1250.0" y="730.0" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="12" fill="#6b21a8">без custom producer_id</text>
   <text x="850" y="600" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" font-weight="bold" fill="#166534">Атомарный commit: таблицы + offset Consumer</text>
   <text x="850" y="620" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" font-weight="bold" fill="#166534">Downstream виден в том же commit</text>
-  <path d="M 105 315 L 390 345" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
+  <path d="M 105 315 L 390 315 L 390 345" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
   <text x="245" y="295" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">публикация</text>
-  <path d="M 390 410 L 330 410 L 330 480 L 310 480" fill="none" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M390 410 L346 410 L346 480 L310 480" fill="none" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
   <text x="350" y="395" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">чтение в транзакции</text>
-  <path d="M 310 480 L 640 480 L 640 355 L 665 355" fill="none" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M310 480 L629 480 L629 355 L665 355" fill="none" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
   <text x="500" y="498" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">изменения таблиц</text>
-  <path d="M 310 520 L 330 520 L 330 570 L 1090 570 L 1090 382 L 1120 382" fill="none" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M310 520 L330 520 L330 570 L1084 570 L1084 382 L1120 382" fill="none" stroke="#334155" stroke-width="3" marker-end="url(#arrow)"/>
   <text x="770" y="555" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">запись Topic + commit offset</text>
-  <path d="M 1070 490 L 1100 490 L 1100 688 L 1130 688" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
+  <path d="M1070 490 L1094 490 L1094 688 L1130 688" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
   <text x="1010" y="650" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">CDC после commit</text>
   <path d="M 505 470 L 505 635" fill="none" stroke="#334155" stroke-width="3" stroke-dasharray="10 7" marker-end="url(#arrow)"/>
   <text x="525" y="560" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" fill="#334155">опциональный путь</text>

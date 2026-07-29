@@ -3,15 +3,9 @@
   <title id="title">Event-driven микросервисы с транзакционной публикацией и Outbox</title>
   <desc id="desc">Три изолированных bounded context используют собственные строковые таблицы YDB. Показаны атомарная запись в таблицу и topic, альтернативный Outbox с CDC, Inbox для дедупликации, командная очередь, DLQ и Coordination.</desc>
   <defs>
-    <marker id="arrow-blue" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
-      <path d="M0,0 L0,6 L9,3 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-purple" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
-      <path d="M0,0 L0,6 L9,3 z" fill="#7c3aed"/>
-    </marker>
-    <marker id="arrow-orange" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
-      <path d="M0,0 L0,6 L9,3 z" fill="#d97706"/>
-    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker>
+    <marker id="arrow-purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L10 5 L0 10 z" fill="#7c3aed"/></marker>
+    <marker id="arrow-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L10 5 L0 10 z" fill="#d97706"/></marker>
     <style>
       text, tspan { fill: #172033; }
       .title { font-size: 30px; font-weight: 700; }
@@ -129,25 +123,25 @@
   <text font-family="DejaVu Sans, Arial, sans-serif" x="1122" y="696" class="small">producer_id = message_group_id = order_id</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="1122" y="716" class="small">порядок внутри producer_id</text>
 
-  <path d="M185 245 L25 245 L25 537 L55 537" fill="none" stroke="#d97706" stroke-width="2.4" stroke-dasharray="7 5"/>  <path d="M225 245 L1550 245 L1550 750 L760 750 L760 610" fill="none" stroke="#d97706" stroke-width="2.4" stroke-dasharray="7 5"/>  <path d="M303 556 L321 556" class="purple-flow"/>
+  <path d="M185 245 L25 245 L25 537 L55 537" fill="none" stroke="#d97706" stroke-width="2.4" stroke-dasharray="7 5"/>  <path d="M225 245 L1550 245 L1550 750 L760 750 L760 610" fill="none" stroke="#d97706" stroke-width="2.4" stroke-dasharray="7 5"/>  <path d="M294 556 L330 556" class="purple-flow"/>
   <path d="M435 518 L435 450 L502 450 L502 270 L1240 270 L1240 234" fill="none" stroke="#7c3aed" stroke-width="3" marker-end="url(#arrow-purple)"/>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="710" y="263" class="flow">B2 → B3 • чтение changefeed</text>
-  <path d="M1320 225 L1320 270 L1545 270 L1545 455 L930 455 L930 532" fill="none" stroke="#7c3aed" stroke-width="3" marker-end="url(#arrow-purple)"/>
+  <path d="M1320 225 L1320 270 L1545 270 L1545 455 L919 455 L919 532 L955 532" fill="none" stroke="#7c3aed" stroke-width="3" marker-end="url(#arrow-purple)"/>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="1120" y="448" class="flow">B4 • publish orders.events → XOR-слияние</text>
   <path d="M895 550 L915 547" fill="none" stroke="#d97706" stroke-width="2.4" stroke-dasharray="7 5"/>
   <polygon points="915,547 930,532 945,547 930,562" fill="#fff7ed" stroke="#d97706" stroke-width="2"/>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="884" y="610" class="small">XOR-слияние</text>
-  <path d="M945 547 L946 547" class="blue-flow"/>
+  <path d="M919 547 L955 547" class="blue-flow"/>
 
-  <path d="M1000 485 L1000 448 L502 448 L502 240 L560 240 L560 225" class="purple-flow"/>
-  <path d="M1050 485 L1050 448 L990 448 L990 240 L900 240 L900 225" class="purple-flow"/>
+  <path d="M1000 485 L1000 448 L502 448 L502 261 L560 261 L560 225" class="purple-flow"/>
+  <path d="M1050 485 L1050 448 L990 448 L990 261 L900 261 L900 225" class="purple-flow"/>
 
-  <path d="M560 225 L560 321 L650 321 L650 353" class="blue-flow"/>
+  <path d="M560 225 L560 321 L650 321 L650 362" class="blue-flow"/>
   <path d="M705 418 L705 641" class="purple-flow"/>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="350" y="640" class="small">публикация: table + Topic tx</text>
-  <path d="M890 690 L890 770 L1545 770 L1545 245 L900 245 L900 234" class="purple-flow"/>
+  <path d="M890 690 L890 770 L1545 770 L1545 261 L900 261 L900 225" class="purple-flow"/>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="1050" y="764" class="flow">PaymentAuthorized</text>
-  <path d="M900 225 L900 320 L1145 320 L1145 353" class="blue-flow"/>
+  <path d="M900 225 L900 320 L1145 320 L1145 362" class="blue-flow"/>
   <path d="M1250 418 L1250 641" class="purple-flow"/>
 
   <rect x="55" y="645" width="430" height="90" rx="12" class="queue"/>

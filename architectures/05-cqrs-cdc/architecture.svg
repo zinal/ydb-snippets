@@ -3,15 +3,9 @@
   <title id="title">CQRS с CDC и версионируемыми проекциями</title>
   <desc id="desc">Command Handler атомарно изменяет Orders и OrderLines и добавляет строки в OrderEvents. Changefeed только этой таблицы передаёт записи проекторам. Identity и порядок задаёт PK order_id, event_seq; модель чтения и consumer offset коммитятся одной topic+table транзакцией.</desc>
   <defs>
-    <marker id="arrow-blue" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
-      <path d="M0,0 L0,6 L9,3 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-purple" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
-      <path d="M0,0 L0,6 L9,3 z" fill="#7c3aed"/>
-    </marker>
-    <marker id="arrow-teal" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
-      <path d="M0,0 L0,6 L9,3 z" fill="#0f766e"/>
-    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker>
+    <marker id="arrow-purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L10 5 L0 10 z" fill="#7c3aed"/></marker>
+    <marker id="arrow-teal" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L10 5 L0 10 z" fill="#0f766e"/></marker>
     <style>
       text, tspan { fill: #172033; }
       .title { font-size: 30px; font-weight: 700; }
@@ -105,18 +99,18 @@
   <text font-family="DejaVu Sans, Arial, sans-serif" x="712" y="738" class="box-title">Coordination</text><text font-family="DejaVu Sans, Arial, sans-serif" x="712" y="761" class="small">lease пересборки • не ACID</text>
 
   <path d="M205 225 L205 326" class="blue-flow"/><text font-family="DejaVu Sans, Arial, sans-serif" x="217" y="270" class="flow">ACID запись</text>
-  <path d="M465 478 L505 478 L505 422 L511 422" class="purple-flow"/>
-  <path d="M740 422 L766 422" class="purple-flow"/>
+  <path d="M465 478 L484 478 L484 422 L520 422" class="purple-flow"/>
+  <path d="M739 422 L775 422" class="purple-flow"/>
   <path d="M938 365 L938 234" class="purple-flow"/>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="950" y="270" class="small">именованные YDB Consumers</text>
-  <path d="M1080 225 L1115 250 L1115 545 L188 545 L188 566" class="blue-flow"/>
-  <path d="M1115 422 L1121 422" class="blue-flow"/>
-  <path d="M1115 545 L485 545 L485 566" class="blue-flow"/>
-  <path d="M1115 545 L782 545 L782 566" class="blue-flow"/>
+  <path d="M1080 225 L1115 225 L1115 539 L188 539 L188 575" class="blue-flow"/>
+  <path d="M1094 422 L1130 422" class="blue-flow"/>
+  <path d="M1115 539 L485 539 L485 575" class="blue-flow"/>
+  <path d="M1115 539 L782 539 L782 575" class="blue-flow"/>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="900" y="536" class="small">topic+table tx: модель + ProcessedEvents + offset</text>
-  <path d="M1378 575 L1378 545 L1545 545 L1545 245 L1355 245 L1355 234" class="blue-flow"/>
+  <path d="M1378 575 L1378 545 L1545 545 L1545 261 L1355 261 L1355 225" class="blue-flow"/>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="1420" y="535" class="small">активная версия</text>
-  <path d="M880 710 L880 690 L1378 690 L1378 684" class="teal-flow"/>
+  <path d="M880 710 L1378 710 L1378 675" class="teal-flow"/>
 
   <rect x="50" y="830" width="1500" height="90" rx="12" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="75" y="858" class="box-title">Гарантии</text>

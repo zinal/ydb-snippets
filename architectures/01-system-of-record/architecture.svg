@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc" font-family="DejaVu Sans, Arial, sans-serif">
+<title id="title">System of Record на YDB</title>
+<desc id="desc">Внешний API выполняет транзакции над строковыми таблицами внутри YDB. CDC создаёт 1 record / commit во внутренних changefeed Topics; внешние проекторы читают их как именованные YDB Consumer. Coordination выдает lease внешнему обслуживанию.</desc>
+<defs>
+<marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#334155"/></marker>
+<marker id="arrowPurple" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7c3aed"/></marker>
+<marker id="arrowOrange" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ea580c"/></marker>
+<marker id="arrowRed" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#dc2626"/></marker>
+<style>
+text{font-family:"DejaVu Sans",Arial,sans-serif}.heading{font-size:32px;font-weight:700;fill:#172033}.subtitle{font-size:16px;fill:#526176}.boundary{font-size:20px;font-weight:700;fill:#334155}.box-title{font-weight:700}.body{fill:#172033}.small{font-size:11px;fill:#475569}.flow{font-size:12px;font-weight:700;fill:#334155}.arrow{fill:none;stroke:#334155;stroke-width:3}.async{fill:none;stroke:#7c3aed;stroke-width:3;stroke-dasharray:9 7}.queue{fill:none;stroke:#ea580c;stroke-width:3;stroke-dasharray:9 7}.red-arrow{fill:none;stroke:#dc2626;stroke-width:3}.tx{fill:none;stroke:#dc2626;stroke-width:2;stroke-dasharray:7 6}
+</style></defs>
+<rect width="1600" height="1000" fill="#f8fafc"/>
+<text x="50" y="55" class="heading" text-anchor="start"><tspan x="50" dy="0">System of Record на YDB</tspan></text>
+<text x="50" y="84" class="subtitle" text-anchor="start"><tspan x="50" dy="0">В YDB: строковые таблицы, CDC/Topic и Coordination; приложения снаружи</tspan></text>
+<rect x="330" y="140" width="900" height="640" rx="22" fill="#ffffff" stroke="#64748b" stroke-width="2.5" stroke-dasharray="10 7"/>
+<rect x="355" y="123" width="205" height="34" rx="17" fill="#e2e8f0"/>
+<text x="378" y="147" class="boundary" text-anchor="start"><tspan x="378" dy="0">Граница YDB</tspan></text>
+<text x="45" y="135" class="boundary" text-anchor="start"><tspan x="45" dy="0">Внешние сервисы</tspan></text>
+<text x="1270" y="135" class="boundary" text-anchor="start"><tspan x="1270" dy="0">Внешние приложения</tspan></text>
+<g><rect x="40" y="210" width="250" height="150" rx="14" fill="#2563eb" stroke="#2563eb" stroke-width="2"/><text x="60" y="241" class="box-title" text-anchor="start" style="fill:#ffffff;font-size:17px"><tspan x="60" dy="0">API / доменный сервис</tspan></text><text x="60" y="268" class="body" text-anchor="start" style="fill:#ffffff;font-size:13px"><tspan x="60" dy="0">Команды и чтение</tspan></text><text x="60" y="290" class="body" text-anchor="start" style="fill:#ffffff;font-size:13px"><tspan x="60" dy="0">Идемпотентность</tspan></text><text x="60" y="312" class="body" text-anchor="start" style="fill:#ffffff;font-size:13px"><tspan x="60" dy="0">Внешний процесс</tspan></text></g>
+<g><rect x="40" y="600" width="250" height="110" rx="14" fill="#2563eb" stroke="#2563eb" stroke-width="2"/><text x="60" y="631" class="box-title" text-anchor="start" style="fill:#ffffff;font-size:17px"><tspan x="60" dy="0">Обслуживание</tspan></text><text x="60" y="658" class="body" text-anchor="start" style="fill:#ffffff;font-size:13px"><tspan x="60" dy="0">singleton-обслуживание</tspan></text><text x="60" y="680" class="body" text-anchor="start" style="fill:#ffffff;font-size:13px"><tspan x="60" dy="0">Внешний процесс</tspan></text></g>
+<rect x="350" y="180" width="540" height="510" rx="18" class="tx"/>
+<rect x="520" y="168" width="200" height="27" rx="13" fill="#fee2e2"/>
+<text x="620" y="187" class="small" text-anchor="middle" style="fill:#b91c1c;font-size:11px"><tspan x="620" dy="0">Строковые таблицы</tspan></text>
+<g><rect x="370" y="205" width="500" height="465" rx="15" fill="#ecfdf5" stroke="#16a34a" stroke-width="2.5"/>
+<rect x="370" y="205" width="500" height="48" rx="15" fill="#16a34a"/><path d="M370 238 H870 V253 H370 Z" fill="#16a34a"/>
+<text x="395" y="237" class="box-title" text-anchor="start" style="fill:#ffffff;font-size:17px"><tspan x="395" dy="0">Строковые таблицы</tspan></text>
+<rect x="390" y="270" width="460" height="72" rx="8" fill="#ffffff" stroke="#86efac"/><text x="405" y="295" class="box-title" text-anchor="start" style="font-size:15px"><tspan x="405" dy="0">Entities</tspan></text><text x="405" y="318" class="small" text-anchor="start" style="font-size:10.5px"><tspan x="405" dy="0">PK: (entity_hash, entity_id)</tspan></text>
+<rect x="390" y="352" width="460" height="82" rx="8" fill="#ffffff" stroke="#86efac"/><text x="405" y="377" class="box-title" text-anchor="start" style="font-size:15px"><tspan x="405" dy="0">Relations</tspan></text><text x="405" y="400" class="small" text-anchor="start" style="font-size:10.5px"><tspan x="405" dy="0">PK: (source_hash, source_id,</tspan><tspan x="405" dy="16">relation_type, target_id)</tspan></text>
+<rect x="390" y="444" width="460" height="82" rx="8" fill="#ffffff" stroke="#86efac"/><text x="405" y="469" class="box-title" text-anchor="start" style="font-size:15px"><tspan x="405" dy="0">IdempotencyKeys</tspan></text><text x="405" y="492" class="small" text-anchor="start" style="font-size:10.5px"><tspan x="405" dy="0">PK: (scope_hash, scope,</tspan><tspan x="405" dy="16">idempotency_key)</tspan></text>
+<rect x="390" y="536" width="460" height="82" rx="8" fill="#ffffff" stroke="#86efac"/><text x="405" y="561" class="box-title" text-anchor="start" style="font-size:15px"><tspan x="405" dy="0">AuditLog</tspan></text><text x="405" y="584" class="small" text-anchor="start" style="font-size:10.5px"><tspan x="405" dy="0">PK: (entity_hash, entity_id, version)</tspan></text>
+</g>
+<g><rect x="910" y="205" width="280" height="135" rx="14" fill="#7c3aed" stroke="#7c3aed" stroke-width="2"/><text x="930" y="236" class="box-title" text-anchor="start" style="fill:#ffffff;font-size:17px"><tspan x="930" dy="0">CDC</tspan></text><text x="930" y="263" class="body" text-anchor="start" style="fill:#ffffff;font-size:12px"><tspan x="930" dy="0">1 record / commit</tspan></text><text x="930" y="285" class="body" text-anchor="start" style="fill:#ffffff;font-size:12px"><tspan x="930" dy="0">порядок: полный PK</tspan></text></g>
+<g><rect x="910" y="390" width="280" height="130" rx="14" fill="#7c3aed" stroke="#7c3aed" stroke-width="2"/><text x="930" y="421" class="box-title" text-anchor="start" style="fill:#ffffff;font-size:17px"><tspan x="930" dy="0">Внутренний changefeed</tspan></text><text x="930" y="448" class="body" text-anchor="start" style="fill:#ffffff;font-size:12px"><tspan x="930" dy="0">Entities / Relations</tspan></text><text x="930" y="470" class="body" text-anchor="start" style="fill:#ffffff;font-size:12px"><tspan x="930" dy="0">Offset: YDB Consumer</tspan></text><text x="930" y="492" class="body" text-anchor="start" style="fill:#ffffff;font-size:12px"><tspan x="930" dy="0">по партициям</tspan></text></g>
+<g><rect x="910" y="600" width="280" height="105" rx="14" fill="#0f9f9a" stroke="#0f9f9a" stroke-width="2"/><text x="930" y="631" class="box-title" text-anchor="start" style="fill:#ffffff;font-size:17px"><tspan x="930" dy="0">Coordination</tspan></text><text x="930" y="658" class="body" text-anchor="start" style="fill:#ffffff;font-size:12px"><tspan x="930" dy="0">Lease, не ACID</tspan></text><text x="930" y="680" class="body" text-anchor="start" style="fill:#ffffff;font-size:12px"><tspan x="930" dy="0">Только координация</tspan></text></g>
+<g><rect x="1270" y="180" width="290" height="120" rx="14" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/><text x="1290" y="211" class="box-title" text-anchor="start" style="fill:#172033;font-size:17px"><tspan x="1290" dy="0">Поиск</tspan></text><text x="1290" y="238" class="body" text-anchor="start" style="fill:#172033;font-size:12px"><tspan x="1290" dy="0">YDB Consumer search-index</tspan></text><text x="1290" y="260" class="body" text-anchor="start" style="fill:#172033;font-size:12px"><tspan x="1290" dy="0">Повтор обработки безопасен</tspan></text></g>
+<g><rect x="1270" y="350" width="290" height="120" rx="14" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/><text x="1290" y="381" class="box-title" text-anchor="start" style="fill:#172033;font-size:17px"><tspan x="1290" dy="0">Кэш</tspan></text><text x="1290" y="408" class="body" text-anchor="start" style="fill:#172033;font-size:12px"><tspan x="1290" dy="0">YDB Consumer cache</tspan></text><text x="1290" y="430" class="body" text-anchor="start" style="fill:#172033;font-size:12px"><tspan x="1290" dy="0">Версия не убывает</tspan></text></g>
+<g><rect x="1270" y="520" width="290" height="120" rx="14" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/><text x="1290" y="551" class="box-title" text-anchor="start" style="fill:#172033;font-size:17px"><tspan x="1290" dy="0">Интеграция</tspan></text><text x="1290" y="578" class="body" text-anchor="start" style="fill:#172033;font-size:12px"><tspan x="1290" dy="0">YDB Consumer integration</tspan></text><text x="1290" y="600" class="body" text-anchor="start" style="fill:#172033;font-size:12px"><tspan x="1290" dy="0">Side effect идемпотентен</tspan></text></g>
+<path d="M290 285 H370" class="arrow" marker-end="url(#arrow)"/>
+<text x="302" y="270" class="flow" text-anchor="start"><tspan x="302" dy="0">запись</tspan></text>
+<path d="M370 610 H315 V345 H290" class="arrow" marker-end="url(#arrow)"/>
+<text x="302" y="595" class="flow" text-anchor="start"><tspan x="302" dy="0">чтение</tspan></text>
+<path d="M870 300 H910" class="async" marker-end="url(#arrowPurple)"/>
+
+<path d="M1050 340 V390" class="async" marker-end="url(#arrowPurple)"/>
+<text x="1064" y="370" class="flow" text-anchor="start"><tspan x="1064" dy="0">1 record / commit</tspan></text>
+<path d="M1190 430 H1240 V240 H1270" class="async" marker-end="url(#arrowPurple)"/>
+<path d="M1190 455 H1250 V410 H1270" class="async" marker-end="url(#arrowPurple)"/>
+<path d="M1190 480 H1240 V580 H1270" class="async" marker-end="url(#arrowPurple)"/>
+
+<path d="M910 652 H880 V745 H290 V655" class="arrow" marker-end="url(#arrow)"/>
+<text x="560" y="737" class="flow" text-anchor="start"><tspan x="560" dy="0">lease-воркер</tspan></text>
+<rect x="40" y="815" width="1520" height="66" rx="13" fill="#fff7ed" stroke="#f97316" stroke-width="2"/>
+<text x="65" y="843" class="box-title" text-anchor="start" style="font-size:16px"><tspan x="65" dy="0">Гарантии</tspan></text>
+<text x="170" y="840" class="body" text-anchor="start" style="font-size:13px"><tspan x="170" dy="0">CDC: 1 record / commit · порядок по полному PK</tspan><tspan x="170" dy="24">Чтение и обработка могут повторяться · идемпотентность</tspan></text>
+<text x="50" y="930" class="boundary" text-anchor="start"><tspan x="50" dy="0">Легенда</tspan></text>
+<rect x="170" y="907" width="30" height="22" rx="4" fill="#2563eb"/>
+<text x="210" y="925" class="body" text-anchor="start" style="font-size:13px"><tspan x="210" dy="0">приложение</tspan></text>
+<rect x="350" y="907" width="30" height="22" rx="4" fill="#ecfdf5" stroke="#16a34a" stroke-width="2"/>
+<text x="390" y="925" class="body" text-anchor="start" style="font-size:13px"><tspan x="390" dy="0">строковая таблица</tspan></text>
+<rect x="530" y="907" width="30" height="22" rx="4" fill="#7c3aed"/>
+<text x="570" y="925" class="body" text-anchor="start" style="font-size:13px"><tspan x="570" dy="0">CDC / Topic</tspan></text>
+<rect x="750" y="907" width="30" height="22" rx="4" fill="#0f9f9a"/>
+<text x="790" y="925" class="body" text-anchor="start" style="font-size:13px"><tspan x="790" dy="0">Coordination</tspan></text>
+<line x1="980" y1="918" x2="1035" y2="918" class="tx"/>
+<text x="1048" y="925" class="body" text-anchor="start" style="font-size:13px"><tspan x="1048" dy="0">граница ACID</tspan></text>
+<line x1="1240" y1="918" x2="1295" y2="918" class="async" marker-end="url(#arrowPurple)"/>
+<text x="1310" y="925" class="body" text-anchor="start" style="font-size:13px"><tspan x="1310" dy="0">асинхронно</tspan></text>
+</svg>

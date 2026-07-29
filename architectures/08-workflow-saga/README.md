@@ -28,21 +28,21 @@ Saga не создает распределенную ACID-транзакцию:
 | DispatcherEpoch / TimerDispatchLease | Строковая таблица монотонного epoch и lease таймеров; именно она является источником fencing epoch |
 | Timer dispatcher | Внешнее приложение: сканирует/claim наступившие таймеры и транзакционно записывает ack/переход |
 | Coordination | Только session-bound leader lease; Coordination не создает монотонный fencing token |
-| Command queues | Yandex Message Queue: отдельный SQS-совместимый сервис поверх YDB, вне транзакционной границы базы |
+| SQS queue | Встроенная реализация SQS-совместимого протокола, доступная во всех поддерживаемых развертываниях YDB: competing consumers, visibility timeout, ack/delete и retry |
 | Workers | Внешние competing consumers выполняют обычные и компенсационные команды |
 | Result Topic | YDB Topic результатов; publisher задает `producer_id = message_group_id = workflow_id` |
 | Result consumer | Внешний именованный YDB Consumer передает результаты оркестратору |
 | DLQ | Изолирует команды после исчерпания retry для ручного разбора |
 
-YMQ предоставляет competing consumers, visibility timeout, retry и DLQ. YDB Topics — другая модель: долговечный pub/sub log для нескольких подписчиков. Результаты публикуются в Topic, а не трактуются как сообщения той же очереди. Визуально и логически YMQ находится вне границы YDB: внутреннее хранение сервиса поверх YDB не включает операцию с очередью в ACID-транзакцию приложения.
+Встроенная SQS queue предоставляет competing consumers, visibility timeout, ack/delete, retry и DLQ. YDB Topics — другая модель: долговечный pub/sub log с именованными YDB Consumers. Результаты публикуются в Topic, а не трактуются как сообщения той же очереди. Нахождение SQS queue внутри границы YDB не включает enqueue/ack в ACID-транзакцию row tables.
 
-Внутри границы YDB находятся только row tables, Result Topic, его changefeed/CDC при использовании, Coordination и встроенные сервисы YDB. API, orchestrator, outbox relay, timer dispatcher, command workers и result consumer расположены снаружи. YMQ также находится снаружи как отдельный сервис.
+Внутри границы YDB находятся row tables, Result Topic, changefeed/CDC при использовании, Coordination, SQS queue и DLQ. API, orchestrator, outbox relay, timer dispatcher, command workers и result consumer — внешние приложения.
 
 ## Основной поток
 
 1. API создает `WorkflowInstances` и начальный `Steps`, а в той же ACID-транзакции добавляет команду в `CommandOutbox`.
-2. Publisher асинхронно переносит outbox-запись в соответствующую YMQ command queue; повторная отправка безопасна благодаря стабильному `command_id`.
-3. Один из competing workers получает команду, выполняет идемпотентный внешний side effect и публикует результат в Result Topic с `producer_id = message_group_id = workflow_id`.
+2. Внешний outbox relay асинхронно переносит committed `CommandOutbox` change record во встроенную SQS queue; повторная отправка безопасна благодаря стабильному `command_id`. Row-table transaction и enqueue в SQS не атомарны.
+3. Один из competing workers получает команду, выполняет идемпотентный внешний side effect и публикует результат в Result Topic с `producer_id = message_group_id = workflow_id`. После подтвержденной записи результата worker выполняет SQS ack/delete; сбой до ack приводит к повторной доставке.
 4. Внешний result consumer читает Topic через именованный YDB Consumer и передает результат orchestrator. Тот дедуплицирует `message_id` в `Inbox` и в одной транзакции обновляет `Steps`, версию `WorkflowInstances`, необходимые `Timers` и следующую `CommandOutbox`.
 5. При успехе автомат переходит к следующему шагу или завершает workflow.
 6. При окончательной ошибке автомат в обратном порядке создает команды компенсации для уже выполненных шагов.
@@ -54,7 +54,7 @@ YMQ предоставляет competing consumers, visibility timeout, retry и
 
 Переход конечного автомата, версия экземпляра, шаг, таймер и outbox-запись фиксируются одной ACID-транзакцией YDB. Optimistic concurrency по версии не позволяет двум результатам одновременно продвинуть Saga. Inbox делает повторную доставку результата безвредной.
 
-YMQ и Result Topic работают асинхронно и дают доставку как минимум один раз на прикладной границе. Visibility timeout не означает отмену уже начатого вызова. Каждый внешний side effect и компенсация обязаны принимать idempotency key (`command_id`) либо уметь надежно обнаруживать ранее выполненную операцию.
+SQS queue и Result Topic работают асинхронно и дают доставку как минимум один раз на прикладной границе. Visibility timeout не означает отмену уже начатого вызова. Каждый внешний side effect и компенсация обязаны принимать idempotency key (`command_id`) либо уметь надежно обнаруживать ранее выполненную операцию.
 
 Coordination не заменяет ACID и предоставляет только lease, привязанный к сессии. Монотонный fencing epoch создается транзакционным увеличением `DispatcherEpoch` в строковой таблице YDB; `TimerDispatchLease`, workers и все записи переходов проверяют этот epoch. Потеря сессии не мгновенно останавливает старый процесс, но сравнение epoch не дает ему зафиксировать состояние. Если timer worker делает внешний side effect, внешняя система должна проверять epoch либо операция должна быть идемпотентной.
 
@@ -62,7 +62,7 @@ Coordination не заменяет ACID и предоставляет тольк
 
 ## Масштабирование и ключи партиционирования
 
-`workflow_id` остается в PK таблиц `WorkflowInstances`, `Steps`, `CommandOutbox` и `Inbox`. Если требуется hash-sharding, хеш служит только shard prefix: `(hash(workflow_id) % N, workflow_id, ...)`; исходный `workflow_id` не заменяется хешем. YMQ масштабирует workers как competing consumers. Для Result Topic используется `producer_id = message_group_id = workflow_id`, поэтому порядок результатов одного процесса сохраняется внутри `producer_id`; result consumer — именованный YDB Consumer.
+`workflow_id` остается в PK таблиц `WorkflowInstances`, `Steps`, `CommandOutbox` и `Inbox`. Если требуется hash-sharding, хеш служит только shard prefix: `(hash(workflow_id) % N, workflow_id, ...)`; исходный `workflow_id` не заменяется хешем. SQS queue масштабирует workers как competing consumers. Для Result Topic используется `producer_id = message_group_id = workflow_id`, поэтому порядок результатов одного процесса сохраняется внутри `producer_id`; result consumer — именованный YDB Consumer.
 
 Для `Timers` нельзя использовать голый монотонный timestamp первым ключом: применяются временной bucket и shard prefix, например `(bucket, hash(workflow_id) % N, deadline, workflow_id)`. Хеш только распределяет shard, исходный `workflow_id` остается в PK. Несколько dispatcher-процессов могут обслуживать разные buckets, а Coordination выдает только session-bound leader lease там, где требуется эксклюзивное назначение. `DispatcherEpoch` отдельно создает монотонный epoch транзакцией row table и является редкой точкой записи при смене лидера.
 
@@ -80,4 +80,4 @@ Coordination не заменяет ACID и предоставляет тольк
 - Считать visibility timeout гарантией exactly-once или отменой side effect.
 - Выполнять внешний side effect без idempotency key.
 - Считать Coordination источником монотонного token или полагаться на leader election без `DispatcherEpoch` и проверки сессии.
-- Считать компенсацию техническим rollback либо путать YMQ с Topics.
+- Считать компенсацию техническим rollback либо путать SQS queue с Topics.

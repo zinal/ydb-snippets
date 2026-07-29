@@ -2,7 +2,7 @@
 ![Архитектурная схема](architecture.svg)
 
 ## Назначение
-Архитектура связывает bounded context «Заказы», «Платежи» и «Доставка» событиями, не открывая сервисам прямой доступ к чужим таблицам. Каждый сервис владеет своими строковыми таблицами YDB и публикует факты через YDB Topics — журнал pub/sub. Для команд, отложенных повторов и распределения одной задачи между исполнителями используется YMQ/SQS-подобная очередь с competing consumers: это отдельный сервис поверх YDB, а не встроенный объект YDB.
+Архитектура связывает bounded context «Заказы», «Платежи» и «Доставка» событиями, не открывая сервисам прямой доступ к чужим таблицам. Каждый сервис владеет своими строковыми таблицами YDB и публикует факты через YDB Topics — журнал pub/sub с именованными YDB Consumers. Для опциональных команд и повторов доступна встроенная в YDB реализация SQS-совместимого протокола; модель deployment-neutral и использует competing consumers, visibility timeout, ack/delete, retries и DLQ.
 
 ## Когда применять
 - Бизнес-операция затрагивает несколько автономных сервисов, а распределенная транзакция нежелательна.
@@ -17,7 +17,7 @@
 - **YDB Topics**: `orders.events`, `payments.events`, `delivery.events`; это partitioned pub/sub log, а не очередь competing consumers. Для пользовательской записи задается `producer_id = message_group_id = order_id`; порядок сохраняется внутри `producer_id`.
 - **Классический Outbox**: строковая таблица `OrderOutbox` (`shard_prefix`, `created_at`, `event_id`), CDC/changefeed и отдельный Outbox Relay вне границы YDB. `shard_prefix = hash(event_id) % N` только распределяет нагрузку, а исходный `event_id` обязательно остается в полном PK: hash-only identity запрещена. CDC создает ровно одну change record для каждого committed row change; чтение и обработка relay могут повториться.
 - **Inbox/Deduplication** каждого consumer: строковые таблицы `PaymentInbox` и `DeliveryInbox` с ключом `event_id`.
-- **Командная очередь и DLQ**: `payment.commands`, `delivery.retry`, `delivery.dlq` в отдельном YMQ/SQS-подобном сервисе поверх YDB.
+- **SQS protocol / queues внутри YDB**: опциональные `payment.commands`, `delivery.retry`, `delivery.dlq`. Это competing consumers с visibility timeout и ack/delete, а не replayable Topic.
 - **YDB Consumers**: именованные `YDB Consumer payments` и `YDB Consumer delivery`; offset каждого consumer хранится отдельно по партициям Topic.
 - **Coordination**: опциональные lease и выбор лидера для relay/воркеров; Coordination не заменяет ACID-транзакции.
 
@@ -27,14 +27,14 @@
 3. Вариант B — одна транзакция `table + Outbox`; CDC создает ровно одну change record committed row change в внутреннем changefeed без пользовательских `producer_id`/`message_group_id`. Внешний Outbox Relay читает ее, публикует событие в `orders.events` и затем коммитит offset. Повтор между publish и offset commit сохраняет тот же `event_id`. A и B никогда не применяются одновременно к одному типу события.
 4. `YDB Consumer payments` и `YDB Consumer delivery` независимо читают `orders.events`. Каждый consumer атомарно фиксирует `event_id` в своей Inbox/Deduplication и обновляет только собственные таблицы.
 5. Payments Service публикует `PaymentAuthorized` в `payments.events` с `producer_id = message_group_id = order_id`; Delivery Service читает его через именованный `YDB Consumer delivery-payments`.
-6. Команды и контролируемые повторы попадают в YMQ-подобную очередь, где одну запись забирает один из competing consumers; исчерпавшие лимит сообщения переходят в DLQ.
+6. Опциональный command/retry path может использовать SQS queues: сообщение временно скрывается visibility timeout, успешный worker выполняет ack/delete, а исчерпавшие retries сообщения переходят в DLQ. Этот путь не участвует в A XOR B и не подразумевает атомарность row table + SQS enqueue; при необходимости надежного enqueue используется Outbox/CDC/relay.
 7. Внешние эффекты — списание у провайдера, письмо, вызов перевозчика — выполняются идемпотентно по `event_id` или отдельному `idempotency_key`.
 
 ## Согласованность и надежность
 Внутри сервиса состояние и выбранный путь публикации согласованы ACID. Между сервисами действует eventual consistency и обработка подписчиком как минимум один раз, поэтому Inbox/Deduplication обязательна. CDC создает ровно одну change record на committed row change; дубликат доменного события возможен при повторной обработке relay или subscriber. Пользовательский Topic сохраняет порядок внутри `producer_id`, а offset именованного YDB Consumer хранится по партициям и не подтверждает внешний эффект. Coordination помогает владеть lease, но не обеспечивает атомарность данных и сообщения.
 
 ## Масштабирование и ключи партиционирования
-Для пользовательских Topics применяется `producer_id = message_group_id = order_id`, поэтому события заказа упорядочены внутри этого producer. `payment_id` и `shipment_id` распределяют основные таблицы. У монотонного времени `OrderOutbox` использует `shard_prefix` перед временем, но полный PK также содержит исходный `event_id`. Именованный YDB Consumer масштабируется числом партиций Topic, а competing consumers YMQ — числом воркеров очереди.
+Для пользовательских Topics применяется `producer_id = message_group_id = order_id`, поэтому события заказа упорядочены внутри этого producer. `payment_id` и `shipment_id` распределяют основные таблицы. У монотонного времени `OrderOutbox` использует `shard_prefix` перед временем, но полный PK также содержит исходный `event_id`. Именованный YDB Consumer масштабируется числом партиций Topic, а SQS queues — числом competing workers.
 
 ## Отказы и восстановление
 - После неопределенного результата коммита команда повторяется с тем же `idempotency_key`; сервис читает сохраненный результат.
@@ -48,5 +48,6 @@
 - Нельзя выполнять «сначала запись, потом publish» двумя несвязанными операциями: сбой потеряет событие.
 - Нельзя считать scoped-гарантию CDC заменой идемпотентной бизнес-обработки subscriber и внешних эффектов.
 - Нельзя использовать один глобальный ключ партиционирования или один relay для всего потока.
-- Нельзя называть YMQ встроенной очередью YDB или подменять очередью replayable pub/sub log.
+- Нельзя смешивать Topic и SQS: Topic — pub/sub log с именованным YDB Consumer, SQS — competing consumers с visibility timeout и ack/delete.
+- Нельзя считать запись row table и SQS enqueue одной транзакцией; надежное связывание требует Outbox/CDC/relay.
 - Нельзя использовать Coordination как распределенную ACID-транзакцию.

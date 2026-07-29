@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc" font-family="DejaVu Sans, Arial, sans-serif">
-<title id="title">Документная учетная система на YDB</title>
-<desc id="desc">Внешний posting service атомарно записывает документы, движения, остатки и PostingEvents в row tables YDB. CDC создает одну change record на committed-вставку PostingEvents; внешний идемпотентный relay читает internal Topic как YDB Consumer posting-events-relay и ставит задание во внешний YMQ.</desc>
+<title id="title">Документная учетная система на YDB: Outbox/CDC и SQS queue</title>
+<desc id="desc">Внешний posting service атомарно записывает row tables и PostingEvents. CDC создает change record; внешний relay читает internal Topic и выполняет идемпотентный enqueue во встроенную SQS queue (YDB) внутри границы YDB. Внешние workers используют visibility timeout и ack/delete; retries ведут в DLQ внутри YDB.</desc>
 <defs>
 <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#334155"/></marker>
 <marker id="arrowPurple" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7c3aed"/></marker>
@@ -12,7 +12,7 @@ text{font-family:"DejaVu Sans",Arial,sans-serif}.heading{font-size:32px;font-wei
 </style></defs>
 <rect width="1600" height="1000" fill="#f8fafc"/>
 <text x="50" y="55" class="heading" text-anchor="start"><tspan x="50" dy="0">Документная учетная система на YDB</tspan></text>
-<text x="50" y="84" class="subtitle" text-anchor="start"><tspan x="50" dy="0">PostingEvents в транзакции · internal changefeed Topic → relay → YMQ → workers/results</tspan></text>
+<text x="50" y="84" class="subtitle" text-anchor="start"><tspan x="50" dy="0">Outbox/CDC: internal Topic → external relay → SQS queue (YDB) → external workers</tspan></text>
 <rect x="330" y="140" width="900" height="640" rx="22" fill="#ffffff" stroke="#64748b" stroke-width="2.5" stroke-dasharray="10 7"/>
 <rect x="355" y="123" width="205" height="34" rx="17" fill="#e2e8f0"/>
 <text x="378" y="147" class="boundary" text-anchor="start"><tspan x="378" dy="0">Граница YDB</tspan></text>
@@ -28,9 +28,9 @@ text{font-family:"DejaVu Sans",Arial,sans-serif}.heading{font-size:32px;font-wei
 <g><rect x="930" y="205" width="260" height="140" rx="14" fill="#7c3aed" stroke="#7c3aed" stroke-width="2"/><text x="950" y="236" class="box-title" text-anchor="start" style="fill:#ffffff;font-size:17px"><tspan x="950" dy="0">CDC PostingEvents</tspan></text><text x="950" y="263" class="body" text-anchor="start" style="fill:#ffffff;font-size:12px"><tspan x="950" dy="0">Одна change record на</tspan></text><text x="950" y="285" class="body" text-anchor="start" style="fill:#ffffff;font-size:12px"><tspan x="950" dy="0">committed-вставку строки</tspan></text><text x="950" y="307" class="body" text-anchor="start" style="fill:#ffffff;font-size:12px"><tspan x="950" dy="0">Порядок: полный PK</tspan></text></g>
 <g><rect x="930" y="415" width="260" height="130" rx="14" fill="#7c3aed" stroke="#7c3aed" stroke-width="2"/><text x="950" y="446" class="box-title" text-anchor="start" style="fill:#ffffff;font-size:15px"><tspan x="950" dy="0">Internal changefeed Topic</tspan></text><text x="950" y="473" class="body" text-anchor="start" style="fill:#ffffff;font-size:12px"><tspan x="950" dy="0">PostingEvents</tspan></text><text x="950" y="495" class="body" text-anchor="start" style="fill:#ffffff;font-size:12px"><tspan x="950" dy="0">Без producer_id</tspan></text><text x="950" y="517" class="body" text-anchor="start" style="fill:#ffffff;font-size:12px"><tspan x="950" dy="0">Offset по партициям</tspan></text></g>
 <g><rect x="1270" y="180" width="290" height="130" rx="14" fill="#2563eb" stroke="#2563eb" stroke-width="2"/><text x="1290" y="211" class="box-title" text-anchor="start" style="fill:#ffffff;font-size:17px"><tspan x="1290" dy="0">Идемпотентный relay</tspan></text><text x="1290" y="238" class="body" text-anchor="start" style="fill:#ffffff;font-size:11.5px"><tspan x="1290" dy="0">YDB Consumer posting-events-relay</tspan></text><text x="1290" y="260" class="body" text-anchor="start" style="fill:#ffffff;font-size:12px"><tspan x="1290" dy="0">Offset по партициям</tspan></text><text x="1290" y="282" class="body" text-anchor="start" style="fill:#ffffff;font-size:12px"><tspan x="1290" dy="0">Внешний сервис</tspan></text></g>
-<g><rect x="1270" y="390" width="180" height="105" rx="14" fill="#f97316" stroke="#f97316" stroke-width="2"/><text x="1290" y="421" class="box-title" text-anchor="start" style="fill:#ffffff;font-size:18px"><tspan x="1290" dy="0">YMQ</tspan></text><text x="1290" y="448" class="body" text-anchor="start" style="fill:#ffffff;font-size:11px"><tspan x="1290" dy="0">Competing consumers</tspan></text><text x="1290" y="470" class="body" text-anchor="start" style="fill:#ffffff;font-size:11px"><tspan x="1290" dy="0">Visibility timeout · retry</tspan></text></g>
-<g><rect x="1470" y="390" width="90" height="105" rx="14" fill="#dc2626" stroke="#dc2626" stroke-width="2"/><text x="1490" y="421" class="box-title" text-anchor="start" style="fill:#ffffff;font-size:17px"><tspan x="1490" dy="0">DLQ</tspan></text><text x="1490" y="448" class="body" text-anchor="start" style="fill:#ffffff;font-size:11px"><tspan x="1490" dy="0">После</tspan></text><text x="1490" y="470" class="body" text-anchor="start" style="fill:#ffffff;font-size:11px"><tspan x="1490" dy="0">retry</tspan></text></g>
-<g><rect x="1270" y="560" width="290" height="100" rx="14" fill="#2563eb" stroke="#2563eb" stroke-width="2"/><text x="1290" y="591" class="box-title" text-anchor="start" style="fill:#ffffff;font-size:17px"><tspan x="1290" dy="0">Print / Notify workers</tspan></text><text x="1290" y="618" class="body" text-anchor="start" style="fill:#ffffff;font-size:12px"><tspan x="1290" dy="0">Идемпотентный side effect</tspan></text><text x="1290" y="640" class="body" text-anchor="start" style="fill:#ffffff;font-size:12px"><tspan x="1290" dy="0">Ack после успеха</tspan></text></g>
+<g><rect x="930" y="590" width="180" height="110" rx="14" fill="#f97316" stroke="#f97316" stroke-width="2"/><text x="945" y="620" class="box-title" style="fill:#ffffff;font-size:16px"><tspan x="945" dy="0">SQS queue (YDB)</tspan></text><text x="945" y="646" class="body" style="fill:#ffffff;font-size:10.5px"><tspan x="945" dy="0">Competing consumers</tspan></text><text x="945" y="667" class="body" style="fill:#ffffff;font-size:10.5px"><tspan x="945" dy="0">Visibility timeout</tspan></text><text x="945" y="688" class="body" style="fill:#ffffff;font-size:10.5px"><tspan x="945" dy="0">ack/delete · retries</tspan></text></g>
+<g><rect x="1120" y="590" width="90" height="110" rx="14" fill="#dc2626" stroke="#dc2626" stroke-width="2"/><text x="1140" y="620" class="box-title" style="fill:#ffffff;font-size:17px"><tspan x="1140" dy="0">DLQ</tspan></text><text x="1140" y="646" class="body" style="fill:#ffffff;font-size:10.5px"><tspan x="1140" dy="0">После</tspan></text><text x="1140" y="667" class="body" style="fill:#ffffff;font-size:10.5px"><tspan x="1140" dy="0">retries</tspan></text></g>
+<g><rect x="1270" y="560" width="290" height="100" rx="14" fill="#2563eb" stroke="#2563eb" stroke-width="2"/><text x="1290" y="591" class="box-title" text-anchor="start" style="fill:#ffffff;font-size:17px"><tspan x="1290" dy="0">Print / Notify workers</tspan></text><text x="1290" y="618" class="body" text-anchor="start" style="fill:#ffffff;font-size:12px"><tspan x="1290" dy="0">Идемпотентный side effect</tspan></text><text x="1290" y="640" class="body" text-anchor="start" style="fill:#ffffff;font-size:12px"><tspan x="1290" dy="0">ack/delete после успеха</tspan></text></g>
 <g><rect x="1270" y="710" width="290" height="72" rx="14" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/><text x="1290" y="741" class="box-title" text-anchor="start" style="fill:#172033;font-size:17px"><tspan x="1290" dy="0">Results</tspan></text><text x="1290" y="768" class="body" text-anchor="start" style="fill:#172033;font-size:11px"><tspan x="1290" dy="0">Печать / уведомление / статус</tspan></text></g>
 <path d="M290 232 V365" class="arrow" marker-end="url(#arrow)"/>
 <text x="302" y="315" class="flow" text-anchor="start"><tspan x="302" dy="0">команда</tspan></text>
@@ -44,16 +44,16 @@ text{font-family:"DejaVu Sans",Arial,sans-serif}.heading{font-size:32px;font-wei
 <text x="1074" y="382" class="flow" text-anchor="start"><tspan x="1074" dy="0">change record</tspan></text>
 <path d="M1190 478 H1240 V245 H1270" class="async" marker-end="url(#arrowPurple)"/>
 
-<path d="M1360 310 V390" class="queue" marker-end="url(#arrowOrange)"/>
-<text x="1374" y="355" class="flow" text-anchor="start"><tspan x="1374" dy="0">enqueue</tspan></text>
-<path d="M1450 442 H1470" class="red-arrow" marker-end="url(#arrowRed)"/>
-<path d="M1360 495 V560" class="queue" marker-end="url(#arrowOrange)"/>
-<text x="1374" y="535" class="flow" text-anchor="start"><tspan x="1374" dy="0">receive</tspan></text>
+<path d="M1415 310 V535 H1020 V590" class="queue" marker-end="url(#arrowOrange)"/>
+<text x="1240" y="522" class="flow"><tspan x="1240" dy="0">идемпотентный enqueue</tspan></text>
+<path d="M1110 610 V570 H1165 V590" class="red-arrow" marker-end="url(#arrowRed)"/>
+<path d="M1020 700 V735 H1240 V610 H1270" class="queue" marker-end="url(#arrowOrange)"/>
+<text x="1110" y="725" class="flow"><tspan x="1110" dy="0">receive</tspan></text>
 <path d="M1415 660 V710" class="arrow" marker-end="url(#arrow)"/>
 <text x="1430" y="694" class="flow" text-anchor="start"><tspan x="1430" dy="0">result</tspan></text>
 <rect x="40" y="825" width="1520" height="62" rx="13" fill="#fff7ed" stroke="#f97316" stroke-width="2"/>
 <text x="65" y="852" class="box-title" text-anchor="start" style="font-size:16px"><tspan x="65" dy="0">Гарантии</tspan></text>
-<text x="170" y="849" class="body" text-anchor="start" style="font-size:12.5px"><tspan x="170" dy="0">CDC: одна change record на committed-вставку PostingEvents · relay может повторно прочитать и обработать запись</tspan><tspan x="170" dy="23">Relay и YMQ используют стабильные idempotency keys · внешний side effect идемпотентен</tspan></text>
+<text x="170" y="849" class="body" text-anchor="start" style="font-size:12.5px"><tspan x="170" dy="0">CDC: одна change record на committed-вставку PostingEvents · relay может повторно прочитать и обработать запись</tspan><tspan x="170" dy="23">Relay и SQS queue используют стабильные idempotency keys · row-table TX не включает enqueue</tspan></text>
 <text x="50" y="940" class="boundary" text-anchor="start"><tspan x="50" dy="0">Легенда</tspan></text>
 <rect x="170" y="917" width="30" height="22" rx="4" fill="#2563eb"/>
 <text x="210" y="935" class="body" text-anchor="start" style="font-size:12.5px"><tspan x="210" dy="0">приложение</tspan></text>
@@ -62,11 +62,11 @@ text{font-family:"DejaVu Sans",Arial,sans-serif}.heading{font-size:32px;font-wei
 <rect x="510" y="917" width="30" height="22" rx="4" fill="#7c3aed"/>
 <text x="550" y="935" class="body" text-anchor="start" style="font-size:12.5px"><tspan x="550" dy="0">CDC / Topic</tspan></text>
 <rect x="710" y="917" width="30" height="22" rx="4" fill="#f97316"/>
-<text x="750" y="935" class="body" text-anchor="start" style="font-size:12.5px"><tspan x="750" dy="0">YMQ</tspan></text>
-<rect x="840" y="917" width="30" height="22" rx="4" fill="#dc2626"/>
-<text x="880" y="935" class="body" text-anchor="start" style="font-size:12.5px"><tspan x="880" dy="0">DLQ</tspan></text>
-<line x1="980" y1="928" x2="1035" y2="928" class="tx"/>
-<text x="1048" y="935" class="body" text-anchor="start" style="font-size:12.5px"><tspan x="1048" dy="0">ACID boundary</tspan></text>
-<line x1="1245" y1="928" x2="1300" y2="928" class="async" marker-end="url(#arrowPurple)"/>
-<text x="1315" y="935" class="body" text-anchor="start" style="font-size:12.5px"><tspan x="1315" dy="0">async flow</tspan></text>
+<text x="750" y="935" class="body" text-anchor="start" style="font-size:12.5px"><tspan x="750" dy="0">SQS queue (YDB)</tspan></text>
+<rect x="930" y="917" width="30" height="22" rx="4" fill="#dc2626"/>
+<text x="970" y="935" class="body" text-anchor="start" style="font-size:12.5px"><tspan x="970" dy="0">DLQ</tspan></text>
+<line x1="1070" y1="928" x2="1125" y2="928" class="tx"/>
+<text x="1138" y="935" class="body" text-anchor="start" style="font-size:12.5px"><tspan x="1138" dy="0">ACID boundary</tspan></text>
+<line x1="1320" y1="928" x2="1375" y2="928" class="async" marker-end="url(#arrowPurple)"/>
+<text x="1390" y="935" class="body" text-anchor="start" style="font-size:12.5px"><tspan x="1390" dy="0">async flow</tspan></text>
 </svg>

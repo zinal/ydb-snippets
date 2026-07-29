@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
   <title id="title">Архитектура интеграционного событийного хаба в YDB</title>
-  <desc id="desc">Systems connect through APIs, SDK, and Kafka API. Inbox, CanonicalState, DeliveryStatus, and DispatchIntent commit atomically. CanonicalState CDC goes directly to Outgoing Topics; a recovery relay publishes explicit intents or enqueues external YMQ commands.</desc>
+  <desc id="desc">Systems connect through APIs, SDK, and Kafka API. CanonicalState CDC goes directly to the Outgoing Topic; an external recovery relay publishes explicit intents or enqueues the built-in YDB SQS commands.</desc>
   <defs>
     <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
       <path d="M0,0 L0,6 L9,3 z" fill="#334155"/>
@@ -19,7 +19,7 @@
       .app { fill: #dbeafe; stroke: #2563eb; stroke-width: 2; }
       .table { fill: #dcfce7; stroke: #16a34a; stroke-width: 2; }
       .topic { fill: #f3e8ff; stroke: #9333ea; stroke-width: 2; }
-      .ymq { fill: #ffedd5; stroke: #ea580c; stroke-width: 2; }
+      .sqs { fill: #ffedd5; stroke: #ea580c; stroke-width: 2; }
       .coord { fill: #ccfbf1; stroke: #0f766e; stroke-width: 2; }
       .error { fill: #fee2e2; stroke: #dc2626; stroke-width: 2; }
       .flow { fill: none; stroke: #334155; stroke-width: 2.2; marker-end: url(#arrow); }
@@ -37,9 +37,9 @@
   <text class="txt title" x="50" y="58">Интеграционный событийный хаб</text>
   <text class="txt subtitle" x="50" y="88">Версионированные контракты, каноническое состояние, наблюдаемая at-least-once доставка</text>
 
-  <rect class="boundary" x="540" y="135" width="730" height="660" rx="22"/>
+  <rect class="boundary" x="540" y="135" width="745" height="660" rx="22"/>
   <text class="txt box-title" x="570" y="173">YDB boundary</text>
-  <text class="txt small" x="730" y="173">row tables, Topics/changefeed, CDC, Coordination</text>
+  <text class="txt small" x="730" y="173">row tables, Topics/changefeed, CDC, Coordination, SQS</text>
 
   <rect class="tx" x="575" y="365" width="660" height="270" rx="18"/>
   <text class="txt box-title" x="600" y="398">ACID-транзакция приема</text>
@@ -54,19 +54,19 @@
   <path class="flow" d="M710 505 H730"/>
   <path class="flow" d="M880 505 H900"/>
   <path class="flow" d="M1030 505 H1050"/>
-  <path class="event" d="M805 570 V650 H705 V660"/>
-  <path class="event" d="M770 720 H780 V340 H1135 V325"/>
-  <path class="event" d="M1130 570 V650 H915 V660"/>
-  <path class="event" d="M790 720 H780 V790 H530 V625 H520"/>
+  <path class="event" d="M805 570 V640 H640 V650"/>
+  <path class="event" d="M730 715 H720 V340 H1135 V325"/>
+  <path class="event" d="M1130 570 V640 H845 V650"/>
+  <path class="event" d="M845 780 V805 H530 V625 H520"/>
   <path class="event" d="M520 610 H530 V190 H1135 V205"/>
-  <path class="queue" d="M520 640 H540 V805 H1275 V460 H1300"/>
-  <path class="recovery" d="M520 600 H550 V650 H1130 V570"/>
+  <path class="queue" d="M520 640 H530 V815 H1090 V690 H1095"/>
+  <path class="recovery" d="M520 600 H550 V640 H1130 V570"/>
   <path class="event" d="M1250 250 H1370"/>
   <path class="ack" d="M1370 220 H1320 V115 H1135 V205"/>
-  <path class="queue" d="M1430 520 V550"/>
-  <path class="flow" d="M1300 610 H1250 V650 H965 V570"/>
+  <path class="queue" d="M1275 690 H1320 V610 H1300"/>
+  <path class="error-flow" d="M1185 735 V745"/>
+  <path class="flow" d="M1300 630 H1250 V620 H965 V570"/>
   <path class="error-flow" d="M300 550 H260 V725 H280"/>
-  <path class="error-flow" d="M1540 520 H1575 V730 H1560"/>
 
   <rect class="label-bg" x="452" y="248" width="118" height="22" rx="5"/>
   <text class="txt small" x="460" y="264">schema + version</text>
@@ -74,15 +74,15 @@
   <text class="txt small" x="50" y="365">commit consumer offset</text>
   <text class="txt small" x="50" y="383">after successful ACID tx (ack)</text>
   <rect class="label-bg" x="850" y="326" width="210" height="22" rx="5"/>
-  <text class="txt small" x="860" y="342">direct to Outgoing; no YMQ/DLQ</text>
-  <rect class="label-bg" x="1215" y="782" width="65" height="22" rx="5"/>
-  <text class="txt small" x="1225" y="798">enqueue</text>
+  <text class="txt small" x="860" y="342">direct to Outgoing; no SQS/DLQ</text>
+  <rect class="label-bg" x="1000" y="790" width="65" height="22" rx="5"/>
+  <text class="txt small" x="1010" y="806">enqueue</text>
   <rect class="label-bg" x="1275" y="238" width="60" height="22" rx="5"/>
   <text class="txt small" x="1285" y="254">pub/sub</text>
   <rect class="label-bg" x="1020" y="88" width="300" height="24" rx="5"/>
   <text class="txt small" x="1030" y="105">commit consumer offset (ack)</text>
-  <rect class="label-bg" x="1080" y="638" width="110" height="22" rx="5"/>
-  <text class="txt small" x="1090" y="654">delivery result</text>
+  <rect class="label-bg" x="1080" y="605" width="110" height="22" rx="5"/>
+  <text class="txt small" x="1090" y="621">delivery result</text>
 
   <rect class="app" x="30" y="220" width="160" height="120" rx="14"/>
   <text class="txt box-title" x="60" y="255">Система A</text>
@@ -155,36 +155,37 @@
   <text class="txt body" x="1065" y="472" font-weight="700">DeliveryOutbox /</text>
   <text class="txt body" x="1065" y="492" font-weight="700">DispatchIntent</text>
   <text class="txt small" x="1065" y="514">message_id,</text>
-  <text class="txt small" x="1065" y="534">destination_id, route</text>
-  <text class="txt small" x="1065" y="554">stable id, pending</text>
+  <text class="txt small" x="1065" y="534">destination_id</text>
+  <text class="txt small" x="1065" y="554">route: TOPIC | SQS</text>
 
-  <rect class="topic" x="560" y="660" width="210" height="120" rx="14"/>
-  <text class="txt body" x="580" y="686" font-weight="700">CanonicalState CDC</text>
-  <text class="txt small" x="580" y="708">one record / committed</text>
-  <text class="txt small" x="580" y="729">row change</text>
-  <text class="txt small" x="580" y="750">read/process may repeat</text>
-  <text class="txt small" x="580" y="771">no custom producer_id</text>
+  <rect class="topic" x="550" y="650" width="180" height="130" rx="14"/>
+  <text class="txt body" x="565" y="677" font-weight="700">CanonicalState CDC</text>
+  <text class="txt small" x="565" y="699">one record / committed</text>
+  <text class="txt small" x="565" y="720">row change</text>
+  <text class="txt small" x="565" y="741">read/process may repeat</text>
+  <text class="txt small" x="565" y="762">no custom producer_id</text>
 
-  <rect class="topic" x="790" y="660" width="250" height="120" rx="14"/>
-  <text class="txt body" x="815" y="686" font-weight="700">DispatchIntent changefeed</text>
-  <text class="txt small" x="815" y="708">one record / committed row change</text>
-  <text class="txt small" x="815" y="729">read / process may repeat</text>
-  <text class="txt small" x="815" y="750">YDB Consumer: dispatch-relay</text>
-  <text class="txt small" x="815" y="771">no custom producer_id</text>
+  <rect class="topic" x="740" y="650" width="220" height="130" rx="14"/>
+  <text class="txt small" x="755" y="677" font-weight="700">DispatchIntent changefeed</text>
+  <text class="txt small" x="755" y="699">one record / committed</text>
+  <text class="txt small" x="755" y="720">row change</text>
+  <text class="txt small" x="755" y="741">read/process may repeat</text>
+  <text class="txt small" x="755" y="762">no custom producer_id</text>
 
-  <rect class="coord" x="1060" y="670" width="180" height="100" rx="14"/>
-  <text class="txt box-title" x="1080" y="702">Coordination</text>
-  <text class="txt small" x="1080" y="728">service sessions only</text>
-  <text class="txt small" x="1080" y="750">does not replace ACID</text>
+  <rect class="coord" x="970" y="650" width="115" height="130" rx="14"/>
+  <text class="txt tiny" x="982" y="680" font-weight="700">Coordination</text>
+  <text class="txt tiny" x="982" y="706">service sessions</text>
+  <text class="txt tiny" x="982" y="727">only; does not</text>
+  <text class="txt tiny" x="982" y="748">replace ACID</text>
 
-  <rect class="ymq" x="1300" y="400" width="260" height="120" rx="14"/>
-  <text class="txt box-title" x="1325" y="435">YMQ — outside YDB</text>
-  <text class="txt body" x="1325" y="463">SQS-compatible commands</text>
-  <text class="txt body" x="1325" y="490">competing, at-least-once</text>
+  <rect class="sqs" x="1095" y="650" width="180" height="85" rx="12"/>
+  <text class="txt body" x="1110" y="674" font-weight="700">SQS commands</text>
+  <text class="txt small" x="1110" y="695">built-in; competing</text>
+  <text class="txt small" x="1110" y="716">visibility + ack/delete</text>
+  <text class="txt small" x="1110" y="732">retries</text>
 
-  <rect class="error" x="1390" y="690" width="170" height="80" rx="12"/>
-  <text class="txt box-title" x="1420" y="722">Delivery DLQ</text>
-  <text class="txt small" x="1420" y="748">retry limit reached</text>
+  <rect class="error" x="1095" y="745" width="180" height="35" rx="8"/>
+  <text class="txt small" x="1136" y="768" font-weight="700">Delivery DLQ</text>
 
   <rect class="app" x="1370" y="200" width="190" height="170" rx="14"/>
   <text class="txt box-title" x="1400" y="235">Система B</text>
@@ -195,13 +196,13 @@
 
   <rect class="app" x="1300" y="550" width="260" height="120" rx="14"/>
   <text class="txt box-title" x="1330" y="583">Система C</text>
-  <text class="txt body" x="1330" y="610">YMQ competing consumer</text>
-  <text class="txt body" x="1330" y="636">idempotent service endpoint</text>
+  <text class="txt body" x="1330" y="610">SQS competing consumer</text>
+  <text class="txt small" x="1330" y="634">idempotent effect, then ack/delete</text>
 
   <rect x="30" y="825" width="1530" height="130" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
   <text class="txt box-title" x="55" y="859">Гарантии и границы интеграции</text>
-  <text class="txt body" x="55" y="890">business_id = full entity_id/source_id/message_id by contract • Full IDs remain in PK • hash is shard prefix only</text>
-  <text class="txt body" x="55" y="918">CDC: one record per committed row change; read/process may repeat • CanonicalState goes directly to Outgoing Topic</text>
+  <text class="txt body" x="55" y="890">SQS built into YDB: visibility timeout, ack/delete, retries/DLQ • DispatchIntent still bridges table → SQS</text>
+  <text class="txt body" x="55" y="918">CDC read/process may repeat • CanonicalState goes directly to Outgoing Topic • full business IDs remain in PK</text>
 
   <rect class="app" x="1030" y="850" width="26" height="18" rx="3"/>
   <text class="txt small" x="1065" y="864">app</text>
@@ -209,8 +210,8 @@
   <text class="txt small" x="1155" y="864">row table</text>
   <rect class="topic" x="1250" y="850" width="26" height="18" rx="3"/>
   <text class="txt small" x="1285" y="864">Topic / CDC</text>
-  <rect class="ymq" x="1410" y="850" width="26" height="18" rx="3"/>
-  <text class="txt small" x="1445" y="864">YMQ</text>
+  <rect class="sqs" x="1410" y="850" width="26" height="18" rx="3"/>
+  <text class="txt small" x="1445" y="864">SQS</text>
   <rect class="coord" x="1030" y="898" width="26" height="18" rx="3"/>
   <text class="txt small" x="1065" y="912">Coordination</text>
   <rect class="error" x="1225" y="898" width="26" height="18" rx="3"/>

@@ -67,7 +67,7 @@
   <text font-family="DejaVu Sans, Arial, sans-serif" x="950" y="72" font-size="18" font-weight="700">A XOR B — выбрать один путь на тип события</text>
 
   <rect x="35" y="280" width="1530" height="500" rx="18" class="boundary"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="58" y="310" class="box-title">YDB boundary — row tables / Topics / CDC / Coordination</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="58" y="310" class="box-title">YDB boundary — row tables / Topics / CDC / SQS queues / Coordination</text>
 
   <rect x="60" y="330" width="430" height="105" rx="12" class="lane"/>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="78" y="350" class="small">Orders-owned row tables</text>
@@ -150,20 +150,21 @@
   <path d="M900 225 L900 320 L1145 320 L1145 353" class="blue-flow"/>
   <path d="M1250 418 L1250 641" class="purple-flow"/>
 
-  <rect x="55" y="815" width="660" height="90" rx="12" class="queue"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="78" y="844" class="box-title">YMQ/SQS-like queue — отдельный сервис поверх YDB</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="78" y="869" class="body">commands / retries • competing consumers • not a YDB Topic</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="78" y="891" class="small">DLQ: controlled redrive</text>
-  <rect x="750" y="815" width="795" height="90" rx="12" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="775" y="844" class="box-title">Гарантии</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="775" y="868" class="body">A XOR B • ACID inside service • eventual consistency across services</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="775" y="891" class="small">CDC: 1 record / committed row change • subscriber retries • idempotent external effects</text>
+  <rect x="55" y="645" width="430" height="90" rx="12" class="queue"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="78" y="670" font-size="17" font-weight="700">Optional SQS protocol / queues</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="78" y="691" class="small">inside YDB • optional command/retry path</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="78" y="711" class="small">competing consumers • visibility timeout • ack/delete</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="78" y="730" class="small">retries → DLQ • no row table + enqueue transaction</text>
+  <rect x="55" y="815" width="1490" height="90" rx="12" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="80" y="844" class="box-title">Гарантии</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="80" y="868" class="body">A XOR B • ACID inside service • eventual consistency across services</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="80" y="891" class="small">CDC: 1 record / committed row change • subscriber retries • SQS optional and non-transactional with row tables • idempotent effects</text>
 
   <text font-family="DejaVu Sans, Arial, sans-serif" x="55" y="958" class="box-title">Легенда:</text>
   <rect x="155" y="940" width="24" height="18" rx="3" class="app"/><text font-family="DejaVu Sans, Arial, sans-serif" x="188" y="955" class="body">app outside YDB</text>
   <rect x="345" y="940" width="24" height="18" rx="3" class="table"/><text font-family="DejaVu Sans, Arial, sans-serif" x="378" y="955" class="body">row table</text>
   <rect x="505" y="940" width="24" height="18" rx="3" class="topic"/><text font-family="DejaVu Sans, Arial, sans-serif" x="538" y="955" class="body">Topic / CDC</text>
-  <rect x="690" y="940" width="24" height="18" rx="3" class="queue"/><text font-family="DejaVu Sans, Arial, sans-serif" x="723" y="955" class="body">external queue</text>
+  <rect x="690" y="940" width="24" height="18" rx="3" class="queue"/><text font-family="DejaVu Sans, Arial, sans-serif" x="723" y="955" class="body">SQS queue inside YDB</text>
   <rect x="900" y="940" width="24" height="18" rx="3" class="coord"/><text font-family="DejaVu Sans, Arial, sans-serif" x="933" y="955" class="body">Coordination</text>
   <line x1="1100" y1="949" x2="1160" y2="949" class="purple-flow"/><text font-family="DejaVu Sans, Arial, sans-serif" x="1170" y="955" class="body">async</text>
 </svg>

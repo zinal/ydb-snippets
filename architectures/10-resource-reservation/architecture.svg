@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 1600 1000" role="img" aria-labelledby="title desc">
   <title id="title">Архитектура резервирования ограниченных ресурсов в YDB</title>
-  <desc id="desc">Resource reservation and ExpirationOutbox are committed in one YDB transaction. CDC and a recovery relay enqueue duplicate-safe YMQ expiration jobs. Resources CDC provides availability events.</desc>
+  <desc id="desc">Resource reservation and ExpirationOutbox commit in one table transaction. CDC and an external relay enqueue duplicate-safe jobs into the built-in YDB SQS queue; workers use visibility timeout and ack/delete.</desc>
   <defs>
     <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
       <path d="M0,0 L0,6 L9,3 z" fill="#334155"/>
@@ -18,13 +18,14 @@
       .app { fill: #dbeafe; stroke: #2563eb; stroke-width: 2; }
       .table { fill: #dcfce7; stroke: #16a34a; stroke-width: 2; }
       .topic { fill: #f3e8ff; stroke: #9333ea; stroke-width: 2; }
-      .ymq { fill: #ffedd5; stroke: #ea580c; stroke-width: 2; }
+      .sqs { fill: #ffedd5; stroke: #ea580c; stroke-width: 2; }
       .coord { fill: #ccfbf1; stroke: #0f766e; stroke-width: 2; }
       .error { fill: #fee2e2; stroke: #dc2626; stroke-width: 2; }
       .flow { fill: none; stroke: #334155; stroke-width: 2.2; marker-end: url(#arrow); }
       .event { fill: none; stroke: #7e22ce; stroke-width: 2.2; marker-end: url(#arrow); }
       .queue { fill: none; stroke: #c2410c; stroke-width: 2.2; marker-end: url(#arrow); }
       .coord-flow { fill: none; stroke: #0f766e; stroke-width: 2.2; stroke-dasharray: 7 5; marker-end: url(#arrow); }
+      .error-flow { fill: none; stroke: #dc2626; stroke-width: 2.2; marker-end: url(#arrow); }
       .recovery { fill: none; stroke: #64748b; stroke-width: 2; stroke-dasharray: 7 5; marker-end: url(#arrow); }
       .label-bg { fill: #ffffff; opacity: 0.96; }
     </style>
@@ -36,7 +37,7 @@
 
   <rect class="boundary" x="330" y="145" width="890" height="650" rx="22"/>
   <text class="txt box-title" x="360" y="183">YDB boundary</text>
-  <text class="txt small" x="510" y="183">row tables, Topics/changefeed, CDC, Coordination</text>
+  <text class="txt small" x="510" y="183">row tables, Topics/changefeed, CDC, Coordination, SQS</text>
 
   <rect class="tx" x="375" y="215" width="800" height="355" rx="18"/>
   <text class="txt box-title" x="400" y="248">ACID-транзакция резервирования</text>
@@ -47,12 +48,13 @@
   <path class="flow" d="M590 350 H620"/>
   <path class="flow" d="M860 350 H900"/>
   <path class="flow" d="M750 410 V438"/>
-  <path class="queue" d="M1270 500 H1230 V810 H290 V650 H270"/>
-  <path class="event" d="M500 410 V590 H1030 V610"/>
-  <path class="event" d="M1040 538 V610"/>
-  <path class="event" d="M1160 650 H1270"/>
-  <path class="event" d="M900 650 H870"/>
-  <path class="queue" d="M1410 585 V560"/>
+  <path class="event" d="M500 410 V580 H900 V600"/>
+  <path class="event" d="M1040 538 V580 H900 V600"/>
+  <path class="event" d="M1000 630 H1270"/>
+  <path class="event" d="M800 650 H785"/>
+  <path class="queue" d="M1270 640 H1200"/>
+  <path class="queue" d="M1015 675 H1007 V810 H290 V650 H270"/>
+  <path class="error-flow" d="M1107 700 V715"/>
   <path class="recovery" d="M1270 620 H1190 V520 H1145"/>
 
   <rect class="label-bg" x="278" y="319" width="90" height="23" rx="5"/>
@@ -108,30 +110,36 @@
   <text class="txt small" x="950" y="515">reservation_id, job_id</text>
   <text class="txt small" x="950" y="529">expires_at, pending</text>
 
-  <rect class="coord" x="350" y="620" width="210" height="110" rx="12"/>
-  <text class="txt body" x="375" y="650" font-weight="700">Coordination</text>
-  <text class="txt body" x="375" y="670" font-weight="700">semaphore</text>
-  <text class="txt small" x="375" y="696">admission control only</text>
-  <text class="txt small" x="375" y="718">not an invariant guard</text>
+  <rect class="coord" x="350" y="600" width="170" height="160" rx="12"/>
+  <text class="txt body" x="370" y="630" font-weight="700">Coordination</text>
+  <text class="txt body" x="370" y="650" font-weight="700">semaphore</text>
+  <text class="txt small" x="370" y="678">admission control</text>
+  <text class="txt small" x="370" y="699">only; not an</text>
+  <text class="txt small" x="370" y="720">invariant guard</text>
 
-  <rect class="topic" x="580" y="610" width="290" height="130" rx="12"/>
-  <text class="txt box-title" x="605" y="640">Availability Topic</text>
-  <text class="txt small" x="605" y="665">producer_id = resource_id</text>
-  <text class="txt small" x="605" y="686">message_group_id = resource_id</text>
-  <text class="txt small" x="605" y="707">порядок внутри producer_id</text>
-  <text class="txt small" x="605" y="728">YDB Consumer: availability-view</text>
+  <rect class="topic" x="535" y="600" width="250" height="160" rx="12"/>
+  <text class="txt body" x="555" y="630" font-weight="700">Availability Topic</text>
+  <text class="txt small" x="555" y="654">producer_id = resource_id</text>
+  <text class="txt small" x="555" y="675">message_group_id = resource_id</text>
+  <text class="txt small" x="555" y="696">порядок внутри producer_id</text>
+  <text class="txt small" x="555" y="717">YDB Consumer:</text>
+  <text class="txt small" x="555" y="738">availability-view</text>
 
-  <rect class="topic" x="900" y="610" width="260" height="130" rx="12"/>
-  <text class="txt box-title" x="930" y="640">CDC changefeeds</text>
-  <text class="txt small" x="930" y="663">one record per committed</text>
-  <text class="txt small" x="930" y="684">row change</text>
-  <text class="txt small" x="930" y="705">read / process may repeat</text>
-  <text class="txt small" x="930" y="726">no custom producer_id</text>
+  <rect class="topic" x="800" y="600" width="200" height="160" rx="12"/>
+  <text class="txt body" x="820" y="630" font-weight="700">CDC changefeeds</text>
+  <text class="txt small" x="820" y="654">one record per</text>
+  <text class="txt small" x="820" y="675">committed row change</text>
+  <text class="txt small" x="820" y="696">read/process may repeat</text>
+  <text class="txt small" x="820" y="717">no custom producer_id</text>
 
-  <rect class="ymq" x="1270" y="440" width="280" height="120" rx="14"/>
-  <text class="txt box-title" x="1300" y="478">YMQ expiration jobs</text>
-  <text class="txt body" x="1300" y="506">SQS-совместимая очередь</text>
-  <text class="txt body" x="1300" y="532">at-least-once</text>
+  <rect class="sqs" x="1015" y="600" width="185" height="100" rx="12"/>
+  <text class="txt body" x="1030" y="626" font-weight="700">SQS expiration jobs</text>
+  <text class="txt small" x="1030" y="648">competing consumers</text>
+  <text class="txt small" x="1030" y="669">visibility timeout</text>
+  <text class="txt small" x="1030" y="690">ack/delete + retries</text>
+
+  <rect class="error" x="1015" y="715" width="185" height="45" rx="10"/>
+  <text class="txt body" x="1048" y="744" font-weight="700">Expiration DLQ</text>
 
   <rect class="app" x="1270" y="585" width="280" height="95" rx="14"/>
   <text class="txt box-title" x="1300" y="617">Expiration relay</text>
@@ -140,7 +148,7 @@
 
   <rect x="50" y="835" width="1500" height="120" rx="16" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
   <text class="txt box-title" x="75" y="869">Гарантии</text>
-  <text class="txt body" x="75" y="900">ACID reserve + Outbox • PK keeps full resource_id/client_id; optional shard prefix only • TTL is cleanup</text>
+  <text class="txt body" x="75" y="900">SQS is built into YDB • visibility timeout + ack/delete + retries/DLQ • Outbox still bridges table → SQS</text>
   <text class="txt body" x="75" y="928">CDC: one change record per committed row change; read/process may repeat • External effects are idempotent</text>
 
   <rect class="app" x="1040" y="867" width="26" height="18" rx="3"/>
@@ -149,8 +157,10 @@
   <text class="txt small" x="1165" y="881">row table</text>
   <rect class="topic" x="1260" y="867" width="26" height="18" rx="3"/>
   <text class="txt small" x="1295" y="881">Topic / CDC</text>
-  <rect class="ymq" x="1415" y="867" width="26" height="18" rx="3"/>
-  <text class="txt small" x="1450" y="881">YMQ</text>
+  <rect class="sqs" x="1415" y="867" width="26" height="18" rx="3"/>
+  <text class="txt small" x="1450" y="881">SQS</text>
   <rect class="coord" x="1040" y="910" width="26" height="18" rx="3"/>
   <text class="txt small" x="1075" y="924">Coordination</text>
+  <rect class="error" x="1235" y="910" width="26" height="18" rx="3"/>
+  <text class="txt small" x="1270" y="924">DLQ / error</text>
 </svg>

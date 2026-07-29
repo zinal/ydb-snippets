@@ -57,7 +57,7 @@
   <text font-family="DejaVu Sans, Arial, sans-serif" x="1192" y="204" class="small">outside YDB</text>
 
   <rect x="35" y="280" width="1530" height="505" rx="18" class="boundary"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="58" y="310" class="box-title">YDB boundary — row tables, Topics/changefeed, CDC, Coordination</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="58" y="310" class="box-title">YDB boundary — row tables, Topics/changefeed, CDC, SQS queues, Coordination</text>
 
   <rect x="60" y="335" width="590" height="245" rx="14" class="tx"/>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="82" y="362" class="box-title">Command ACID transaction • optimistic version</text>
@@ -105,10 +105,17 @@
 
   <text font-family="DejaVu Sans, Arial, sans-serif" x="400" y="622" font-size="20" font-weight="700">A XOR B — один источник live-события</text>
 
-  <rect x="60" y="635" width="590" height="100" rx="12" class="error"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="82" y="665" class="box-title">Topic retention ≠ source of truth</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="82" y="691" class="body">Full replay always reads durable EventLog</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="82" y="715" class="small">Snapshot is a cache • poison event blocks projection • no silent skip</text>
+  <rect x="60" y="635" width="280" height="110" rx="12" class="error"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="80" y="663" class="box-title">Topic retention ≠ truth</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="80" y="688" class="body">Full replay: durable EventLog</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="80" y="712" class="small">Snapshot = cache</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="80" y="734" class="small">poison event blocks projection</text>
+  <rect x="360" y="635" width="290" height="110" rx="12" class="queue"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="380" y="662" font-size="17" font-weight="700">Optional SQS queues (YDB)</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="380" y="684" class="small">commands / retries • competing consumers</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="380" y="705" class="small">visibility timeout • ack/delete</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="380" y="726" class="small">retries → DLQ</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="380" y="742" font-size="11">no row table + enqueue transaction</text>
 
   <path d="M215 225 L215 326" class="blue-flow"/><text font-family="DejaVu Sans, Arial, sans-serif" x="227" y="270" class="flow">load + append</text>
   <path d="M337 423 L351 423" class="blue-flow"/>
@@ -132,20 +139,16 @@
   <path d="M1530 570 L1550 570 L1550 245 L1360 245 L1360 234" class="blue-flow"/><text font-family="DejaVu Sans, Arial, sans-serif" x="1430" y="560" class="small">query read</text>
   <path d="M1455 645 L1455 635 L1300 635 L1300 505 L1210 505 L1210 504" fill="none" stroke="#0f766e" stroke-width="2.4" stroke-dasharray="6 4"/>
 
-  <rect x="50" y="820" width="570" height="100" rx="12" class="queue"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="73" y="850" class="box-title">YMQ/SQS-like queue — outside YDB</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="73" y="875" class="body">optional commands / retries • competing consumers</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="73" y="899" class="small">separate service over YDB • not EventLog / Topic</text>
-  <rect x="650" y="820" width="900" height="100" rx="12" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="675" y="850" class="box-title">Гарантии</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="675" y="875" class="body">EventLog full PK: aggregate_id + aggregate_version • optimistic concurrency</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="675" y="899" class="small">CDC: 1 record / committed row change • subscriber retry • transactional offsets • idempotent external effects</text>
+  <rect x="50" y="820" width="1500" height="100" rx="12" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="75" y="850" class="box-title">Гарантии</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="75" y="875" class="body">EventLog full PK: aggregate_id + aggregate_version • optimistic concurrency • Topic retention is not source of truth</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="75" y="899" class="small">CDC: 1 record / committed row change • subscriber retry • transactional offsets • SQS is optional and non-transactional with row tables • idempotent effects</text>
 
   <text font-family="DejaVu Sans, Arial, sans-serif" x="50" y="965" class="box-title">Легенда:</text>
   <rect x="150" y="947" width="24" height="18" rx="3" class="app"/><text font-family="DejaVu Sans, Arial, sans-serif" x="183" y="962" class="body">app outside YDB</text>
   <rect x="350" y="947" width="24" height="18" rx="3" class="table"/><text font-family="DejaVu Sans, Arial, sans-serif" x="383" y="962" class="body">row table</text>
   <rect x="510" y="947" width="24" height="18" rx="3" class="topic"/><text font-family="DejaVu Sans, Arial, sans-serif" x="543" y="962" class="body">Topic / CDC</text>
   <rect x="690" y="947" width="24" height="18" rx="3" class="coord"/><text font-family="DejaVu Sans, Arial, sans-serif" x="723" y="962" class="body">Coordination</text>
-  <rect x="880" y="947" width="24" height="18" rx="3" class="queue"/><text font-family="DejaVu Sans, Arial, sans-serif" x="913" y="962" class="body">external queue</text>
+  <rect x="880" y="947" width="24" height="18" rx="3" class="queue"/><text font-family="DejaVu Sans, Arial, sans-serif" x="913" y="962" class="body">SQS queue inside YDB</text>
   <line x1="1110" y1="956" x2="1170" y2="956" class="purple-flow"/><text font-family="DejaVu Sans, Arial, sans-serif" x="1180" y="962" class="body">async / replay</text>
 </svg>

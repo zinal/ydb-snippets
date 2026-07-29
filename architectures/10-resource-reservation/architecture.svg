@@ -3,9 +3,7 @@
   <title id="title">Архитектура резервирования ограниченных ресурсов в YDB</title>
   <desc id="desc">Резервирование и ExpirationOutbox в одной транзакции таблиц. CDC и внешний relay ставят задания в очередь SQS YDB; workers используют visibility timeout и ack/delete.</desc>
   <defs>
-    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
-      <path d="M0,0 L0,6 L9,3 z" fill="#334155"/>
-    </marker>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker>
     <style>
       .txt { font-family: "DejaVu Sans", Arial, sans-serif; fill: #172033; }
       .title { font-size: 30px; font-weight: 700; }
@@ -44,18 +42,18 @@
   <text class="txt box-title" x="400" y="248">ACID-транзакция резервирования</text>
   <text class="txt small" x="400" y="270">резерв + результат + Outbox</text>
 
-  <path class="coord-flow" d="M455 620 V585 H350 V300 H375"/>
+  <path class="coord-flow" d="M455 620 L455 585 L339 585 L339 300 L375 300"/>
   <path class="flow" d="M270 350 H375"/>
-  <path class="flow" d="M590 350 H620"/>
+  <path class="flow" d="M584 350 L620 350"/>
   <path class="flow" d="M860 350 H900"/>
-  <path class="flow" d="M750 410 V438"/>
-  <path class="event" d="M500 410 V580 H900 V600"/>
-  <path class="event" d="M1040 538 V580 H900 V600"/>
+  <path class="flow" d="M750 402 L750 438"/>
+  <path class="event" d="M500 410 L500 564 L900 564 L900 600"/>
+  <path class="event" d="M1040 538 L1040 564 L900 564 L900 600"/>
   <path class="event" d="M1000 630 H1270"/>
-  <path class="event" d="M800 650 H785"/>
+  <path class="event" d="M821 650 L785 650"/>
   <path class="queue" d="M1270 640 H1200"/>
-  <path class="queue" d="M1015 675 H1007 V810 H290 V650 H270"/>
-  <path class="error-flow" d="M1107 710 V720"/>
+  <path class="queue" d="M1015 675 L1007 675 L1007 810 L306 810 L306 650 L270 650"/>
+  <path class="error-flow" d="M1107 684 L1107 720"/>
   <path class="recovery" d="M1270 620 H1190 V520 H1145"/>
 
   <rect class="label-bg" x="278" y="319" width="90" height="23" rx="5"/>

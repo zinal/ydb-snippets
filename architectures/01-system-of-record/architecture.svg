@@ -3,10 +3,10 @@
 <title id="title">System of Record на YDB</title>
 <desc id="desc">Внешний API выполняет транзакции над строковыми таблицами внутри YDB. CDC создаёт 1 record / commit во внутренних changefeed Topics; внешние проекторы читают их как именованные YDB Consumer. Coordination выдает lease внешнему обслуживанию.</desc>
 <defs>
-<marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#334155"/></marker>
-<marker id="arrowPurple" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#7c3aed"/></marker>
-<marker id="arrowOrange" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#ea580c"/></marker>
-<marker id="arrowRed" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#dc2626"/></marker>
+<marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker>
+<marker id="arrowPurple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L10 5 L0 10 z" fill="#7c3aed"/></marker>
+<marker id="arrowOrange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L10 5 L0 10 z" fill="#ea580c"/></marker>
+<marker id="arrowRed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L10 5 L0 10 z" fill="#dc2626"/></marker>
 <style>
 text{font-family:"DejaVu Sans",Arial,sans-serif}.heading{font-size:32px;font-weight:700;fill:#172033}.subtitle{font-size:16px;fill:#526176}.boundary{font-size:20px;font-weight:700;fill:#334155}.box-title{font-weight:700}.body{fill:#172033}.small{font-size:11px;fill:#475569}.flow{font-size:12px;font-weight:700;fill:#334155}.arrow{fill:none;stroke:#334155;stroke-width:3}.async{fill:none;stroke:#7c3aed;stroke-width:3;stroke-dasharray:9 7}.queue{fill:none;stroke:#ea580c;stroke-width:3;stroke-dasharray:9 7}.red-arrow{fill:none;stroke:#dc2626;stroke-width:3}.tx{fill:none;stroke:#dc2626;stroke-width:2;stroke-dasharray:7 6}
 </style></defs>
@@ -39,17 +39,17 @@ text{font-family:"DejaVu Sans",Arial,sans-serif}.heading{font-size:32px;font-wei
 <g><rect x="1270" y="520" width="290" height="120" rx="14" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/><text x="1290" y="551" class="box-title" text-anchor="start" style="fill:#172033;font-size:17px"><tspan x="1290" dy="0">Интеграция</tspan></text><text x="1290" y="578" class="body" text-anchor="start" style="fill:#172033;font-size:12px"><tspan x="1290" dy="0">YDB Consumer integration</tspan></text><text x="1290" y="600" class="body" text-anchor="start" style="fill:#172033;font-size:12px"><tspan x="1290" dy="0">Side effect идемпотентен</tspan></text></g>
 <path d="M290 285 H370" class="arrow" marker-end="url(#arrow)"/>
 <text x="302" y="270" class="flow" text-anchor="start"><tspan x="302" dy="0">запись</tspan></text>
-<path d="M370 610 H315 V345 H290" class="arrow" marker-end="url(#arrow)"/>
+<path d="M370 610 L326 610 L326 345 L290 345" class="arrow" marker-end="url(#arrow)"/>
 <text x="302" y="595" class="flow" text-anchor="start"><tspan x="302" dy="0">чтение</tspan></text>
 <path d="M870 300 H910" class="async" marker-end="url(#arrowPurple)"/>
 
 <path d="M1050 340 V390" class="async" marker-end="url(#arrowPurple)"/>
 <text x="1064" y="370" class="flow" text-anchor="start"><tspan x="1064" dy="0">1 record / commit</tspan></text>
-<path d="M1190 430 H1240 V240 H1270" class="async" marker-end="url(#arrowPurple)"/>
-<path d="M1190 455 H1250 V410 H1270" class="async" marker-end="url(#arrowPurple)"/>
-<path d="M1190 480 H1240 V580 H1270" class="async" marker-end="url(#arrowPurple)"/>
+<path d="M1190 430 L1234 430 L1234 240 L1270 240" class="async" marker-end="url(#arrowPurple)"/>
+<path d="M1190 455 L1234 455 L1234 410 L1270 410" class="async" marker-end="url(#arrowPurple)"/>
+<path d="M1190 480 L1234 480 L1234 580 L1270 580" class="async" marker-end="url(#arrowPurple)"/>
 
-<path d="M910 652 H880 V745 H290 V655" class="arrow" marker-end="url(#arrow)"/>
+<path d="M910 652 L880 652 L880 745 L326 745 L326 655 L290 655" class="arrow" marker-end="url(#arrow)"/>
 <text x="560" y="737" class="flow" text-anchor="start"><tspan x="560" dy="0">lease-воркер</tspan></text>
 <rect x="40" y="815" width="1520" height="66" rx="13" fill="#fff7ed" stroke="#f97316" stroke-width="2"/>
 <text x="65" y="843" class="box-title" text-anchor="start" style="font-size:16px"><tspan x="65" dy="0">Гарантии</tspan></text>

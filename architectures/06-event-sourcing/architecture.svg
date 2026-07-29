@@ -3,15 +3,9 @@
   <title id="title">Event Sourcing на строковых таблицах YDB</title>
   <desc id="desc">EventLog остаётся долговечным источником истины. События публикуются атомарно или CDC создаёт ровно 1 record / commit. Проекторы в topic+table транзакции обновляют модели чтения и consumer offset; retention Topic не заменяет EventLog.</desc>
   <defs>
-    <marker id="arrow-blue" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
-      <path d="M0,0 L0,6 L9,3 z" fill="#2563eb"/>
-    </marker>
-    <marker id="arrow-purple" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
-      <path d="M0,0 L0,6 L9,3 z" fill="#7c3aed"/>
-    </marker>
-    <marker id="arrow-orange" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
-      <path d="M0,0 L0,6 L9,3 z" fill="#d97706"/>
-    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L10 5 L0 10 z" fill="#2563eb"/></marker>
+    <marker id="arrow-purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L10 5 L0 10 z" fill="#7c3aed"/></marker>
+    <marker id="arrow-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L10 5 L0 10 z" fill="#d97706"/></marker>
     <style>
       text, tspan { fill: #172033; }
       .title { font-size: 30px; font-weight: 700; }
@@ -119,8 +113,8 @@
   <text font-family="DejaVu Sans, Arial, sans-serif" x="380" y="743" font-size="11">без tx table+enqueue</text>
 
   <path d="M215 225 L215 326" class="blue-flow"/><text font-family="DejaVu Sans, Arial, sans-serif" x="227" y="270" class="flow">загрузка + append</text>
-  <path d="M337 423 L351 423" class="blue-flow"/>
-  <path d="M650 480 L655 480" class="blue-flow"/>
+  <path d="M324 423 L360 423" class="blue-flow"/>
+  <path d="M686 480 L650 480" class="blue-flow"/>
   <polygon points="655,480 670,465 685,480 670,495" fill="#fff7ed" stroke="#d97706" stroke-width="2"/>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="615" y="455" class="small">XOR-разветвление</text>
   <path d="M670 465 L670 407 L681 407" fill="none" stroke="#d97706" stroke-width="2.4" stroke-dasharray="7 5"/>
@@ -131,13 +125,13 @@
   <path d="M1040 552 L1055 552 L1055 495" fill="none" stroke="#d97706" stroke-width="2.4" stroke-dasharray="7 5"/>
   <polygon points="1040,480 1055,465 1070,480 1055,495" fill="#fff7ed" stroke="#d97706" stroke-width="2"/>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="980" y="620" class="small">XOR-слияние</text>
-  <path d="M1055 465 L1050 455 L1050 234" class="purple-flow"/>
+  <path d="M1055 465 L1050 465 L1050 234" class="purple-flow"/>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="900" y="270" class="small">live-источник → именованный YDB Consumer</text>
-  <path d="M82 423 L45 423 L45 250 L500 250 L500 225" class="purple-flow"/>  <path d="M1070 225 L1070 420 L1071 420" class="blue-flow"/>
-  <path d="M1070 500 L1070 625 L1185 625 L1185 615" class="blue-flow"/>
-  <path d="M1070 625 L1420 625 L1420 615" class="blue-flow"/>
+  <path d="M82 423 L45 423 L45 261 L500 261 L500 225" class="purple-flow"/>  <path d="M1044 225 L1044 420 L1080 420" class="blue-flow"/>
+  <path d="M1070 500 L1070 651 L1185 651 L1185 615" class="blue-flow"/>
+  <path d="M1070 651 L1420 651 L1420 615" class="blue-flow"/>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="1070" y="510" class="small">topic+table tx • offset по партициям</text>
-  <path d="M1530 570 L1550 570 L1550 245 L1360 245 L1360 234" class="blue-flow"/><text font-family="DejaVu Sans, Arial, sans-serif" x="1430" y="560" class="small">чтение Query</text>
+  <path d="M1530 570 L1550 570 L1550 261 L1360 261 L1360 225" class="blue-flow"/><text font-family="DejaVu Sans, Arial, sans-serif" x="1430" y="560" class="small">чтение Query</text>
   <path d="M1455 645 L1455 635 L1300 635 L1300 505 L1210 505 L1210 504" fill="none" stroke="#0f766e" stroke-width="2.4" stroke-dasharray="6 4"/>
 
   <rect x="50" y="820" width="1500" height="100" rx="12" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>

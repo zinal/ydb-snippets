@@ -3,9 +3,7 @@
   <title id="title">Архитектура интеграционного событийного хаба в YDB</title>
   <desc id="desc">Системы подключаются через API, SDK и Kafka API. CDC CanonicalState идет напрямую в исходящий Topic; внешний relay публикует intents или ставит команды в очередь SQS YDB.</desc>
   <defs>
-    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
-      <path d="M0,0 L0,6 L9,3 z" fill="#334155"/>
-    </marker>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L10 5 L0 10 z" fill="#334155"/></marker>
     <style>
       .txt { font-family: "DejaVu Sans", Arial, sans-serif; fill: #172033; }
       .title { font-size: 30px; font-weight: 700; }
@@ -47,26 +45,26 @@
 
   <path class="flow" d="M190 280 H230"/>
   <path class="event" d="M450 280 H570"/>
-  <path class="event" d="M685 325 V350 H430 V380"/>
-  <path class="flow" d="M820 265 H790 V350 H500 V380"/>
+  <path class="event" d="M685 325 L685 344 L430 344 L430 380"/>
+  <path class="flow" d="M820 265 L790 265 L790 344 L500 344 L500 380"/>
   <path class="ack" d="M330 380 V365 H620 V325"/>
   <path class="flow" d="M520 480 H575"/>
-  <path class="flow" d="M710 505 H730"/>
-  <path class="flow" d="M880 505 H900"/>
-  <path class="flow" d="M1030 505 H1050"/>
-  <path class="event" d="M805 570 V640 H640 V650"/>
-  <path class="event" d="M730 715 H720 V340 H1135 V325"/>
-  <path class="event" d="M1130 570 V640 H845 V650"/>
-  <path class="event" d="M845 780 V805 H530 V625 H520"/>
-  <path class="event" d="M520 610 H530 V190 H1135 V205"/>
-  <path class="queue" d="M520 640 H530 V815 H1090 V690 H1095"/>
+  <path class="flow" d="M694 505 L730 505"/>
+  <path class="flow" d="M864 505 L900 505"/>
+  <path class="flow" d="M1014 505 L1050 505"/>
+  <path class="event" d="M805 570 L805 614 L640 614 L640 650"/>
+  <path class="event" d="M730 715 L720 715 L720 361 L1135 361 L1135 325"/>
+  <path class="event" d="M1130 570 L1130 614 L845 614 L845 650"/>
+  <path class="event" d="M845 780 L845 805 L556 805 L556 625 L520 625"/>
+  <path class="event" d="M520 610 L530 610 L530 169 L1135 169 L1135 205"/>
+  <path class="queue" d="M520 640 L530 640 L530 815 L1059 815 L1059 690 L1095 690"/>
   <path class="recovery" d="M520 600 H550 V640 H1130 V570"/>
   <path class="event" d="M1250 250 H1370"/>
   <path class="ack" d="M1370 220 H1320 V115 H1135 V205"/>
-  <path class="queue" d="M1275 690 H1290 V700 H1430 V670"/>
-  <path class="error-flow" d="M1185 735 V745"/>
+  <path class="queue" d="M1275 690 L1290 690 L1290 706 L1430 706 L1430 670"/>
+  <path class="error-flow" d="M1185 709 L1185 745"/>
   <path class="flow" d="M1300 630 H1250 V620 H965 V570"/>
-  <path class="error-flow" d="M300 550 H260 V725 H280"/>
+  <path class="error-flow" d="M300 550 L244 550 L244 725 L280 725"/>
 
   <rect class="label-bg" x="452" y="248" width="110" height="22" rx="5"/>
   <text class="txt small" x="460" y="264">схема + version</text>

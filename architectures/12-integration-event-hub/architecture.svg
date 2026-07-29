@@ -87,12 +87,12 @@
   <rect class="app" x="30" y="220" width="160" height="120" rx="14"/>
   <text class="txt box-title" x="60" y="255">Система A</text>
   <text class="txt body" x="60" y="282">источник</text>
-  <text class="txt body" x="60" y="308">API приложения</text>
+  <text class="txt body" x="60" y="308">app API</text>
 
   <rect class="app" x="230" y="220" width="220" height="120" rx="14"/>
   <text class="txt box-title" x="260" y="255">API / Producer</text>
   <text class="txt body" x="260" y="282">SDK, Kafka API</text>
-  <text class="txt body" x="260" y="308">endpoint сервиса</text>
+  <text class="txt body" x="260" y="308">service endpoint</text>
 
   <rect class="topic" x="570" y="205" width="240" height="120" rx="14"/>
   <text class="txt box-title" x="590" y="231">Входящий Topic</text>

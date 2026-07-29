@@ -32,13 +32,13 @@
   <text font-family="DejaVu Sans, Arial, sans-serif" x="45" y="72" class="subtitle">Handlers, проекторы, Query API вне YDB • CDC: 1 record / commit • транзакционные offset</text>
 
   <rect x="40" y="100" width="330" height="125" rx="14" class="app"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="62" y="132" class="box-title">Command API</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="62" y="132" class="box-title">Command API / Handler</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="62" y="158" class="body">command_id • инварианты</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="62" y="182" class="small">Orders + OrderLines + OrderEvents</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="62" y="204" class="small">один ACID commit • вне YDB</text>
 
   <rect x="410" y="100" width="710" height="125" rx="14" class="app"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="432" y="130" class="box-title">Проекторы — вне YDB</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="432" y="130" class="box-title">Projector applications — outside YDB</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="432" y="155" class="body">YDB Consumer orders-summary-v1 • YDB Consumer orders-by-customer-v1</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="432" y="179" class="body">YDB Consumer orders-summary-v2-rebuild</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="432" y="202" class="small">модель чтения + offset (topic+table tx)</text>
@@ -53,7 +53,7 @@
   <text font-family="DejaVu Sans, Arial, sans-serif" x="58" y="310" class="box-title">Граница YDB — строковые таблицы, OrderEvents changefeed, Coordination</text>
 
   <rect x="60" y="335" width="430" height="190" rx="14" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="82" y="360" class="box-title">Модель записи + append-only</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="82" y="360" class="box-title">Write model + append-only source</text>
   <rect x="82" y="378" width="150" height="56" rx="8" class="table"/>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="100" y="402" class="box-title">Orders</text><text font-family="DejaVu Sans, Arial, sans-serif" x="100" y="423" class="small">PK: order_id</text>
   <rect x="250" y="378" width="215" height="56" rx="8" class="table"/>
@@ -72,7 +72,7 @@
 
   <rect x="775" y="365" width="325" height="115" rx="12" class="topic"/>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="798" y="394" class="box-title">order-events.changefeed</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="798" y="419" class="body">внутренний changefeed</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="798" y="419" class="body">internal CDC Topic</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="798" y="441" class="small">порядок: order_id, event_seq</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="798" y="461" class="small">без custom producer_id</text>
 
@@ -80,7 +80,7 @@
   <text font-family="DejaVu Sans, Arial, sans-serif" x="1153" y="375" class="box-title">ProcessedEvents</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="1153" y="400" class="small">PK: projection_name, source,</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="1153" y="420" class="small">order_id, event_seq</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="1153" y="447" class="body">модель чтения + встроенный offset</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="1153" y="447" class="body">read model + built-in offset</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="1153" y="471" class="small">topic+table tx • offset по партициям</text>
 
   <rect x="60" y="575" width="255" height="100" rx="11" class="table"/>

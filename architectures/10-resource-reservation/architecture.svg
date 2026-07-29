@@ -74,7 +74,7 @@
 
   <rect class="app" x="50" y="285" width="220" height="130" rx="14"/>
   <text class="txt box-title" x="80" y="323">API резервирования</text>
-  <text class="txt body" x="80" y="351">создать / подтвердить / отменить</text>
+  <text class="txt body" x="80" y="351">create / confirm / cancel</text>
   <text class="txt body" x="80" y="377">idempotency_key</text>
 
   <rect class="app" x="50" y="585" width="220" height="130" rx="14"/>

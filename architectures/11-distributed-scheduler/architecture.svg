@@ -87,7 +87,7 @@
   <text class="txt body" x="70" y="370">диспетчер = лидер</text>
 
   <rect class="coord" x="350" y="200" width="360" height="105" rx="14"/>
-  <text class="txt box-title" x="380" y="235">Выбор лидера</text>
+  <text class="txt box-title" x="380" y="235">Leader election</text>
   <text class="txt body" x="380" y="263">только session lease</text>
   <text class="txt body" x="380" y="286">не выдает epoch; не ACID</text>
 
@@ -167,7 +167,7 @@
   <text class="txt small" x="1290" y="669">не проверять SchedulerEpoch</text>
 
   <rect class="app" x="40" y="650" width="230" height="110" rx="14"/>
-  <text class="txt box-title" x="65" y="683">Result relay</text>
+  <text class="txt box-title" x="65" y="683">Result relay / filter</text>
   <text class="txt small" x="65" y="708">YDB Consumer: result-relay</text>
   <text class="txt small" x="65" y="730">стабильный контракт</text>
   <text class="txt small" x="65" y="752">идемпотентный publish</text>

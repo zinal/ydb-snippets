@@ -33,13 +33,13 @@
   <text font-family="DejaVu Sans, Arial, sans-serif" x="45" y="72" class="subtitle">Aggregate, проекторы, replay, Query API вне YDB • EventLog = источник истины</text>
 
   <rect x="40" y="100" width="350" height="125" rx="14" class="app"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="62" y="132" class="box-title">Command API</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="62" y="132" class="box-title">Command API / Aggregate Handler</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="62" y="158" class="body">command_id • expected_version</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="62" y="182" class="small">snapshot + хвост EventLog</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="62" y="204" class="small">решение → append • вне YDB</text>
 
   <rect x="430" y="100" width="700" height="125" rx="14" class="app"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="452" y="130" class="box-title">Проекторы / replay — вне YDB</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="452" y="130" class="box-title">Projectors / Replay Workers — outside YDB</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="452" y="154" class="body">YDB Consumer order-state-live • YDB Consumer orders-by-customer-live</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="452" y="178" class="body">YDB Consumer projection-v2-rebuild • полный replay EventLog</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="452" y="202" class="small">модель чтения + offset (topic+table tx)</text>
@@ -101,11 +101,11 @@
 
   <rect x="60" y="635" width="280" height="110" rx="12" class="error"/>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="80" y="663" class="box-title">Topic retention ≠ истина</text>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="80" y="688" class="body">Полный replay: EventLog</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="80" y="688" class="body">Full replay: durable EventLog</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="80" y="712" class="small">Snapshot = кэш</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="80" y="734" class="small">poison-событие блокирует проекцию</text>
   <rect x="360" y="635" width="290" height="110" rx="12" class="queue"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="380" y="659" font-size="17" font-weight="700">Опциональные очереди SQS</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="380" y="659" font-size="17" font-weight="700">Optional SQS queues</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="380" y="678" class="small">SQS-протокол,</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="380" y="695" class="small">встроен в YDB • команды/retries</text>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="380" y="712" class="small">конкурирующие; visibility</text>
@@ -116,7 +116,7 @@
   <path d="M324 423 L360 423" class="blue-flow"/>
   <path d="M686 480 L650 480" class="blue-flow"/>
   <polygon points="655,480 670,465 685,480 670,495" fill="#fff7ed" stroke="#d97706" stroke-width="2"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="615" y="455" class="small">XOR-разветвление</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="615" y="455" class="small">XOR split</text>
   <path d="M670 465 L670 407 L681 407" fill="none" stroke="#d97706" stroke-width="2.4" stroke-dasharray="7 5"/>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="675" y="430" class="flow">A</text>
   <path d="M670 495 L670 552 L681 552" fill="none" stroke="#d97706" stroke-width="2.4" stroke-dasharray="7 5"/>
@@ -124,7 +124,7 @@
   <path d="M1040 407 L1055 407 L1055 465" fill="none" stroke="#d97706" stroke-width="2.4" stroke-dasharray="7 5"/>
   <path d="M1040 552 L1055 552 L1055 495" fill="none" stroke="#d97706" stroke-width="2.4" stroke-dasharray="7 5"/>
   <polygon points="1040,480 1055,465 1070,480 1055,495" fill="#fff7ed" stroke="#d97706" stroke-width="2"/>
-  <text font-family="DejaVu Sans, Arial, sans-serif" x="980" y="620" class="small">XOR-слияние</text>
+  <text font-family="DejaVu Sans, Arial, sans-serif" x="980" y="620" class="small">XOR merge</text>
   <path d="M1055 465 L1050 465 L1050 234" class="purple-flow"/>
   <text font-family="DejaVu Sans, Arial, sans-serif" x="900" y="270" class="small">live-источник → именованный YDB Consumer</text>
   <path d="M82 423 L45 423 L45 261 L500 261 L500 225" class="purple-flow"/>  <path d="M1044 225 L1044 420 L1080 420" class="blue-flow"/>
@@ -144,6 +144,6 @@
   <rect x="350" y="947" width="24" height="18" rx="3" class="table"/><text font-family="DejaVu Sans, Arial, sans-serif" x="383" y="962" class="body">строковая таблица</text>
   <rect x="510" y="947" width="24" height="18" rx="3" class="topic"/><text font-family="DejaVu Sans, Arial, sans-serif" x="543" y="962" class="body">CDC / Topic</text>
   <rect x="690" y="947" width="24" height="18" rx="3" class="coord"/><text font-family="DejaVu Sans, Arial, sans-serif" x="723" y="962" class="body">Coordination</text>
-  <rect x="880" y="947" width="24" height="18" rx="3" class="queue"/><text font-family="DejaVu Sans, Arial, sans-serif" x="913" y="962" class="body">очередь SQS (YDB)</text>
+  <rect x="880" y="947" width="24" height="18" rx="3" class="queue"/><text font-family="DejaVu Sans, Arial, sans-serif" x="913" y="962" class="body">SQS queue (YDB)</text>
   <line x1="1110" y1="956" x2="1170" y2="956" class="purple-flow"/><text font-family="DejaVu Sans, Arial, sans-serif" x="1180" y="962" class="body">асинхронно / replay</text>
 </svg>

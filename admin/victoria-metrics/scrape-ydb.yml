@@ -15,7 +15,7 @@
 # VictoriaMetrics-specific options used below:
 #   - stream_parse: true  — lower memory on large YDB counter pages
 #   - max_scrape_size     — YDB /counters responses can exceed default 16MB
-#   - no evaluation_interval (Prometheus rules; not used by promsrape)
+#   - no evaluation_interval (Prometheus rules; not used by promscrape)
 #
 # TLS: example uses insecure_skip_verify. Prefer ca_file with your YDB CA:
 #   tls_config:

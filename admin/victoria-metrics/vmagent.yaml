@@ -1,0 +1,25 @@
+# Native VictoriaMetrics Operator VMAgent for YDB scrapes.
+# Selects all VMStaticScrape objects labeled as YDB metrics scrapes.
+# Adjust remoteWrite.url to your VMSingle / vminsert endpoint.
+#
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMAgent
+metadata:
+  name: ydb
+  labels:
+    app.kubernetes.io/name: ydb
+    app.kubernetes.io/component: metrics-agent
+spec:
+  selectAllByDefault: false
+  staticScrapeSelector:
+    matchLabels:
+      app.kubernetes.io/name: ydb
+      app.kubernetes.io/component: metrics-scrape
+  staticScrapeNamespaceSelector: {}
+  scrapeInterval: 15s
+  scrapeTimeout: 15s
+  remoteWrite:
+  - url: http://vmsingle-ydb:8428/api/v1/write
+  extraArgs:
+    promscrape.maxScrapeSize: 64MB

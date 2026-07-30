@@ -1,40 +1,33 @@
-VictoriaMetrics (single-node: scrape + store):
+Native VictoriaMetrics Operator format (no Prometheus scrape YAML).
 
-  ./victoria-metrics-prod \
-    -promscrape.config=scrape-ydb.yml \
-    -storageDataPath=./data
+These manifests use VictoriaMetrics CRDs:
+  - VMStaticScrape  — scrape jobs / targets / relabel / TLS / vm_scrape_params
+  - VMAgent         — scrapes selected VMStaticScrape objects and remote-writes
 
-  UI / targets: http://localhost:8428/targets
-  Query API:    http://localhost:8428
+Source parity:
+  https://github.com/ydb-platform/ydb/tree/main/ydb/deploy/prometheus
+  (all counter URLs and customizations preserved)
 
-vmagent (scrape only, remote write to VictoriaMetrics):
+Files:
+  ydb-staticscrapes.yaml  — one VMStaticScrape per YDB counter group (28 jobs)
+  vmagent.yaml            — VMAgent selecting those scrapes
 
-  ./vmagent-prod \
-    -promscrape.config=scrape-ydb.yml \
-    -remoteWrite.url=http://victoriametrics:8428/api/v1/write
+Prerequisites:
+  VictoriaMetrics Operator installed in the cluster:
+    https://docs.victoriametrics.com/operator/
 
-  UI / targets: http://localhost:8429/targets
-
-Files in this directory:
-
-  scrape-ydb.yml     — scrape config (-promscrape.config), all YDB counter
-                       URLs and relabel customizations from
-                       https://github.com/ydb-platform/ydb/tree/main/ydb/deploy/prometheus
-  ydbd-storage.yml   — file_sd targets for storage (static) nodes
-  ydbd-database.yml  — file_sd targets for database (dynamic) nodes
-
-Edit ydbd-storage.yml and ydbd-database.yml before starting.
-Keep all three files in the same working directory (or adjust paths
-in scrape-ydb.yml file_sd_configs).
+Apply:
+  1) Edit targets in ydb-staticscrapes.yaml
+     (storage ports ~8765, database mon ports as in your cluster).
+  2) Set remoteWrite.url in vmagent.yaml to your storage
+     (VMSingle or vminsert).
+  3) kubectl apply -f ydb-staticscrapes.yaml -f vmagent.yaml
 
 TLS:
+  Example uses tlsConfig.insecureSkipVerify: true.
+  Prefer tlsConfig.caFile / caSecretKeyRef with your YDB CA.
 
-  Default example uses insecure_skip_verify: true.
-  For production, set ca_file to your YDB CA certificate in each job's
-  tls_config (same approach as admin/prometheus1).
-
-Grafana:
-
-  Point a Prometheus-type datasource at VictoriaMetrics
-  (http://localhost:8428) and import YDB dashboards from
-  https://github.com/ydb-platform/ydb/tree/main/ydb/deploy/helm/ydb-prometheus/dashboards
+Notes:
+  - Labels container=ydb-static|ydb-dynamic and counter=<name> are set on targets.
+  - Metric name prefixes and host/instance relabel match the Prometheus example.
+  - VictoriaMetrics-only options: vm_scrape_params.stream_parse, max_scrape_size.

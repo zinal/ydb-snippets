@@ -1,0 +1,1935 @@
+# Native VictoriaMetrics Operator scrape definitions for YDB.
+# Equivalent coverage to:
+#   https://github.com/ydb-platform/ydb/tree/main/ydb/deploy/prometheus
+#
+# Apply together with vmagent.yaml (or any VMAgent/VMSingle that selects these objects).
+# Edit targets in each targetEndpoints[].targets before use.
+#
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMStaticScrape
+metadata:
+  name: ydb-auth
+  labels:
+    app.kubernetes.io/name: ydb
+    app.kubernetes.io/component: metrics-scrape
+    ydb.tech/counter: auth
+spec:
+  jobName: ydb/auth
+  targetEndpoints:
+  - targets:
+    - ydb-s1.example.com:8765
+    - ydb-s2.example.com:8765
+    - ydb-s3.example.com:8765
+    labels:
+      container: ydb-static
+      counter: auth
+    path: /counters/counters=auth/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: auth_$1
+  - targets:
+    - ydb-s1.example.com:31002
+    - ydb-s1.example.com:31012
+    - ydb-s1.example.com:31022
+    - ydb-s2.example.com:31002
+    - ydb-s2.example.com:31012
+    - ydb-s2.example.com:31022
+    - ydb-s3.example.com:31002
+    - ydb-s3.example.com:31012
+    - ydb-s3.example.com:31022
+    labels:
+      container: ydb-dynamic
+      counter: auth
+    path: /counters/counters=auth/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: auth_$1
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMStaticScrape
+metadata:
+  name: ydb-compile
+  labels:
+    app.kubernetes.io/name: ydb
+    app.kubernetes.io/component: metrics-scrape
+    ydb.tech/counter: compile
+spec:
+  jobName: ydb/compile
+  targetEndpoints:
+  - targets:
+    - ydb-s1.example.com:8765
+    - ydb-s2.example.com:8765
+    - ydb-s3.example.com:8765
+    labels:
+      container: ydb-static
+      counter: compile
+    path: /counters/counters=compile/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: compile_$1
+  - targets:
+    - ydb-s1.example.com:31002
+    - ydb-s1.example.com:31012
+    - ydb-s1.example.com:31022
+    - ydb-s2.example.com:31002
+    - ydb-s2.example.com:31012
+    - ydb-s2.example.com:31022
+    - ydb-s3.example.com:31002
+    - ydb-s3.example.com:31012
+    - ydb-s3.example.com:31022
+    labels:
+      container: ydb-dynamic
+      counter: compile
+    path: /counters/counters=compile/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: compile_$1
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMStaticScrape
+metadata:
+  name: ydb-config
+  labels:
+    app.kubernetes.io/name: ydb
+    app.kubernetes.io/component: metrics-scrape
+    ydb.tech/counter: config
+spec:
+  jobName: ydb/config
+  targetEndpoints:
+  - targets:
+    - ydb-s1.example.com:8765
+    - ydb-s2.example.com:8765
+    - ydb-s3.example.com:8765
+    labels:
+      container: ydb-static
+      counter: config
+    path: /counters/counters=config/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: config_$1
+  - targets:
+    - ydb-s1.example.com:31002
+    - ydb-s1.example.com:31012
+    - ydb-s1.example.com:31022
+    - ydb-s2.example.com:31002
+    - ydb-s2.example.com:31012
+    - ydb-s2.example.com:31022
+    - ydb-s3.example.com:31002
+    - ydb-s3.example.com:31012
+    - ydb-s3.example.com:31022
+    labels:
+      container: ydb-dynamic
+      counter: config
+    path: /counters/counters=config/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: config_$1
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMStaticScrape
+metadata:
+  name: ydb-coordinator
+  labels:
+    app.kubernetes.io/name: ydb
+    app.kubernetes.io/component: metrics-scrape
+    ydb.tech/counter: coordinator
+spec:
+  jobName: ydb/coordinator
+  targetEndpoints:
+  - targets:
+    - ydb-s1.example.com:8765
+    - ydb-s2.example.com:8765
+    - ydb-s3.example.com:8765
+    labels:
+      container: ydb-static
+      counter: coordinator
+    path: /counters/counters=coordinator/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: coordinator_$1
+  - targets:
+    - ydb-s1.example.com:31002
+    - ydb-s1.example.com:31012
+    - ydb-s1.example.com:31022
+    - ydb-s2.example.com:31002
+    - ydb-s2.example.com:31012
+    - ydb-s2.example.com:31022
+    - ydb-s3.example.com:31002
+    - ydb-s3.example.com:31012
+    - ydb-s3.example.com:31022
+    labels:
+      container: ydb-dynamic
+      counter: coordinator
+    path: /counters/counters=coordinator/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: coordinator_$1
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMStaticScrape
+metadata:
+  name: ydb-datastreams
+  labels:
+    app.kubernetes.io/name: ydb
+    app.kubernetes.io/component: metrics-scrape
+    ydb.tech/counter: datastreams
+spec:
+  jobName: ydb/datastreams
+  targetEndpoints:
+  - targets:
+    - ydb-s1.example.com:8765
+    - ydb-s2.example.com:8765
+    - ydb-s3.example.com:8765
+    labels:
+      container: ydb-static
+      counter: datastreams
+    path: /counters/counters=datastreams/name_label=name/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    - sourceLabels:
+      - __address__
+      targetLabel: host
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: ydb_$1
+  - targets:
+    - ydb-s1.example.com:31002
+    - ydb-s1.example.com:31012
+    - ydb-s1.example.com:31022
+    - ydb-s2.example.com:31002
+    - ydb-s2.example.com:31012
+    - ydb-s2.example.com:31022
+    - ydb-s3.example.com:31002
+    - ydb-s3.example.com:31012
+    - ydb-s3.example.com:31022
+    labels:
+      container: ydb-dynamic
+      counter: datastreams
+    path: /counters/counters=datastreams/name_label=name/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    - sourceLabels:
+      - __address__
+      targetLabel: host
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: ydb_$1
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMStaticScrape
+metadata:
+  name: ydb-dsproxy-queue
+  labels:
+    app.kubernetes.io/name: ydb
+    app.kubernetes.io/component: metrics-scrape
+    ydb.tech/counter: dsproxy_queue
+spec:
+  jobName: ydb/dsproxy_queue
+  targetEndpoints:
+  - targets:
+    - ydb-s1.example.com:8765
+    - ydb-s2.example.com:8765
+    - ydb-s3.example.com:8765
+    labels:
+      container: ydb-static
+      counter: dsproxy_queue
+    path: /counters/counters=dsproxy_queue/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: dsproxy_queue_$1
+  - targets:
+    - ydb-s1.example.com:31002
+    - ydb-s1.example.com:31012
+    - ydb-s1.example.com:31022
+    - ydb-s2.example.com:31002
+    - ydb-s2.example.com:31012
+    - ydb-s2.example.com:31022
+    - ydb-s3.example.com:31002
+    - ydb-s3.example.com:31012
+    - ydb-s3.example.com:31022
+    labels:
+      container: ydb-dynamic
+      counter: dsproxy_queue
+    path: /counters/counters=dsproxy_queue/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: dsproxy_queue_$1
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMStaticScrape
+metadata:
+  name: ydb-dsproxy
+  labels:
+    app.kubernetes.io/name: ydb
+    app.kubernetes.io/component: metrics-scrape
+    ydb.tech/counter: dsproxy
+spec:
+  jobName: ydb/dsproxy
+  targetEndpoints:
+  - targets:
+    - ydb-s1.example.com:8765
+    - ydb-s2.example.com:8765
+    - ydb-s3.example.com:8765
+    labels:
+      container: ydb-static
+      counter: dsproxy
+    path: /counters/counters=dsproxy/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: dsproxy_$1
+  - targets:
+    - ydb-s1.example.com:31002
+    - ydb-s1.example.com:31012
+    - ydb-s1.example.com:31022
+    - ydb-s2.example.com:31002
+    - ydb-s2.example.com:31012
+    - ydb-s2.example.com:31022
+    - ydb-s3.example.com:31002
+    - ydb-s3.example.com:31012
+    - ydb-s3.example.com:31022
+    labels:
+      container: ydb-dynamic
+      counter: dsproxy
+    path: /counters/counters=dsproxy/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: dsproxy_$1
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMStaticScrape
+metadata:
+  name: ydb-dsproxy-mon
+  labels:
+    app.kubernetes.io/name: ydb
+    app.kubernetes.io/component: metrics-scrape
+    ydb.tech/counter: dsproxy_mon
+spec:
+  jobName: ydb/dsproxy_mon
+  targetEndpoints:
+  - targets:
+    - ydb-s1.example.com:8765
+    - ydb-s2.example.com:8765
+    - ydb-s3.example.com:8765
+    labels:
+      container: ydb-static
+      counter: dsproxy_mon
+    path: /counters/counters=dsproxy_mon/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: dsproxy_mon_$1
+  - targets:
+    - ydb-s1.example.com:31002
+    - ydb-s1.example.com:31012
+    - ydb-s1.example.com:31022
+    - ydb-s2.example.com:31002
+    - ydb-s2.example.com:31012
+    - ydb-s2.example.com:31022
+    - ydb-s3.example.com:31002
+    - ydb-s3.example.com:31012
+    - ydb-s3.example.com:31022
+    labels:
+      container: ydb-dynamic
+      counter: dsproxy_mon
+    path: /counters/counters=dsproxy_mon/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: dsproxy_mon_$1
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMStaticScrape
+metadata:
+  name: ydb-dsproxy-overview
+  labels:
+    app.kubernetes.io/name: ydb
+    app.kubernetes.io/component: metrics-scrape
+    ydb.tech/counter: dsproxy_overview
+spec:
+  jobName: ydb/dsproxy_overview
+  targetEndpoints:
+  - targets:
+    - ydb-s1.example.com:8765
+    - ydb-s2.example.com:8765
+    - ydb-s3.example.com:8765
+    labels:
+      container: ydb-static
+      counter: dsproxy_overview
+    path: /counters/counters=dsproxy_overview/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: dsproxy_overview_$1
+  - targets:
+    - ydb-s1.example.com:31002
+    - ydb-s1.example.com:31012
+    - ydb-s1.example.com:31022
+    - ydb-s2.example.com:31002
+    - ydb-s2.example.com:31012
+    - ydb-s2.example.com:31022
+    - ydb-s3.example.com:31002
+    - ydb-s3.example.com:31012
+    - ydb-s3.example.com:31022
+    labels:
+      container: ydb-dynamic
+      counter: dsproxy_overview
+    path: /counters/counters=dsproxy_overview/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: dsproxy_overview_$1
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMStaticScrape
+metadata:
+  name: ydb-dsproxy-percentile
+  labels:
+    app.kubernetes.io/name: ydb
+    app.kubernetes.io/component: metrics-scrape
+    ydb.tech/counter: dsproxy_percentile
+spec:
+  jobName: ydb/dsproxy_percentile
+  targetEndpoints:
+  - targets:
+    - ydb-s1.example.com:8765
+    - ydb-s2.example.com:8765
+    - ydb-s3.example.com:8765
+    labels:
+      container: ydb-static
+      counter: dsproxy_percentile
+    path: /counters/counters=dsproxy_percentile/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: dsproxy_percentile_$1
+  - targets:
+    - ydb-s1.example.com:31002
+    - ydb-s1.example.com:31012
+    - ydb-s1.example.com:31022
+    - ydb-s2.example.com:31002
+    - ydb-s2.example.com:31012
+    - ydb-s2.example.com:31022
+    - ydb-s3.example.com:31002
+    - ydb-s3.example.com:31012
+    - ydb-s3.example.com:31022
+    labels:
+      container: ydb-dynamic
+      counter: dsproxy_percentile
+    path: /counters/counters=dsproxy_percentile/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: dsproxy_percentile_$1
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMStaticScrape
+metadata:
+  name: ydb-grpc
+  labels:
+    app.kubernetes.io/name: ydb
+    app.kubernetes.io/component: metrics-scrape
+    ydb.tech/counter: grpc
+spec:
+  jobName: ydb/grpc
+  targetEndpoints:
+  - targets:
+    - ydb-s1.example.com:8765
+    - ydb-s2.example.com:8765
+    - ydb-s3.example.com:8765
+    labels:
+      container: ydb-static
+      counter: grpc
+    path: /counters/counters=grpc/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: grpc_$1
+  - targets:
+    - ydb-s1.example.com:31002
+    - ydb-s1.example.com:31012
+    - ydb-s1.example.com:31022
+    - ydb-s2.example.com:31002
+    - ydb-s2.example.com:31012
+    - ydb-s2.example.com:31022
+    - ydb-s3.example.com:31002
+    - ydb-s3.example.com:31012
+    - ydb-s3.example.com:31022
+    labels:
+      container: ydb-dynamic
+      counter: grpc
+    path: /counters/counters=grpc/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: grpc_$1
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMStaticScrape
+metadata:
+  name: ydb-kqp
+  labels:
+    app.kubernetes.io/name: ydb
+    app.kubernetes.io/component: metrics-scrape
+    ydb.tech/counter: kqp
+spec:
+  jobName: ydb/kqp
+  targetEndpoints:
+  - targets:
+    - ydb-s1.example.com:8765
+    - ydb-s2.example.com:8765
+    - ydb-s3.example.com:8765
+    labels:
+      container: ydb-static
+      counter: kqp
+    path: /counters/counters=kqp/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: kqp_$1
+  - targets:
+    - ydb-s1.example.com:31002
+    - ydb-s1.example.com:31012
+    - ydb-s1.example.com:31022
+    - ydb-s2.example.com:31002
+    - ydb-s2.example.com:31012
+    - ydb-s2.example.com:31022
+    - ydb-s3.example.com:31002
+    - ydb-s3.example.com:31012
+    - ydb-s3.example.com:31022
+    labels:
+      container: ydb-dynamic
+      counter: kqp
+    path: /counters/counters=kqp/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: kqp_$1
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMStaticScrape
+metadata:
+  name: ydb-netclassifier
+  labels:
+    app.kubernetes.io/name: ydb
+    app.kubernetes.io/component: metrics-scrape
+    ydb.tech/counter: netclassifier
+spec:
+  jobName: ydb/netclassifier
+  targetEndpoints:
+  - targets:
+    - ydb-s1.example.com:8765
+    - ydb-s2.example.com:8765
+    - ydb-s3.example.com:8765
+    labels:
+      container: ydb-static
+      counter: netclassifier
+    path: /counters/counters=netclassifier/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: netclassifier_$1
+  - targets:
+    - ydb-s1.example.com:31002
+    - ydb-s1.example.com:31012
+    - ydb-s1.example.com:31022
+    - ydb-s2.example.com:31002
+    - ydb-s2.example.com:31012
+    - ydb-s2.example.com:31022
+    - ydb-s3.example.com:31002
+    - ydb-s3.example.com:31012
+    - ydb-s3.example.com:31022
+    labels:
+      container: ydb-dynamic
+      counter: netclassifier
+    path: /counters/counters=netclassifier/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: netclassifier_$1
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMStaticScrape
+metadata:
+  name: ydb-processing
+  labels:
+    app.kubernetes.io/name: ydb
+    app.kubernetes.io/component: metrics-scrape
+    ydb.tech/counter: processing
+spec:
+  jobName: ydb/processing
+  targetEndpoints:
+  - targets:
+    - ydb-s1.example.com:8765
+    - ydb-s2.example.com:8765
+    - ydb-s3.example.com:8765
+    labels:
+      container: ydb-static
+      counter: processing
+    path: /counters/counters=processing/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: processing_$1
+  - targets:
+    - ydb-s1.example.com:31002
+    - ydb-s1.example.com:31012
+    - ydb-s1.example.com:31022
+    - ydb-s2.example.com:31002
+    - ydb-s2.example.com:31012
+    - ydb-s2.example.com:31022
+    - ydb-s3.example.com:31002
+    - ydb-s3.example.com:31012
+    - ydb-s3.example.com:31022
+    labels:
+      container: ydb-dynamic
+      counter: processing
+    path: /counters/counters=processing/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: processing_$1
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMStaticScrape
+metadata:
+  name: ydb-proxy
+  labels:
+    app.kubernetes.io/name: ydb
+    app.kubernetes.io/component: metrics-scrape
+    ydb.tech/counter: proxy
+spec:
+  jobName: ydb/proxy
+  targetEndpoints:
+  - targets:
+    - ydb-s1.example.com:8765
+    - ydb-s2.example.com:8765
+    - ydb-s3.example.com:8765
+    labels:
+      container: ydb-static
+      counter: proxy
+    path: /counters/counters=proxy/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: proxy_$1
+  - targets:
+    - ydb-s1.example.com:31002
+    - ydb-s1.example.com:31012
+    - ydb-s1.example.com:31022
+    - ydb-s2.example.com:31002
+    - ydb-s2.example.com:31012
+    - ydb-s2.example.com:31022
+    - ydb-s3.example.com:31002
+    - ydb-s3.example.com:31012
+    - ydb-s3.example.com:31022
+    labels:
+      container: ydb-dynamic
+      counter: proxy
+    path: /counters/counters=proxy/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: proxy_$1
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMStaticScrape
+metadata:
+  name: ydb-followers
+  labels:
+    app.kubernetes.io/name: ydb
+    app.kubernetes.io/component: metrics-scrape
+    ydb.tech/counter: followers
+spec:
+  jobName: ydb/followers
+  targetEndpoints:
+  - targets:
+    - ydb-s1.example.com:8765
+    - ydb-s2.example.com:8765
+    - ydb-s3.example.com:8765
+    labels:
+      container: ydb-static
+      counter: followers
+    path: /counters/counters=followers/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: followers_$1
+  - targets:
+    - ydb-s1.example.com:31002
+    - ydb-s1.example.com:31012
+    - ydb-s1.example.com:31022
+    - ydb-s2.example.com:31002
+    - ydb-s2.example.com:31012
+    - ydb-s2.example.com:31022
+    - ydb-s3.example.com:31002
+    - ydb-s3.example.com:31012
+    - ydb-s3.example.com:31022
+    labels:
+      container: ydb-dynamic
+      counter: followers
+    path: /counters/counters=followers/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: followers_$1
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMStaticScrape
+metadata:
+  name: ydb-storage-pool-stat
+  labels:
+    app.kubernetes.io/name: ydb
+    app.kubernetes.io/component: metrics-scrape
+    ydb.tech/counter: storage_pool_stat
+spec:
+  jobName: ydb/storage_pool_stat
+  targetEndpoints:
+  - targets:
+    - ydb-s1.example.com:8765
+    - ydb-s2.example.com:8765
+    - ydb-s3.example.com:8765
+    labels:
+      container: ydb-static
+      counter: storage_pool_stat
+    path: /counters/counters=storage_pool_stat/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: storage_pool_stat_$1
+  - targets:
+    - ydb-s1.example.com:31002
+    - ydb-s1.example.com:31012
+    - ydb-s1.example.com:31022
+    - ydb-s2.example.com:31002
+    - ydb-s2.example.com:31012
+    - ydb-s2.example.com:31022
+    - ydb-s3.example.com:31002
+    - ydb-s3.example.com:31012
+    - ydb-s3.example.com:31022
+    labels:
+      container: ydb-dynamic
+      counter: storage_pool_stat
+    path: /counters/counters=storage_pool_stat/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: storage_pool_stat_$1
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMStaticScrape
+metadata:
+  name: ydb-tablets
+  labels:
+    app.kubernetes.io/name: ydb
+    app.kubernetes.io/component: metrics-scrape
+    ydb.tech/counter: tablets
+spec:
+  jobName: ydb/tablets
+  targetEndpoints:
+  - targets:
+    - ydb-s1.example.com:8765
+    - ydb-s2.example.com:8765
+    - ydb-s3.example.com:8765
+    labels:
+      container: ydb-static
+      counter: tablets
+    path: /counters/counters=tablets/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: tablets_$1
+  - targets:
+    - ydb-s1.example.com:31002
+    - ydb-s1.example.com:31012
+    - ydb-s1.example.com:31022
+    - ydb-s2.example.com:31002
+    - ydb-s2.example.com:31012
+    - ydb-s2.example.com:31022
+    - ydb-s3.example.com:31002
+    - ydb-s3.example.com:31012
+    - ydb-s3.example.com:31022
+    labels:
+      container: ydb-dynamic
+      counter: tablets
+    path: /counters/counters=tablets/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: tablets_$1
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMStaticScrape
+metadata:
+  name: ydb-topics
+  labels:
+    app.kubernetes.io/name: ydb
+    app.kubernetes.io/component: metrics-scrape
+    ydb.tech/counter: topics
+spec:
+  jobName: ydb/topics
+  targetEndpoints:
+  - targets:
+    - ydb-s1.example.com:31002
+    - ydb-s1.example.com:31012
+    - ydb-s1.example.com:31022
+    - ydb-s2.example.com:31002
+    - ydb-s2.example.com:31012
+    - ydb-s2.example.com:31022
+    - ydb-s3.example.com:31002
+    - ydb-s3.example.com:31012
+    - ydb-s3.example.com:31022
+    labels:
+      container: ydb-dynamic
+      counter: topics
+    path: /counters/counters=topics/name_label=name/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    - sourceLabels:
+      - __address__
+      targetLabel: host
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: ydb_$1
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMStaticScrape
+metadata:
+  name: ydb-utils
+  labels:
+    app.kubernetes.io/name: ydb
+    app.kubernetes.io/component: metrics-scrape
+    ydb.tech/counter: utils
+spec:
+  jobName: ydb/utils
+  targetEndpoints:
+  - targets:
+    - ydb-s1.example.com:8765
+    - ydb-s2.example.com:8765
+    - ydb-s3.example.com:8765
+    labels:
+      container: ydb-static
+      counter: utils
+    path: /counters/counters=utils/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: utils_$1
+  - targets:
+    - ydb-s1.example.com:31002
+    - ydb-s1.example.com:31012
+    - ydb-s1.example.com:31022
+    - ydb-s2.example.com:31002
+    - ydb-s2.example.com:31012
+    - ydb-s2.example.com:31022
+    - ydb-s3.example.com:31002
+    - ydb-s3.example.com:31012
+    - ydb-s3.example.com:31022
+    labels:
+      container: ydb-dynamic
+      counter: utils
+    path: /counters/counters=utils/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: utils_$1
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMStaticScrape
+metadata:
+  name: ydb-dsproxynode
+  labels:
+    app.kubernetes.io/name: ydb
+    app.kubernetes.io/component: metrics-scrape
+    ydb.tech/counter: dsproxynode
+spec:
+  jobName: ydb/dsproxynode
+  targetEndpoints:
+  - targets:
+    - ydb-s1.example.com:8765
+    - ydb-s2.example.com:8765
+    - ydb-s3.example.com:8765
+    labels:
+      container: ydb-static
+      counter: dsproxynode
+    path: /counters/counters=dsproxynode/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: dsproxynode_$1
+  - targets:
+    - ydb-s1.example.com:31002
+    - ydb-s1.example.com:31012
+    - ydb-s1.example.com:31022
+    - ydb-s2.example.com:31002
+    - ydb-s2.example.com:31012
+    - ydb-s2.example.com:31022
+    - ydb-s3.example.com:31002
+    - ydb-s3.example.com:31012
+    - ydb-s3.example.com:31022
+    labels:
+      container: ydb-dynamic
+      counter: dsproxynode
+    path: /counters/counters=dsproxynode/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: dsproxynode_$1
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMStaticScrape
+metadata:
+  name: ydb-interconnect
+  labels:
+    app.kubernetes.io/name: ydb
+    app.kubernetes.io/component: metrics-scrape
+    ydb.tech/counter: interconnect
+spec:
+  jobName: ydb/interconnect
+  targetEndpoints:
+  - targets:
+    - ydb-s1.example.com:8765
+    - ydb-s2.example.com:8765
+    - ydb-s3.example.com:8765
+    labels:
+      container: ydb-static
+      counter: interconnect
+    path: /counters/counters=interconnect/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: interconnect_$1
+  - targets:
+    - ydb-s1.example.com:31002
+    - ydb-s1.example.com:31012
+    - ydb-s1.example.com:31022
+    - ydb-s2.example.com:31002
+    - ydb-s2.example.com:31012
+    - ydb-s2.example.com:31022
+    - ydb-s3.example.com:31002
+    - ydb-s3.example.com:31012
+    - ydb-s3.example.com:31022
+    labels:
+      container: ydb-dynamic
+      counter: interconnect
+    path: /counters/counters=interconnect/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: interconnect_$1
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMStaticScrape
+metadata:
+  name: ydb-pdisks
+  labels:
+    app.kubernetes.io/name: ydb
+    app.kubernetes.io/component: metrics-scrape
+    ydb.tech/counter: pdisks
+spec:
+  jobName: ydb/pdisks
+  targetEndpoints:
+  - targets:
+    - ydb-s1.example.com:8765
+    - ydb-s2.example.com:8765
+    - ydb-s3.example.com:8765
+    labels:
+      container: ydb-static
+      counter: pdisks
+    path: /counters/counters=pdisks/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: pdisks_$1
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMStaticScrape
+metadata:
+  name: ydb-persqueue
+  labels:
+    app.kubernetes.io/name: ydb
+    app.kubernetes.io/component: metrics-scrape
+    ydb.tech/counter: persqueue
+spec:
+  jobName: ydb/persqueue
+  targetEndpoints:
+  - targets:
+    - ydb-s1.example.com:8765
+    - ydb-s2.example.com:8765
+    - ydb-s3.example.com:8765
+    labels:
+      container: ydb-static
+      counter: persqueue
+    path: /counters/counters=persqueue/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: persqueue_$1
+  - targets:
+    - ydb-s1.example.com:31002
+    - ydb-s1.example.com:31012
+    - ydb-s1.example.com:31022
+    - ydb-s2.example.com:31002
+    - ydb-s2.example.com:31012
+    - ydb-s2.example.com:31022
+    - ydb-s3.example.com:31002
+    - ydb-s3.example.com:31012
+    - ydb-s3.example.com:31022
+    labels:
+      container: ydb-dynamic
+      counter: persqueue
+    path: /counters/counters=persqueue/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: persqueue_$1
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMStaticScrape
+metadata:
+  name: ydb-pqproxy
+  labels:
+    app.kubernetes.io/name: ydb
+    app.kubernetes.io/component: metrics-scrape
+    ydb.tech/counter: pqproxy
+spec:
+  jobName: ydb/pqproxy
+  targetEndpoints:
+  - targets:
+    - ydb-s1.example.com:8765
+    - ydb-s2.example.com:8765
+    - ydb-s3.example.com:8765
+    labels:
+      container: ydb-static
+      counter: pqproxy
+    path: /counters/counters=pqproxy/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: pqproxy_$1
+  - targets:
+    - ydb-s1.example.com:31002
+    - ydb-s1.example.com:31012
+    - ydb-s1.example.com:31022
+    - ydb-s2.example.com:31002
+    - ydb-s2.example.com:31012
+    - ydb-s2.example.com:31022
+    - ydb-s3.example.com:31002
+    - ydb-s3.example.com:31012
+    - ydb-s3.example.com:31022
+    labels:
+      container: ydb-dynamic
+      counter: pqproxy
+    path: /counters/counters=pqproxy/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: pqproxy_$1
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMStaticScrape
+metadata:
+  name: ydb-vdisks
+  labels:
+    app.kubernetes.io/name: ydb
+    app.kubernetes.io/component: metrics-scrape
+    ydb.tech/counter: vdisks
+spec:
+  jobName: ydb/vdisks
+  targetEndpoints:
+  - targets:
+    - ydb-s1.example.com:8765
+    - ydb-s2.example.com:8765
+    - ydb-s3.example.com:8765
+    labels:
+      container: ydb-static
+      counter: vdisks
+    path: /counters/counters=vdisks/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: vdisks_$1
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMStaticScrape
+metadata:
+  name: ydb-healthcheck
+  labels:
+    app.kubernetes.io/name: ydb
+    app.kubernetes.io/component: metrics-scrape
+    ydb.tech/counter: healthcheck
+spec:
+  jobName: ydb/healthcheck
+  targetEndpoints:
+  - targets:
+    - ydb-s1.example.com:8765
+    - ydb-s2.example.com:8765
+    - ydb-s3.example.com:8765
+    labels:
+      container: ydb-static
+      counter: healthcheck
+    path: /healthcheck
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    params:
+      format:
+      - prometheus
+  - targets:
+    - ydb-s1.example.com:31002
+    - ydb-s1.example.com:31012
+    - ydb-s1.example.com:31022
+    - ydb-s2.example.com:31002
+    - ydb-s2.example.com:31012
+    - ydb-s2.example.com:31022
+    - ydb-s3.example.com:31002
+    - ydb-s3.example.com:31012
+    - ydb-s3.example.com:31022
+    labels:
+      container: ydb-dynamic
+      counter: healthcheck
+    path: /healthcheck
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    params:
+      format:
+      - prometheus
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMStaticScrape
+metadata:
+  name: ydb-ydb
+  labels:
+    app.kubernetes.io/name: ydb
+    app.kubernetes.io/component: metrics-scrape
+    ydb.tech/counter: ydb
+spec:
+  jobName: ydb/ydb
+  targetEndpoints:
+  - targets:
+    - ydb-s1.example.com:8765
+    - ydb-s2.example.com:8765
+    - ydb-s3.example.com:8765
+    labels:
+      container: ydb-static
+      counter: ydb
+    path: /counters/counters=ydb/name_label=name/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: ydb_$1
+  - targets:
+    - ydb-s1.example.com:31002
+    - ydb-s1.example.com:31012
+    - ydb-s1.example.com:31022
+    - ydb-s2.example.com:31002
+    - ydb-s2.example.com:31012
+    - ydb-s2.example.com:31022
+    - ydb-s3.example.com:31002
+    - ydb-s3.example.com:31012
+    - ydb-s3.example.com:31022
+    labels:
+      container: ydb-dynamic
+      counter: ydb
+    path: /counters/counters=ydb/name_label=name/prometheus
+    scheme: https
+    scrape_interval: 15s
+    scrapeTimeout: 15s
+    max_scrape_size: 64MB
+    tlsConfig:
+      insecureSkipVerify: true
+    vm_scrape_params:
+      stream_parse: true
+    relabelConfigs:
+    - sourceLabels:
+      - __address__
+      targetLabel: instance
+      regex: ([^:]+)(:[0-9]+)?
+      replacement: ${1}
+    metricRelabelConfigs:
+    - sourceLabels:
+      - __name__
+      targetLabel: __name__
+      replacement: ydb_$1

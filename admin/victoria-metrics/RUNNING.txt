@@ -1,0 +1,40 @@
+VictoriaMetrics (single-node: scrape + store):
+
+  ./victoria-metrics-prod \
+    -promscrape.config=scrape-ydb.yml \
+    -storageDataPath=./data
+
+  UI / targets: http://localhost:8428/targets
+  Query API:    http://localhost:8428
+
+vmagent (scrape only, remote write to VictoriaMetrics):
+
+  ./vmagent-prod \
+    -promscrape.config=scrape-ydb.yml \
+    -remoteWrite.url=http://victoriametrics:8428/api/v1/write
+
+  UI / targets: http://localhost:8429/targets
+
+Files in this directory:
+
+  scrape-ydb.yml     — scrape config (-promscrape.config), all YDB counter
+                       URLs and relabel customizations from
+                       https://github.com/ydb-platform/ydb/tree/main/ydb/deploy/prometheus
+  ydbd-storage.yml   — file_sd targets for storage (static) nodes
+  ydbd-database.yml  — file_sd targets for database (dynamic) nodes
+
+Edit ydbd-storage.yml and ydbd-database.yml before starting.
+Keep all three files in the same working directory (or adjust paths
+in scrape-ydb.yml file_sd_configs).
+
+TLS:
+
+  Default example uses insecure_skip_verify: true.
+  For production, set ca_file to your YDB CA certificate in each job's
+  tls_config (same approach as admin/prometheus1).
+
+Grafana:
+
+  Point a Prometheus-type datasource at VictoriaMetrics
+  (http://localhost:8428) and import YDB dashboards from
+  https://github.com/ydb-platform/ydb/tree/main/ydb/deploy/helm/ydb-prometheus/dashboards

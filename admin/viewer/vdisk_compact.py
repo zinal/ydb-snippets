@@ -102,23 +102,26 @@ class Progress:
         self.errors = 0
         self._lock = threading.Lock()
 
-    def _line(self):
+    def _line(self, vdisk_id=None):
         remaining = self.total - self.done
         pct = 100.0 * self.done / self.total if self.total else 100.0
-        return (
+        line = (
             f'Progress: done={self.done}/{self.total} ({pct:.1f}%), '
             f'remaining={remaining}, errors={self.errors}'
         )
+        if vdisk_id is not None:
+            line += f', vdisk={vdisk_id}'
+        return line
 
-    def report(self):
-        log(self._line())
+    def report(self, vdisk_id=None):
+        log(self._line(vdisk_id=vdisk_id))
 
-    def mark_done(self, ok=True):
+    def mark_done(self, vdisk_id, ok=True):
         with self._lock:
             self.done += 1
             if not ok:
                 self.errors += 1
-            self.report()
+            self.report(vdisk_id=vdisk_id)
 
 
 def get_session():
@@ -498,12 +501,12 @@ def process_group(task):
             process_vdisk(
                 vdisk, dbnames, wait, poll_interval, dry_run, do_defrag=do_defrag,
             )
-            progress.mark_done(ok=True)
+            progress.mark_done(vdisk['vdisk_id'], ok=True)
         except Exception as exc:
             msg = f'{vdisk["vdisk_id"]}: {exc}'
             log(f'ERROR {msg}', file=sys.stderr)
             errors.append(msg)
-            progress.mark_done(ok=False)
+            progress.mark_done(vdisk['vdisk_id'], ok=False)
     debug_log(f'Group {group_id}: finished')
     return group_id, errors
 

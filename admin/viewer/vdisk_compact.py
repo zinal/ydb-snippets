@@ -4,9 +4,12 @@
 Mirrors `ydb-dstool vdisk compact` (see ydb/apps/dstool/lib/dstool_cmd_vdisk_compact.py):
 sends `?type=dbmainpage&dbname=...&action=compact` to the VDisk actor page.
 
+In `--full` mode also runs LogoBlobs defrag after compaction
+(`action=defrag`), matching the Embedded UI button on the same page.
+
 Supports compacting explicit VDisk IDs or all VDisks of a storage pool.
 For a pool, groups are processed in parallel while VDisks inside one group
-are compacted sequentially.
+are compacted (and defragged) sequentially.
 """
 
 import os
@@ -32,14 +35,22 @@ RE_VDISK_BRACKET = re.compile(
     r'^\[([0-9a-fA-F]+):(?:_|(\d+)):(\d+):(\d+):(\d+)\]$'
 )
 RE_VDISK_PAREN = re.compile(r'^\((\d+)-(\d+)-(\d+)-(\d+)-(\d+)\)$')
-# LogoBlobs dbmainpage also renders "Database Defrag" with its own
-# "In progress" label — match only the Full Compaction panel.
+# LogoBlobs dbmainpage renders both Full Compaction and Defrag panels;
+# each has its own "In progress" label — parse panels separately.
 RE_COMPACTION_PANEL = re.compile(
     r'Database Full Compaction(?P<body>.*?)(?:Database Defrag|\Z)',
     re.I | re.S,
 )
+RE_DEFRAG_PANEL = re.compile(
+    r'Database Defrag(?P<body>.*?)(?:</div>\s*</div>\s*\Z|\Z)',
+    re.I | re.S,
+)
 RE_COMPACTION_STATE = re.compile(
     r'>\s*(In progress|No compaction)\s*<',
+    re.I,
+)
+RE_DEFRAG_STATE = re.compile(
+    r'>\s*(In progress|No defrag)\s*<',
     re.I,
 )
 
@@ -265,54 +276,83 @@ def vdisk_page_url(vdisk, dbname=None, action=None):
     return f'{url}?{urlencode(params)}'
 
 
+def parse_panel_state(text, panel_re, state_re, idle_literal, in_progress_literal='In progress'):
+    panel = panel_re.search(text)
+    chunk = panel.group('body') if panel else text
+    match = state_re.search(chunk)
+    if match:
+        value = match.group(1)
+        if value.lower() == in_progress_literal.lower():
+            return 'In progress'
+        return idle_literal
+    if re.search(re.escape(idle_literal), chunk, re.I):
+        return idle_literal
+    if re.search(re.escape(in_progress_literal), chunk, re.I):
+        return 'In progress'
+    return 'Unknown'
+
+
 def parse_compaction_state(text):
     """Return Full Compaction state, ignoring Database Defrag panel."""
-    panel = RE_COMPACTION_PANEL.search(text)
-    chunk = panel.group('body') if panel else text
-    match = RE_COMPACTION_STATE.search(chunk)
-    if not match:
-        # Fallback for markup variations.
-        if re.search(r'No compaction', chunk, re.I):
-            return 'No compaction'
-        if re.search(r'In progress', chunk, re.I):
-            return 'In progress'
-        return 'Unknown'
-    value = match.group(1)
-    if value.lower() == 'in progress':
-        return 'In progress'
-    return 'No compaction'
+    return parse_panel_state(
+        text, RE_COMPACTION_PANEL, RE_COMPACTION_STATE, 'No compaction',
+    )
 
 
-def compaction_state(vdisk, dbname):
+def parse_defrag_state(text):
+    """Return Database Defrag state, ignoring Full Compaction panel."""
+    return parse_panel_state(
+        text, RE_DEFRAG_PANEL, RE_DEFRAG_STATE, 'No defrag',
+    )
+
+
+def fetch_dbmainpage(vdisk, dbname='LogoBlobs'):
     url = vdisk_page_url(vdisk, dbname=dbname)
     response = http_get(url)
     response.raise_for_status()
-    return parse_compaction_state(response.text)
+    return response.text
 
 
-def start_compaction(vdisk, dbname):
-    url = vdisk_page_url(vdisk, dbname=dbname, action='compact')
-    # dstool does not follow the 303 redirect to the heavy status page.
+def compaction_state(vdisk, dbname):
+    return parse_compaction_state(fetch_dbmainpage(vdisk, dbname))
+
+
+def defrag_state(vdisk):
+    return parse_defrag_state(fetch_dbmainpage(vdisk, 'LogoBlobs'))
+
+
+def start_vdisk_action(vdisk, dbname, action):
+    url = vdisk_page_url(vdisk, dbname=dbname, action=action)
+    # Do not follow the 303 redirect to the heavy status page.
     response = http_get(url, allow_redirects=False)
     if response.status_code >= 400:
         raise Exception(
-            f'HTTP {response.status_code} while compacting '
+            f'HTTP {response.status_code} while {action} '
             f'{vdisk["vdisk_id"]} {dbname}'
         )
 
 
-def wait_compaction(vdisk, dbname, poll_interval):
+def start_compaction(vdisk, dbname):
+    start_vdisk_action(vdisk, dbname, 'compact')
+
+
+def start_defrag(vdisk):
+    # Defrag is supported only for LogoBlobs on the mon page.
+    start_vdisk_action(vdisk, 'LogoBlobs', 'defrag')
+
+
+def wait_until_idle(vdisk, label, state_fn, poll_interval):
     started = time.time()
     saw_in_progress = False
-    # Compact request is async; give it a moment to appear in status.
+    # Request is async; give it a moment to appear in status.
     deadline_to_appear = started + max(poll_interval, 5.0)
 
     while True:
         try:
-            state = compaction_state(vdisk, dbname)
+            state = state_fn()
         except Exception as exc:
             log(
-                f'Wait {vdisk["vdisk_id"]} db={dbname}: '
+                f'Wait {vdisk["vdisk_id"]} {label}: '
                 f'status poll failed: {exc}; retrying'
             )
             time.sleep(poll_interval)
@@ -322,7 +362,7 @@ def wait_compaction(vdisk, dbname, poll_interval):
             saw_in_progress = True
             elapsed = int(time.time() - started)
             log(
-                f'Wait {vdisk["vdisk_id"]} db={dbname}: '
+                f'Wait {vdisk["vdisk_id"]} {label}: '
                 f'In progress ({elapsed}s)'
             )
             time.sleep(poll_interval)
@@ -331,11 +371,29 @@ def wait_compaction(vdisk, dbname, poll_interval):
         if saw_in_progress or time.time() >= deadline_to_appear:
             return state
 
-        # Compact not visible yet — keep polling briefly.
+        # Operation not visible yet — keep polling briefly.
         time.sleep(min(poll_interval, 1.0))
 
 
-def compact_vdisk(vdisk, dbnames, wait, poll_interval, dry_run):
+def wait_compaction(vdisk, dbname, poll_interval):
+    return wait_until_idle(
+        vdisk,
+        f'db={dbname}',
+        lambda: compaction_state(vdisk, dbname),
+        poll_interval,
+    )
+
+
+def wait_defrag(vdisk, poll_interval):
+    return wait_until_idle(
+        vdisk,
+        'defrag',
+        lambda: defrag_state(vdisk),
+        poll_interval,
+    )
+
+
+def compact_vdisk(vdisk, dbnames, wait, poll_interval, dry_run, do_defrag=False):
     for dbname in dbnames:
         page = vdisk_page_url(vdisk, dbname=dbname, action='compact')
         log(
@@ -349,11 +407,26 @@ def compact_vdisk(vdisk, dbnames, wait, poll_interval, dry_run):
         start_compaction(vdisk, dbname)
         if wait:
             state = wait_compaction(vdisk, dbname, poll_interval)
-            log(f'Done {vdisk["vdisk_id"]} db={dbname} state={state}')
+            log(f'Done compact {vdisk["vdisk_id"]} db={dbname} state={state}')
+
+    if do_defrag:
+        page = vdisk_page_url(vdisk, dbname='LogoBlobs', action='defrag')
+        log(
+            f'Defrag {vdisk["vdisk_id"]} '
+            f'group={vdisk["group_id"]} db=LogoBlobs '
+            f'node={vdisk["node_id"]} pdisk={vdisk["pdisk_id"]} '
+            f'vslot={vdisk["vslot_id"]} url={page}'
+        )
+        if dry_run:
+            return
+        start_defrag(vdisk)
+        if wait:
+            state = wait_defrag(vdisk, poll_interval)
+            log(f'Done defrag {vdisk["vdisk_id"]} state={state}')
 
 
 def compact_group(task):
-    group_id, vdisks, dbnames, wait, poll_interval, dry_run = task
+    group_id, vdisks, dbnames, wait, poll_interval, dry_run, do_defrag = task
     errors = []
     log(f'Group {group_id}: start ({len(vdisks)} VDisk(s), sequential)')
     for vdisk in sorted(
@@ -361,7 +434,9 @@ def compact_group(task):
         key=lambda v: (v['fail_realm'], v['fail_domain'], v['vdisk_idx'], v['vdisk_id']),
     ):
         try:
-            compact_vdisk(vdisk, dbnames, wait, poll_interval, dry_run)
+            compact_vdisk(
+                vdisk, dbnames, wait, poll_interval, dry_run, do_defrag=do_defrag,
+            )
         except Exception as exc:
             msg = f'{vdisk["vdisk_id"]}: {exc}'
             log(f'ERROR {msg}', file=sys.stderr)
@@ -370,7 +445,8 @@ def compact_group(task):
     return group_id, errors
 
 
-def run_pool_compaction(vdisks, dbnames, threads, wait, poll_interval, dry_run):
+def run_pool_compaction(vdisks, dbnames, threads, wait, poll_interval, dry_run,
+                        do_defrag=False):
     by_group = defaultdict(list)
     for vdisk in vdisks:
         by_group[vdisk['group_id']].append(vdisk)
@@ -378,11 +454,13 @@ def run_pool_compaction(vdisks, dbnames, threads, wait, poll_interval, dry_run):
     group_ids = sorted(by_group)
     log(
         f'Pool compaction: {len(vdisks)} VDisk(s) '
-        f'in {len(group_ids)} group(s), threads={threads}, wait={wait}'
+        f'in {len(group_ids)} group(s), threads={threads}, '
+        f'wait={wait}, defrag={do_defrag}'
     )
 
     tasks = [
-        (group_id, by_group[group_id], dbnames, wait, poll_interval, dry_run)
+        (group_id, by_group[group_id], dbnames, wait, poll_interval, dry_run,
+         do_defrag)
         for group_id in group_ids
     ]
 
@@ -413,7 +491,7 @@ Examples:
     parser.add_argument('--threads', type=int, default=8,
                         help='Max storage groups compacted in parallel (pool mode)')
     parser.add_argument('--full', action='store_true',
-                        help='Compact LogoBlobs, Blocks and Barriers')
+                        help='Compact LogoBlobs/Blocks/Barriers, then defrag LogoBlobs')
     parser.add_argument('--compact-logoblobs', action='store_true',
                         help='Compact LogoBlobs')
     parser.add_argument('--compact-blocks', action='store_true',
@@ -425,11 +503,11 @@ Examples:
     parser.add_argument('--pool', type=str,
                         help='Storage pool name; compact all its VDisks')
     parser.add_argument('--wait', dest='wait', action='store_true', default=True,
-                        help='Wait until compaction finishes (default)')
+                        help='Wait until compaction/defrag finishes (default)')
     parser.add_argument('--no-wait', dest='wait', action='store_false',
-                        help='Do not wait for compaction to finish')
+                        help='Do not wait for compaction/defrag to finish')
     parser.add_argument('--poll-interval', type=float, default=5.0,
-                        help='Seconds between compaction status polls')
+                        help='Seconds between status polls')
     parser.add_argument('--dry-run', action='store_true',
                         help='Only list target VDisks / URLs')
     args = parser.parse_args()
@@ -445,13 +523,14 @@ Examples:
     VIEWER_URL_BASE = args.viewer_url.rstrip('/')
 
     dbnames = resolve_dbnames(args)
+    do_defrag = bool(args.full)
     vdisks = fetch_vdisks()
 
     if args.pool:
         selected = select_pool_vdisks(args.pool, vdisks)
         errors = run_pool_compaction(
             selected, dbnames, args.threads, args.wait,
-            args.poll_interval, args.dry_run,
+            args.poll_interval, args.dry_run, do_defrag=do_defrag,
         )
     else:
         selected = resolve_vdisk_ids(args.vdisk_ids, vdisks)
@@ -467,7 +546,7 @@ Examples:
                 by_group[v['group_id']].append(v)
             tasks = [
                 (group_id, by_group[group_id], dbnames, args.wait,
-                 args.poll_interval, args.dry_run)
+                 args.poll_interval, args.dry_run, do_defrag)
                 for group_id in order
             ]
             with ThreadPool(min(args.threads, len(tasks) or 1)) as pool:
@@ -478,7 +557,7 @@ Examples:
                 try:
                     compact_vdisk(
                         vdisk, dbnames, args.wait,
-                        args.poll_interval, args.dry_run,
+                        args.poll_interval, args.dry_run, do_defrag=do_defrag,
                     )
                 except Exception as exc:
                     msg = f'{vdisk["vdisk_id"]}: {exc}'

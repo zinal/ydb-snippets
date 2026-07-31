@@ -20,15 +20,17 @@ vi ~/.ydb/token
 
 Скрипт `vdisk_compact.py` повторяет действие `ydb-dstool vdisk compact`: отправляет на страницу VDisk запрос `type=dbmainpage&action=compact` для выбранных баз Hull (`LogoBlobs` / `Blocks` / `Barriers`).
 
+В режиме `--full` после компактификации дополнительно запускается дефрагментация LogoBlobs (`action=defrag`) — последовательно для каждого VDisk.
+
 Аутентификация такая же, как у остальных скриптов в этом каталоге: `--auth Login` и токен в `~/.ydb/token`.
 
 ```bash
-# Компактификация конкретных VDisk (форматы id как в ydb-dstool)
+# Компактификация + дефрагментация конкретных VDisk (форматы id как в ydb-dstool)
 ./vdisk_compact.py --viewer-url https://ycydb-s1:8765 --auth Login --full \
   --vdisk-ids '[00000001:1:0:0:0]' '[00000001:1:0:1:0]'
 
 # Все VDisk пула хранения: группы обрабатываются параллельно,
-# внутри одной группы — последовательно
+# внутри одной группы — последовательно (compact, затем defrag)
 ./vdisk_compact.py --viewer-url https://ycydb-s1:8765 --auth Login --full \
   --pool /Root:ssd --threads 8
 

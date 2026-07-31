@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
-"""Trigger VDisk Hull DB compaction via Embedded UI / monitoring pages.
+"""Trigger VDisk Hull DB compaction / defrag via Embedded UI monitoring pages.
 
 Mirrors `ydb-dstool vdisk compact` (see ydb/apps/dstool/lib/dstool_cmd_vdisk_compact.py):
 sends `?type=dbmainpage&dbname=...&action=compact` to the VDisk actor page.
 
-In `--full` mode also runs LogoBlobs defrag after compaction
-(`action=defrag`), matching the Embedded UI button on the same page.
+Mode `defrag` separately triggers LogoBlobs defrag (`action=defrag`).
 
-Supports compacting explicit VDisk IDs or all VDisks of a storage pool.
+Supports operating on explicit VDisk IDs or all VDisks of a storage pool.
 For a pool, groups are processed in parallel while VDisks inside one group
-are compacted (and defragged) sequentially.
+are processed sequentially.
 """
 
 import os
@@ -58,6 +57,19 @@ RE_DEFRAG_STATE = re.compile(
 
 HTTP_TIMEOUT = 30
 SESSION = None
+
+MODE_COMPACT_FULL = 'compact-full'
+MODE_COMPACT_LOGOBLOBS = 'compact-logoblobs'
+MODE_COMPACT_BLOCKS = 'compact-blocks'
+MODE_COMPACT_BARRIERS = 'compact-barriers'
+MODE_DEFRAG = 'defrag'
+MODES = (
+    MODE_COMPACT_FULL,
+    MODE_COMPACT_LOGOBLOBS,
+    MODE_COMPACT_BLOCKS,
+    MODE_COMPACT_BARRIERS,
+    MODE_DEFRAG,
+)
 
 
 def log(msg, file=sys.stdout):
@@ -158,20 +170,19 @@ def setup_auth(auth_mode):
     }
 
 
-def resolve_dbnames(args):
-    if args.full:
-        return ['LogoBlobs', 'Blocks', 'Barriers']
-
-    dbnames = []
-    if args.compact_logoblobs:
-        dbnames.append('LogoBlobs')
-    if args.compact_blocks:
-        dbnames.append('Blocks')
-    if args.compact_barriers:
-        dbnames.append('Barriers')
-    if not dbnames:
-        dbnames = ['LogoBlobs']
-    return dbnames
+def resolve_mode(mode):
+    """Return (dbnames, do_defrag) for the selected --mode."""
+    if mode == MODE_COMPACT_FULL:
+        return ['LogoBlobs', 'Blocks', 'Barriers'], False
+    if mode == MODE_COMPACT_LOGOBLOBS:
+        return ['LogoBlobs'], False
+    if mode == MODE_COMPACT_BLOCKS:
+        return ['Blocks'], False
+    if mode == MODE_COMPACT_BARRIERS:
+        return ['Barriers'], False
+    if mode == MODE_DEFRAG:
+        return [], True
+    raise ValueError(f'Unsupported mode: {mode}')
 
 
 def parse_vdisk_id(vdisk_id):
@@ -440,7 +451,23 @@ def wait_defrag(vdisk, poll_interval):
     )
 
 
-def compact_vdisk(vdisk, dbnames, wait, poll_interval, dry_run, do_defrag=False):
+def process_vdisk(vdisk, dbnames, wait, poll_interval, dry_run, do_defrag=False):
+    if do_defrag:
+        page = vdisk_page_url(vdisk, dbname='LogoBlobs', action='defrag')
+        debug_log(
+            f'Defrag {vdisk["vdisk_id"]} '
+            f'group={vdisk["group_id"]} db=LogoBlobs '
+            f'node={vdisk["node_id"]} pdisk={vdisk["pdisk_id"]} '
+            f'vslot={vdisk["vslot_id"]} url={page}'
+        )
+        if dry_run:
+            return
+        start_defrag(vdisk)
+        if wait:
+            state = wait_defrag(vdisk, poll_interval)
+            debug_log(f'Done defrag {vdisk["vdisk_id"]} state={state}')
+        return
+
     for dbname in dbnames:
         page = vdisk_page_url(vdisk, dbname=dbname, action='compact')
         debug_log(
@@ -458,23 +485,8 @@ def compact_vdisk(vdisk, dbnames, wait, poll_interval, dry_run, do_defrag=False)
                 f'Done compact {vdisk["vdisk_id"]} db={dbname} state={state}'
             )
 
-    if do_defrag:
-        page = vdisk_page_url(vdisk, dbname='LogoBlobs', action='defrag')
-        debug_log(
-            f'Defrag {vdisk["vdisk_id"]} '
-            f'group={vdisk["group_id"]} db=LogoBlobs '
-            f'node={vdisk["node_id"]} pdisk={vdisk["pdisk_id"]} '
-            f'vslot={vdisk["vslot_id"]} url={page}'
-        )
-        if dry_run:
-            return
-        start_defrag(vdisk)
-        if wait:
-            state = wait_defrag(vdisk, poll_interval)
-            debug_log(f'Done defrag {vdisk["vdisk_id"]} state={state}')
 
-
-def compact_group(task):
+def process_group(task):
     (
         group_id, vdisks, dbnames, wait, poll_interval, dry_run,
         do_defrag, progress,
@@ -483,7 +495,7 @@ def compact_group(task):
     debug_log(f'Group {group_id}: start ({len(vdisks)} VDisk(s), sequential)')
     for vdisk in vdisks:
         try:
-            compact_vdisk(
+            process_vdisk(
                 vdisk, dbnames, wait, poll_interval, dry_run, do_defrag=do_defrag,
             )
             progress.mark_done(ok=True)
@@ -508,14 +520,14 @@ def group_vdisks(vdisks):
     return group_ids, by_group
 
 
-def run_pool_compaction(vdisks, dbnames, threads, wait, poll_interval, dry_run,
-                        do_defrag=False):
+def run_operations(vdisks, mode, dbnames, threads, wait, poll_interval, dry_run,
+                   do_defrag=False):
     vdisks = sort_vdisks(vdisks)
     group_ids, by_group = group_vdisks(vdisks)
     progress = Progress(len(vdisks))
     log(
-        f'Starting: {len(vdisks)} VDisk(s) in {len(group_ids)} group(s), '
-        f'threads={threads}, wait={wait}, defrag={do_defrag}, dry_run={dry_run}'
+        f'Starting: mode={mode}, {len(vdisks)} VDisk(s) in {len(group_ids)} '
+        f'group(s), threads={threads}, wait={wait}, dry_run={dry_run}'
     )
     progress.report()
 
@@ -528,53 +540,12 @@ def run_pool_compaction(vdisks, dbnames, threads, wait, poll_interval, dry_run,
     ]
 
     all_errors = []
-    with ThreadPool(threads) as pool:
-        for group_id, errors in pool.imap_unordered(compact_group, tasks):
+    with ThreadPool(min(threads, len(tasks) or 1)) as pool:
+        for group_id, errors in pool.imap_unordered(process_group, tasks):
             all_errors.extend(errors)
             if errors:
                 debug_log(f'Group {group_id}: {len(errors)} error(s)')
     return all_errors
-
-
-def run_selected_compaction(vdisks, dbnames, threads, wait, poll_interval,
-                            dry_run, do_defrag=False):
-    """Process an explicit VDisk list with the same group-aware scheduling."""
-    vdisks = sort_vdisks(vdisks)
-    group_ids, by_group = group_vdisks(vdisks)
-    progress = Progress(len(vdisks))
-    log(
-        f'Starting: {len(vdisks)} VDisk(s) in {len(group_ids)} group(s), '
-        f'threads={threads}, wait={wait}, defrag={do_defrag}, dry_run={dry_run}'
-    )
-    progress.report()
-
-    if wait or len(group_ids) > 1:
-        tasks = [
-            (
-                group_id, by_group[group_id], dbnames, wait, poll_interval,
-                dry_run, do_defrag, progress,
-            )
-            for group_id in group_ids
-        ]
-        all_errors = []
-        with ThreadPool(min(threads, len(tasks) or 1)) as pool:
-            for _, group_errors in pool.imap_unordered(compact_group, tasks):
-                all_errors.extend(group_errors)
-        return all_errors
-
-    errors = []
-    for vdisk in vdisks:
-        try:
-            compact_vdisk(
-                vdisk, dbnames, wait, poll_interval, dry_run, do_defrag=do_defrag,
-            )
-            progress.mark_done(ok=True)
-        except Exception as exc:
-            msg = f'{vdisk["vdisk_id"]}: {exc}'
-            log(f'ERROR {msg}', file=sys.stderr)
-            errors.append(msg)
-            progress.mark_done(ok=False)
-    return errors
 
 
 def main():
@@ -583,33 +554,37 @@ def main():
         description=__doc__,
         epilog='''\
 Examples:
-  %(prog)s --viewer-url https://host:8765 --auth Login --full \\
-      --vdisk-ids '[00000001:1:0:0:0]'
+  %(prog)s --viewer-url https://host:8765 --auth Login \\
+      --mode compact-full --vdisk-ids '[00000001:1:0:0:0]'
 
-  %(prog)s --viewer-url https://host:8765 --auth Login --full \\
-      --pool /Root:ssd --threads 8
+  %(prog)s --viewer-url https://host:8765 --auth Login \\
+      --mode compact-full --pool /Root:ssd --threads 8
+
+  %(prog)s --viewer-url https://host:8765 --auth Login \\
+      --mode defrag --pool /Root:ssd --threads 8
 ''',
     )
     parser.add_argument('--viewer-url', required=True)
     parser.add_argument('--auth', dest='auth_mode', default='Login')  # OAuth or Login
     parser.add_argument('--threads', type=int, default=8,
-                        help='Max storage groups compacted in parallel (pool mode)')
-    parser.add_argument('--full', action='store_true',
-                        help='Compact LogoBlobs/Blocks/Barriers, then defrag LogoBlobs')
-    parser.add_argument('--compact-logoblobs', action='store_true',
-                        help='Compact LogoBlobs')
-    parser.add_argument('--compact-blocks', action='store_true',
-                        help='Compact Blocks')
-    parser.add_argument('--compact-barriers', action='store_true',
-                        help='Compact Barriers')
+                        help='Max storage groups processed in parallel (pool mode)')
+    parser.add_argument(
+        '--mode',
+        choices=MODES,
+        default=MODE_COMPACT_FULL,
+        help=(
+            'Operation mode: compact-full (LogoBlobs+Blocks+Barriers, default), '
+            'compact-logoblobs, compact-blocks, compact-barriers, or defrag'
+        ),
+    )
     parser.add_argument('--vdisk-ids', type=str, nargs='+',
                         help='Space-separated VDisk ids (dstool formats)')
     parser.add_argument('--pool', type=str,
-                        help='Storage pool name; compact all its VDisks')
+                        help='Storage pool name; process all its VDisks')
     parser.add_argument('--wait', dest='wait', action='store_true', default=True,
-                        help='Wait until compaction/defrag finishes (default)')
+                        help='Wait until operation finishes (default)')
     parser.add_argument('--no-wait', dest='wait', action='store_false',
-                        help='Do not wait for compaction/defrag to finish')
+                        help='Do not wait for operation to finish')
     parser.add_argument('--poll-interval', type=float, default=5.0,
                         help='Seconds between status polls')
     parser.add_argument('--dry-run', action='store_true',
@@ -631,22 +606,18 @@ Examples:
     global VIEWER_URL_BASE
     VIEWER_URL_BASE = args.viewer_url.rstrip('/')
 
-    dbnames = resolve_dbnames(args)
-    do_defrag = bool(args.full)
+    dbnames, do_defrag = resolve_mode(args.mode)
     vdisks = fetch_vdisks()
 
     if args.pool:
         selected = sort_vdisks(select_pool_vdisks(args.pool, vdisks))
-        errors = run_pool_compaction(
-            selected, dbnames, args.threads, args.wait,
-            args.poll_interval, args.dry_run, do_defrag=do_defrag,
-        )
     else:
         selected = sort_vdisks(resolve_vdisk_ids(args.vdisk_ids, vdisks))
-        errors = run_selected_compaction(
-            selected, dbnames, args.threads, args.wait,
-            args.poll_interval, args.dry_run, do_defrag=do_defrag,
-        )
+
+    errors = run_operations(
+        selected, args.mode, dbnames, args.threads, args.wait,
+        args.poll_interval, args.dry_run, do_defrag=do_defrag,
+    )
 
     if errors:
         log(f'Failed for {len(errors)} VDisk operation(s)', file=sys.stderr)

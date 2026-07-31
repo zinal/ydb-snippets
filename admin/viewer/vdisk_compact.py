@@ -16,6 +16,7 @@ import os
 import re
 import sys
 import time
+import threading
 import requests
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from collections import defaultdict
@@ -24,6 +25,7 @@ from urllib.parse import urlencode
 
 VIEWER_URL_BASE = ''
 VIEWER_HEADERS = {}
+DEBUG = False
 
 URL_VDISK_INFO = '{url_base}/viewer/json/vdiskinfo?enums=true'
 URL_VDISK_PAGE = (
@@ -60,6 +62,51 @@ SESSION = None
 
 def log(msg, file=sys.stdout):
     print(f'[{time.ctime()}] {msg}', file=file, flush=True)
+
+
+def debug_log(msg, file=sys.stdout):
+    if DEBUG:
+        log(msg, file=file)
+
+
+def vdisk_sort_key(vdisk):
+    return (
+        vdisk['group_id'],
+        vdisk['fail_realm'],
+        vdisk['fail_domain'],
+        vdisk['vdisk_idx'],
+        vdisk['vdisk_id'],
+    )
+
+
+def sort_vdisks(vdisks):
+    return sorted(vdisks, key=vdisk_sort_key)
+
+
+class Progress:
+    def __init__(self, total):
+        self.total = total
+        self.done = 0
+        self.errors = 0
+        self._lock = threading.Lock()
+
+    def _line(self):
+        remaining = self.total - self.done
+        pct = 100.0 * self.done / self.total if self.total else 100.0
+        return (
+            f'Progress: done={self.done}/{self.total} ({pct:.1f}%), '
+            f'remaining={remaining}, errors={self.errors}'
+        )
+
+    def report(self):
+        log(self._line())
+
+    def mark_done(self, ok=True):
+        with self._lock:
+            self.done += 1
+            if not ok:
+                self.errors += 1
+            self.report()
 
 
 def get_session():
@@ -351,7 +398,7 @@ def wait_until_idle(vdisk, label, state_fn, poll_interval):
         try:
             state = state_fn()
         except Exception as exc:
-            log(
+            debug_log(
                 f'Wait {vdisk["vdisk_id"]} {label}: '
                 f'status poll failed: {exc}; retrying'
             )
@@ -361,7 +408,7 @@ def wait_until_idle(vdisk, label, state_fn, poll_interval):
         if state == 'In progress':
             saw_in_progress = True
             elapsed = int(time.time() - started)
-            log(
+            debug_log(
                 f'Wait {vdisk["vdisk_id"]} {label}: '
                 f'In progress ({elapsed}s)'
             )
@@ -396,7 +443,7 @@ def wait_defrag(vdisk, poll_interval):
 def compact_vdisk(vdisk, dbnames, wait, poll_interval, dry_run, do_defrag=False):
     for dbname in dbnames:
         page = vdisk_page_url(vdisk, dbname=dbname, action='compact')
-        log(
+        debug_log(
             f'Compact {vdisk["vdisk_id"]} '
             f'group={vdisk["group_id"]} db={dbname} '
             f'node={vdisk["node_id"]} pdisk={vdisk["pdisk_id"]} '
@@ -407,11 +454,13 @@ def compact_vdisk(vdisk, dbnames, wait, poll_interval, dry_run, do_defrag=False)
         start_compaction(vdisk, dbname)
         if wait:
             state = wait_compaction(vdisk, dbname, poll_interval)
-            log(f'Done compact {vdisk["vdisk_id"]} db={dbname} state={state}')
+            debug_log(
+                f'Done compact {vdisk["vdisk_id"]} db={dbname} state={state}'
+            )
 
     if do_defrag:
         page = vdisk_page_url(vdisk, dbname='LogoBlobs', action='defrag')
-        log(
+        debug_log(
             f'Defrag {vdisk["vdisk_id"]} '
             f'group={vdisk["group_id"]} db=LogoBlobs '
             f'node={vdisk["node_id"]} pdisk={vdisk["pdisk_id"]} '
@@ -422,45 +471,59 @@ def compact_vdisk(vdisk, dbnames, wait, poll_interval, dry_run, do_defrag=False)
         start_defrag(vdisk)
         if wait:
             state = wait_defrag(vdisk, poll_interval)
-            log(f'Done defrag {vdisk["vdisk_id"]} state={state}')
+            debug_log(f'Done defrag {vdisk["vdisk_id"]} state={state}')
 
 
 def compact_group(task):
-    group_id, vdisks, dbnames, wait, poll_interval, dry_run, do_defrag = task
+    (
+        group_id, vdisks, dbnames, wait, poll_interval, dry_run,
+        do_defrag, progress,
+    ) = task
     errors = []
-    log(f'Group {group_id}: start ({len(vdisks)} VDisk(s), sequential)')
-    for vdisk in sorted(
-        vdisks,
-        key=lambda v: (v['fail_realm'], v['fail_domain'], v['vdisk_idx'], v['vdisk_id']),
-    ):
+    debug_log(f'Group {group_id}: start ({len(vdisks)} VDisk(s), sequential)')
+    for vdisk in vdisks:
         try:
             compact_vdisk(
                 vdisk, dbnames, wait, poll_interval, dry_run, do_defrag=do_defrag,
             )
+            progress.mark_done(ok=True)
         except Exception as exc:
             msg = f'{vdisk["vdisk_id"]}: {exc}'
             log(f'ERROR {msg}', file=sys.stderr)
             errors.append(msg)
-    log(f'Group {group_id}: finished')
+            progress.mark_done(ok=False)
+    debug_log(f'Group {group_id}: finished')
     return group_id, errors
+
+
+def group_vdisks(vdisks):
+    """Group already-sorted VDisks, preserving group order and in-group order."""
+    by_group = defaultdict(list)
+    group_ids = []
+    for vdisk in vdisks:
+        group_id = vdisk['group_id']
+        if group_id not in by_group:
+            group_ids.append(group_id)
+        by_group[group_id].append(vdisk)
+    return group_ids, by_group
 
 
 def run_pool_compaction(vdisks, dbnames, threads, wait, poll_interval, dry_run,
                         do_defrag=False):
-    by_group = defaultdict(list)
-    for vdisk in vdisks:
-        by_group[vdisk['group_id']].append(vdisk)
-
-    group_ids = sorted(by_group)
+    vdisks = sort_vdisks(vdisks)
+    group_ids, by_group = group_vdisks(vdisks)
+    progress = Progress(len(vdisks))
     log(
-        f'Pool compaction: {len(vdisks)} VDisk(s) '
-        f'in {len(group_ids)} group(s), threads={threads}, '
-        f'wait={wait}, defrag={do_defrag}'
+        f'Starting: {len(vdisks)} VDisk(s) in {len(group_ids)} group(s), '
+        f'threads={threads}, wait={wait}, defrag={do_defrag}, dry_run={dry_run}'
     )
+    progress.report()
 
     tasks = [
-        (group_id, by_group[group_id], dbnames, wait, poll_interval, dry_run,
-         do_defrag)
+        (
+            group_id, by_group[group_id], dbnames, wait, poll_interval, dry_run,
+            do_defrag, progress,
+        )
         for group_id in group_ids
     ]
 
@@ -469,8 +532,49 @@ def run_pool_compaction(vdisks, dbnames, threads, wait, poll_interval, dry_run,
         for group_id, errors in pool.imap_unordered(compact_group, tasks):
             all_errors.extend(errors)
             if errors:
-                log(f'Group {group_id}: {len(errors)} error(s)')
+                debug_log(f'Group {group_id}: {len(errors)} error(s)')
     return all_errors
+
+
+def run_selected_compaction(vdisks, dbnames, threads, wait, poll_interval,
+                            dry_run, do_defrag=False):
+    """Process an explicit VDisk list with the same group-aware scheduling."""
+    vdisks = sort_vdisks(vdisks)
+    group_ids, by_group = group_vdisks(vdisks)
+    progress = Progress(len(vdisks))
+    log(
+        f'Starting: {len(vdisks)} VDisk(s) in {len(group_ids)} group(s), '
+        f'threads={threads}, wait={wait}, defrag={do_defrag}, dry_run={dry_run}'
+    )
+    progress.report()
+
+    if wait or len(group_ids) > 1:
+        tasks = [
+            (
+                group_id, by_group[group_id], dbnames, wait, poll_interval,
+                dry_run, do_defrag, progress,
+            )
+            for group_id in group_ids
+        ]
+        all_errors = []
+        with ThreadPool(min(threads, len(tasks) or 1)) as pool:
+            for _, group_errors in pool.imap_unordered(compact_group, tasks):
+                all_errors.extend(group_errors)
+        return all_errors
+
+    errors = []
+    for vdisk in vdisks:
+        try:
+            compact_vdisk(
+                vdisk, dbnames, wait, poll_interval, dry_run, do_defrag=do_defrag,
+            )
+            progress.mark_done(ok=True)
+        except Exception as exc:
+            msg = f'{vdisk["vdisk_id"]}: {exc}'
+            log(f'ERROR {msg}', file=sys.stderr)
+            errors.append(msg)
+            progress.mark_done(ok=False)
+    return errors
 
 
 def main():
@@ -510,12 +614,17 @@ Examples:
                         help='Seconds between status polls')
     parser.add_argument('--dry-run', action='store_true',
                         help='Only list target VDisks / URLs')
+    parser.add_argument('--debug', action='store_true',
+                        help='Print per-VDisk / wait debug details')
     args = parser.parse_args()
 
     if bool(args.vdisk_ids) == bool(args.pool):
         parser.error('Specify exactly one of --vdisk-ids or --pool')
     if args.threads < 1:
         parser.error('--threads must be >= 1')
+
+    global DEBUG
+    DEBUG = bool(args.debug)
 
     setup_auth(args.auth_mode)
 
@@ -527,42 +636,17 @@ Examples:
     vdisks = fetch_vdisks()
 
     if args.pool:
-        selected = select_pool_vdisks(args.pool, vdisks)
+        selected = sort_vdisks(select_pool_vdisks(args.pool, vdisks))
         errors = run_pool_compaction(
             selected, dbnames, args.threads, args.wait,
             args.poll_interval, args.dry_run, do_defrag=do_defrag,
         )
     else:
-        selected = resolve_vdisk_ids(args.vdisk_ids, vdisks)
-        errors = []
-        # Keep dstool-like ordering for explicit ids, but still serialize
-        # VDisks that share a storage group when waiting.
-        if args.wait:
-            by_group = defaultdict(list)
-            order = []
-            for v in selected:
-                if v['group_id'] not in by_group:
-                    order.append(v['group_id'])
-                by_group[v['group_id']].append(v)
-            tasks = [
-                (group_id, by_group[group_id], dbnames, args.wait,
-                 args.poll_interval, args.dry_run, do_defrag)
-                for group_id in order
-            ]
-            with ThreadPool(min(args.threads, len(tasks) or 1)) as pool:
-                for _, group_errors in pool.imap_unordered(compact_group, tasks):
-                    errors.extend(group_errors)
-        else:
-            for vdisk in selected:
-                try:
-                    compact_vdisk(
-                        vdisk, dbnames, args.wait,
-                        args.poll_interval, args.dry_run, do_defrag=do_defrag,
-                    )
-                except Exception as exc:
-                    msg = f'{vdisk["vdisk_id"]}: {exc}'
-                    log(f'ERROR {msg}', file=sys.stderr)
-                    errors.append(msg)
+        selected = sort_vdisks(resolve_vdisk_ids(args.vdisk_ids, vdisks))
+        errors = run_selected_compaction(
+            selected, dbnames, args.threads, args.wait,
+            args.poll_interval, args.dry_run, do_defrag=do_defrag,
+        )
 
     if errors:
         log(f'Failed for {len(errors)} VDisk operation(s)', file=sys.stderr)

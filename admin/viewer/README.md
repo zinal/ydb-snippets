@@ -38,7 +38,9 @@ vi ~/.ydb/token
 ./vdisk_compact.py --viewer-url https://ycydb-s1:8765 --auth Login --full \
   --pool /Root:ssd --dry-run
 
-# Команда с дополнительными кастомизациями для ускорения процесса
-./vdisk_compact.py --viewer-url https://ydb-s5.front.private:8765 --auth Login --full \
-  --poll-interval 2 --threads 20 --pool /rnd-ydb/db1:ssd 
+# Подробный лог по каждому VDisk / ожиданию
+./vdisk_compact.py --viewer-url https://ycydb-s1:8765 --auth Login --full \
+  --pool /Root:ssd --threads 8 --debug
 ```
+
+По умолчанию печатается общий прогресс (`done` / `remaining` / процент). Детали запросов и ожидания — только с `--debug`. Перед запуском VDisk сортируются по идентификатору группы.

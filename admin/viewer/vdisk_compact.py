@@ -32,25 +32,55 @@ RE_VDISK_BRACKET = re.compile(
     r'^\[([0-9a-fA-F]+):(?:_|(\d+)):(\d+):(\d+):(\d+)\]$'
 )
 RE_VDISK_PAREN = re.compile(r'^\((\d+)-(\d+)-(\d+)-(\d+)-(\d+)\)$')
-RE_COMPACTION_IN_PROGRESS = re.compile(r'In progress', re.I)
-RE_COMPACTION_IDLE = re.compile(r'No compaction', re.I)
+# LogoBlobs dbmainpage also renders "Database Defrag" with its own
+# "In progress" label — match only the Full Compaction panel.
+RE_COMPACTION_PANEL = re.compile(
+    r'Database Full Compaction(?P<body>.*?)(?:Database Defrag|\Z)',
+    re.I | re.S,
+)
+RE_COMPACTION_STATE = re.compile(
+    r'>\s*(In progress|No compaction)\s*<',
+    re.I,
+)
+
+HTTP_TIMEOUT = 30
+SESSION = None
+
+
+def log(msg, file=sys.stdout):
+    print(f'[{time.ctime()}] {msg}', file=file, flush=True)
+
+
+def get_session():
+    global SESSION
+    if SESSION is None:
+        SESSION = requests.Session()
+        adapter = requests.adapters.HTTPAdapter(
+            pool_connections=32,
+            pool_maxsize=32,
+            max_retries=0,
+        )
+        SESSION.mount('http://', adapter)
+        SESSION.mount('https://', adapter)
+    return SESSION
 
 
 def load_json(url):
-    response = requests.get(url, headers=VIEWER_HEADERS, verify=False, timeout=120)
+    response = get_session().get(
+        url, headers=VIEWER_HEADERS, verify=False, timeout=HTTP_TIMEOUT,
+    )
     response.raise_for_status()
     return response.json()
 
 
 def http_get(url, allow_redirects=True):
-    response = requests.get(
+    return get_session().get(
         url,
         headers=VIEWER_HEADERS,
         verify=False,
-        timeout=120,
+        timeout=HTTP_TIMEOUT,
         allow_redirects=allow_redirects,
     )
-    return response
 
 
 def setup_auth(auth_mode):
@@ -235,20 +265,35 @@ def vdisk_page_url(vdisk, dbname=None, action=None):
     return f'{url}?{urlencode(params)}'
 
 
+def parse_compaction_state(text):
+    """Return Full Compaction state, ignoring Database Defrag panel."""
+    panel = RE_COMPACTION_PANEL.search(text)
+    chunk = panel.group('body') if panel else text
+    match = RE_COMPACTION_STATE.search(chunk)
+    if not match:
+        # Fallback for markup variations.
+        if re.search(r'No compaction', chunk, re.I):
+            return 'No compaction'
+        if re.search(r'In progress', chunk, re.I):
+            return 'In progress'
+        return 'Unknown'
+    value = match.group(1)
+    if value.lower() == 'in progress':
+        return 'In progress'
+    return 'No compaction'
+
+
 def compaction_state(vdisk, dbname):
     url = vdisk_page_url(vdisk, dbname=dbname)
-    text = http_get(url).text
-    if RE_COMPACTION_IN_PROGRESS.search(text):
-        return 'In progress'
-    if RE_COMPACTION_IDLE.search(text):
-        return 'No compaction'
-    return 'Unknown'
+    response = http_get(url)
+    response.raise_for_status()
+    return parse_compaction_state(response.text)
 
 
 def start_compaction(vdisk, dbname):
     url = vdisk_page_url(vdisk, dbname=dbname, action='compact')
-    # dstool ignores the redirect body; follow redirects for simplicity.
-    response = http_get(url, allow_redirects=True)
+    # dstool does not follow the 303 redirect to the heavy status page.
+    response = http_get(url, allow_redirects=False)
     if response.status_code >= 400:
         raise Exception(
             f'HTTP {response.status_code} while compacting '
@@ -257,18 +302,44 @@ def start_compaction(vdisk, dbname):
 
 
 def wait_compaction(vdisk, dbname, poll_interval):
+    started = time.time()
+    saw_in_progress = False
+    # Compact request is async; give it a moment to appear in status.
+    deadline_to_appear = started + max(poll_interval, 5.0)
+
     while True:
-        state = compaction_state(vdisk, dbname)
-        if state != 'In progress':
+        try:
+            state = compaction_state(vdisk, dbname)
+        except Exception as exc:
+            log(
+                f'Wait {vdisk["vdisk_id"]} db={dbname}: '
+                f'status poll failed: {exc}; retrying'
+            )
+            time.sleep(poll_interval)
+            continue
+
+        if state == 'In progress':
+            saw_in_progress = True
+            elapsed = int(time.time() - started)
+            log(
+                f'Wait {vdisk["vdisk_id"]} db={dbname}: '
+                f'In progress ({elapsed}s)'
+            )
+            time.sleep(poll_interval)
+            continue
+
+        if saw_in_progress or time.time() >= deadline_to_appear:
             return state
-        time.sleep(poll_interval)
+
+        # Compact not visible yet — keep polling briefly.
+        time.sleep(min(poll_interval, 1.0))
 
 
 def compact_vdisk(vdisk, dbnames, wait, poll_interval, dry_run):
     for dbname in dbnames:
         page = vdisk_page_url(vdisk, dbname=dbname, action='compact')
-        print(
-            f'[{time.ctime()}] Compact {vdisk["vdisk_id"]} '
+        log(
+            f'Compact {vdisk["vdisk_id"]} '
             f'group={vdisk["group_id"]} db={dbname} '
             f'node={vdisk["node_id"]} pdisk={vdisk["pdisk_id"]} '
             f'vslot={vdisk["vslot_id"]} url={page}'
@@ -278,19 +349,13 @@ def compact_vdisk(vdisk, dbnames, wait, poll_interval, dry_run):
         start_compaction(vdisk, dbname)
         if wait:
             state = wait_compaction(vdisk, dbname, poll_interval)
-            print(
-                f'[{time.ctime()}] Done {vdisk["vdisk_id"]} '
-                f'db={dbname} state={state}'
-            )
+            log(f'Done {vdisk["vdisk_id"]} db={dbname} state={state}')
 
 
 def compact_group(task):
     group_id, vdisks, dbnames, wait, poll_interval, dry_run = task
     errors = []
-    print(
-        f'[{time.ctime()}] Group {group_id}: '
-        f'start ({len(vdisks)} VDisk(s), sequential)'
-    )
+    log(f'Group {group_id}: start ({len(vdisks)} VDisk(s), sequential)')
     for vdisk in sorted(
         vdisks,
         key=lambda v: (v['fail_realm'], v['fail_domain'], v['vdisk_idx'], v['vdisk_id']),
@@ -299,9 +364,9 @@ def compact_group(task):
             compact_vdisk(vdisk, dbnames, wait, poll_interval, dry_run)
         except Exception as exc:
             msg = f'{vdisk["vdisk_id"]}: {exc}'
-            print(f'[{time.ctime()}] ERROR {msg}', file=sys.stderr)
+            log(f'ERROR {msg}', file=sys.stderr)
             errors.append(msg)
-    print(f'[{time.ctime()}] Group {group_id}: finished')
+    log(f'Group {group_id}: finished')
     return group_id, errors
 
 
@@ -311,8 +376,8 @@ def run_pool_compaction(vdisks, dbnames, threads, wait, poll_interval, dry_run):
         by_group[vdisk['group_id']].append(vdisk)
 
     group_ids = sorted(by_group)
-    print(
-        f'[{time.ctime()}] Pool compaction: {len(vdisks)} VDisk(s) '
+    log(
+        f'Pool compaction: {len(vdisks)} VDisk(s) '
         f'in {len(group_ids)} group(s), threads={threads}, wait={wait}'
     )
 
@@ -326,10 +391,7 @@ def run_pool_compaction(vdisks, dbnames, threads, wait, poll_interval, dry_run):
         for group_id, errors in pool.imap_unordered(compact_group, tasks):
             all_errors.extend(errors)
             if errors:
-                print(
-                    f'[{time.ctime()}] Group {group_id}: '
-                    f'{len(errors)} error(s)'
-                )
+                log(f'Group {group_id}: {len(errors)} error(s)')
     return all_errors
 
 
@@ -420,13 +482,13 @@ Examples:
                     )
                 except Exception as exc:
                     msg = f'{vdisk["vdisk_id"]}: {exc}'
-                    print(f'[{time.ctime()}] ERROR {msg}', file=sys.stderr)
+                    log(f'ERROR {msg}', file=sys.stderr)
                     errors.append(msg)
 
     if errors:
-        print(f'Failed for {len(errors)} VDisk operation(s)', file=sys.stderr)
+        log(f'Failed for {len(errors)} VDisk operation(s)', file=sys.stderr)
         sys.exit(1)
-    print(f'[{time.ctime()}] Successfully processed {len(selected)} VDisk(s)')
+    log(f'Successfully processed {len(selected)} VDisk(s)')
 
 
 if __name__ == '__main__':

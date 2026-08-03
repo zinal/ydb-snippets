@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import random
 import re
 import sys
 import time
@@ -7,8 +8,10 @@ import requests
 from argparse import ArgumentParser
 from urllib.parse import quote_plus
 
+
 VIEWER_URL_BASE = ''
 VIEWER_HEADERS = {}
+MAX_RETRIES = 10
 
 URL_TABLE_DESCRIPTION = '{url_base}/viewer/json/describe?path={path}&enums=true'
 URL_EXECUTOR_INTERNALS = '{url_base}/tablets/executorInternals?TabletID={tablet_id}'
@@ -16,6 +19,38 @@ URL_FORCE_COMPACT = '{url_base}/tablets/executorInternals?TabletID={tablet_id}&f
 RE_DBASE_SIZE = re.compile(r'DBase{.*?, (\d+)\)b}', re.S)
 RE_LOANED_PARTS = re.compile(r'<h4>Loaned parts</h4><pre>(.*?)</pre>', re.S)
 RE_FORCED_COMPACTION_STATE = re.compile(r'Forced compaction: (\w+)', re.S)
+
+# Transient viewer/tablet errors that usually clear after a short pause.
+RETRYABLE_ERROR_MARKERS = (
+    'is not connected with status: ERROR',
+    'ERROR: cannot compact the specified table',
+)
+
+
+def is_retryable_error(text):
+    return any(marker in text for marker in RETRYABLE_ERROR_MARKERS)
+
+
+def viewer_get_text(url):
+    """GET text from viewer, retrying known transient tablet errors."""
+    attempt = 0
+    while True:
+        text = requests.get(url, headers=VIEWER_HEADERS, verify=False).text
+        if not is_retryable_error(text):
+            return text
+
+        attempt += 1
+        if attempt > MAX_RETRIES:
+            raise RuntimeError(
+                f'Retryable viewer error after {MAX_RETRIES} retries for {url}:\n{text}'
+            )
+
+        delay = random.uniform(1, 5)
+        print(
+            f'[{time.ctime()}] Retryable error (attempt {attempt}/{MAX_RETRIES}), '
+            f'sleeping {delay:.2f}s; url: {url}'
+        )
+        time.sleep(delay)
 
 
 def load_json(url):
@@ -29,7 +64,7 @@ def describe_table(path):
 
 def tablet_internals(tablet_id):
     url = URL_EXECUTOR_INTERNALS.format(url_base=VIEWER_URL_BASE, tablet_id=tablet_id)
-    return requests.get(url, headers=VIEWER_HEADERS, verify=False).text
+    return viewer_get_text(url)
 
 
 def extract_loaned_parts(text):
@@ -50,7 +85,7 @@ def extract_force_compaction_state(text):
 
 def start_force_compaction(tablet_id, local_table_id=1001):
     url = URL_FORCE_COMPACT.format(url_base=VIEWER_URL_BASE, tablet_id=tablet_id, local_table_id=local_table_id)
-    text = requests.get(url, headers=VIEWER_HEADERS, verify=False).text
+    text = viewer_get_text(url)
     if 'Table will be compacted in the near future' not in text:
         print(text)
 
@@ -73,6 +108,8 @@ def force_compact(tablet_id, local_table_id=1001):
 def main():
     parser = ArgumentParser()
     parser.add_argument('--threads', type=int, default=10)
+    parser.add_argument('--retries', type=int, default=10,
+                        help='Number of retries for transient tablet/viewer errors (default: 10)')
     parser.add_argument('--viewer-url')
     parser.add_argument('--auth', dest="auth_mode", default='Login') # OAuth or Login
     parser.add_argument('--all', action='store_true')
@@ -80,6 +117,9 @@ def main():
     args = parser.parse_args()
 
     global VIEWER_HEADERS
+    global MAX_RETRIES
+
+    MAX_RETRIES = args.retries
 
     if args.auth_mode=='' or args.auth_mode.lower()=='disabled':
         VIEWER_HEADERS = {}

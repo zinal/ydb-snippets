@@ -16,11 +16,11 @@ vi ~/.ydb/token
 ./table_full_compact.py --viewer-url https://ycydb-s1:8765 --auth Login --all /Domain0/tpcc/order_line
 ```
 
-## Принудительная компактификация / дефрагментация VDisk
+## Принудительная дефрагментация VDisk
 
-Скрипт `vdisk_compact.py` работает через Embedded UI mon-страницы VDisk:
+Скрипт `vdisk_compact.py` реализует операции полной принудительной дефрагментации VDisk:
 
-- compact: `type=dbmainpage&action=compact` (аналог `ydb-dstool vdisk compact`)
+- compact: `type=dbmainpage&action=compact` (аналог операции `ydb-dstool vdisk compact`)
 - defrag: `type=dbmainpage&dbname=LogoBlobs&action=defrag`
 
 Режим задаётся одной опцией `--mode`:
@@ -34,6 +34,31 @@ vi ~/.ydb/token
 | `defrag` | Defrag LogoBlobs |
 
 Аутентификация такая же, как у остальных скриптов в этом каталоге: `--auth Login` и токен в `~/.ydb/token`.
+
+Рекомендуемый порядок действий для полной дефрагментации VDisk в конкретной БД:
+
+```bash
+# Дефрагментация, шаг 1
+./vdisk_compact.py --viewer-url https://ycydb-s1:8765 --auth Login \
+  --mode defrag  --pool /Root/testdb:ssd --threads 8
+
+# Полная компактификация
+./vdisk_compact.py --viewer-url https://ycydb-s1:8765 --auth Login \
+  --mode compact-full --pool /Root/testdb:ssd --threads 8
+
+# Дефрагментация, шаг 2
+./vdisk_compact.py --viewer-url https://ycydb-s1:8765 --auth Login \
+  --mode defrag  --pool /Root/testdb:ssd --threads 16
+
+# Пауза 10 секунд
+sleep 10
+
+# Дефрагментация, шаг 3
+./vdisk_compact.py --viewer-url https://ycydb-s1:8765 --auth Login \
+  --mode defrag  --pool /Root/testdb:ssd --threads 8
+```
+
+Другие примеры вызовов:
 
 ```bash
 # Полная компактификация конкретных VDisk (форматы id как в ydb-dstool)

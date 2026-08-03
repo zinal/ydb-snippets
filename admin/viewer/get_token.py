@@ -4,12 +4,16 @@
 Authenticates via POST /login with credentials from YDB_USER / YDB_PASSWORD.
 Writes the ydb_session_id cookie value into ~/.ydb/token.
 
+On login failure retries up to 10 times with a random pause of 200–900 ms
+between attempts. If all attempts fail, the script exits with an error.
+
 Takes an exclusive file lock on the token file. If the file is newer than
 5 minutes, skips the login and leaves the existing token unchanged.
 """
 
 import fcntl
 import os
+import random
 import sys
 import time
 import requests
@@ -19,33 +23,55 @@ from urllib.parse import urljoin
 
 TOKEN_PATH = os.path.expanduser('~/.ydb/token')
 TOKEN_MAX_AGE_SEC = 5 * 60
+LOGIN_MAX_ATTEMPTS = 10
+LOGIN_RETRY_DELAY_MS = (200, 900)
 
 
 def fetch_session_token(viewer_url, user, password):
     base_url = viewer_url.rstrip('/') + '/'
     login_url = urljoin(base_url, 'login')
 
-    response = requests.post(
-        login_url,
-        json={'user': user, 'password': password},
-        headers={'Content-Type': 'application/json'},
-        verify=False,
-    )
-    if not response.ok:
-        raise RuntimeError(
-            f'Login failed: HTTP {response.status_code}\n{response.text}'
-        )
+    last_error = None
+    for attempt in range(1, LOGIN_MAX_ATTEMPTS + 1):
+        try:
+            response = requests.post(
+                login_url,
+                json={'user': user, 'password': password},
+                headers={'Content-Type': 'application/json'},
+                verify=False,
+            )
+            if not response.ok:
+                raise RuntimeError(
+                    f'Login failed: HTTP {response.status_code}\n{response.text}'
+                )
 
-    token = response.cookies.get('ydb_session_id')
-    if not token:
-        # Some proxies/servers may expose Set-Cookie only in raw headers.
-        for cookie in response.cookies:
-            if cookie.name == 'ydb_session_id':
-                token = cookie.value
+            token = response.cookies.get('ydb_session_id')
+            if not token:
+                # Some proxies/servers may expose Set-Cookie only in raw headers.
+                for cookie in response.cookies:
+                    if cookie.name == 'ydb_session_id':
+                        token = cookie.value
+                        break
+            if not token:
+                raise RuntimeError(
+                    'Login response did not contain Cookie ydb_session_id'
+                )
+            return token
+        except (RuntimeError, requests.RequestException) as e:
+            last_error = e
+            if attempt >= LOGIN_MAX_ATTEMPTS:
                 break
-    if not token:
-        raise RuntimeError('Login response did not contain Cookie ydb_session_id')
-    return token
+            delay_sec = random.randint(*LOGIN_RETRY_DELAY_MS) / 1000.0
+            print(
+                f'Login attempt {attempt}/{LOGIN_MAX_ATTEMPTS} failed: {e}; '
+                f'retrying in {delay_sec:.3f}s',
+                file=sys.stderr,
+            )
+            time.sleep(delay_sec)
+
+    raise RuntimeError(
+        f'Login failed after {LOGIN_MAX_ATTEMPTS} attempts: {last_error}'
+    )
 
 
 def token_is_fresh(path, max_age_sec=TOKEN_MAX_AGE_SEC):

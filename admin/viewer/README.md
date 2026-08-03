@@ -2,15 +2,24 @@
 
 ## Аутентификация
 
-Для YDB со статической аутентификацией доступ из скриптов в Embedded UI требует наличия токена. Токен можно получить из Cookie с идентификатором `ydb_session_id`, зайдя в интерфейс Embedded UI. Для версий YDB ранее 26.1 альтернативно можно обратиться к следующему адресу: https://localhost:8765/viewer/json/whoami (место `localhost:8765` должен быть указан корректный адрес доступа к Embedded UI), токен будет в поле `OriginalUserToken`.
+Для YDB со статической аутентификацией доступ из скриптов в Embedded UI требует наличия токена. Токен берётся из Cookie `ydb_session_id` и сохраняется в файл `~/.ydb/token`.
 
-Полученный токен необходимо поместить в файл `~/.ydb/token`
+Получить токен автоматически можно скриптом `get_token.py` (логин/пароль из переменных `YDB_USER` и `YDB_PASSWORD`, запрос `POST /login`):
+
+```bash
+export YDB_USER=root
+export YDB_PASSWORD='...'
+./get_token.py --viewer-url https://ycydb-s1:8765
+```
+
+Вручную токен можно взять из Cookie `ydb_session_id` в интерфейсе Embedded UI. Для версий YDB ранее 26.1 альтернативно можно обратиться к адресу `https://localhost:8765/viewer/json/whoami` (вместо `localhost:8765` укажите корректный адрес Embedded UI) — токен будет в поле `OriginalUserToken`.
 
 ## Принудительная компактификация таблеток
 
 ```bash
-mkdir ~/.ydb
-vi ~/.ydb/token
+export YDB_USER=root
+export YDB_PASSWORD='...'
+./get_token.py --viewer-url https://ycydb-s1:8765
 
 # Table compaction
 ./table_full_compact.py --viewer-url https://ycydb-s1:8765 --auth Login --all /Domain0/tpcc/order_line

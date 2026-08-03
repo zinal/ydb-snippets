@@ -58,7 +58,17 @@ def token_is_fresh(path, max_age_sec=TOKEN_MAX_AGE_SEC):
     return (time.time() - st.st_mtime) < max_age_sec
 
 
-def update_token(token_path, viewer_url):
+def require_credentials():
+    user = os.environ.get('YDB_USER')
+    password = os.environ.get('YDB_PASSWORD')
+    if not user:
+        raise RuntimeError('YDB_USER is not set')
+    if password is None:
+        raise RuntimeError('YDB_PASSWORD is not set')
+    return user, password
+
+
+def update_token(token_path, viewer_url, user, password):
     """Lock token file, refresh it unless it is fresher than TOKEN_MAX_AGE_SEC."""
     os.makedirs(os.path.dirname(token_path) or '.', exist_ok=True)
 
@@ -73,13 +83,6 @@ def update_token(token_path, viewer_url):
                     f'keeping {token_path}'
                 )
                 return False
-
-            user = os.environ.get('YDB_USER')
-            password = os.environ.get('YDB_PASSWORD')
-            if not user:
-                raise RuntimeError('YDB_USER is not set')
-            if password is None:
-                raise RuntimeError('YDB_PASSWORD is not set')
 
             token = fetch_session_token(viewer_url, user, password)
 
@@ -103,8 +106,8 @@ def main():
         formatter_class=RawDescriptionHelpFormatter,
         epilog='''\
 Environment:
-  YDB_USER       Login user name (required when token is missing/stale)
-  YDB_PASSWORD   Login password (required when token is missing/stale)
+  YDB_USER       Login user name (required)
+  YDB_PASSWORD   Login password (required)
 
 The script takes an exclusive lock on the token file. If the file is newer
 than 5 minutes, login is skipped and the existing token is kept.
@@ -127,9 +130,15 @@ Example:
     )
     args = parser.parse_args()
 
+    try:
+        user, password = require_credentials()
+    except RuntimeError as e:
+        print(str(e), file=sys.stderr)
+        sys.exit(1)
+
     token_path = os.path.expanduser(args.token_path)
     try:
-        update_token(token_path, args.viewer_url)
+        update_token(token_path, args.viewer_url, user, password)
     except RuntimeError as e:
         print(str(e), file=sys.stderr)
         sys.exit(1)

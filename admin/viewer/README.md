@@ -14,6 +14,26 @@ export YDB_PASSWORD='...'
 
 Вручную токен можно взять из Cookie `ydb_session_id` в интерфейсе Embedded UI. Для версий YDB ранее 26.1 альтернативно можно обратиться к адресу `https://localhost:8765/viewer/json/whoami` (вместо `localhost:8765` укажите корректный адрес Embedded UI) — токен будет в поле `OriginalUserToken`.
 
+## Поиск таблиц в legacy-режиме
+
+Скрипт `find_legacy_tables.py` обходит схему через `/scheme/directory` (рекурсивно, с обходом каждого каталога) и для каждой таблицы проверяет `/viewer/json/describe?partition_config=true`.
+
+Таблица считается legacy, если у `PathDescription.Table.PartitionConfig` нет family с `Id: 0` или у family 0 нет `StorageConfig`.
+
+Аутентификация: `--auth Login` и токен в `~/.ydb/token` (авто-логин не используется).
+
+```bash
+# Полная проверка всех таблиц БД
+./find_legacy_tables.py --viewer-url https://somehost:8765 --auth Login \
+  /Root/database
+
+# Только поддерево под schema1
+./find_legacy_tables.py  --viewer-url https://somehost:8765 --auth Login \
+  --path /Root/database/schema1 /Root/database
+```
+
+В stdout печатаются только legacy-таблицы (`path` и причина через табуляцию). Прогресс и итог — в stderr.
+
 ## Принудительная компактификация таблеток
 
 ```bash

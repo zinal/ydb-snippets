@@ -67,24 +67,24 @@ export YDB_PASSWORD='...'
 Рекомендуемый порядок действий для полной дефрагментации VDisk в конкретной БД:
 
 ```bash
-# Дефрагментация, шаг 1
-./vdisk_compact.py --viewer-url https://ycydb-s1:8765 --auth Login \
-  --mode defrag  --pool /Root/testdb:ssd --threads 8
+# Адрес сервера и имя пула хранения
+YDB_URL=https://ycydb-s1:8765
+YDB_POOL=/Root/testdb:ssd
 
-# Полная компактификация
-./vdisk_compact.py --viewer-url https://ycydb-s1:8765 --auth Login \
-  --mode compact-full --pool /Root/testdb:ssd --threads 8
+# 1. Дефрагментация
+./vdisk_compact.py --viewer-url ${YDB_URL} --auth Login --mode defrag  --pool ${YDB_POOL} --threads 8
 
-# Дефрагментация, шаг 2
-./vdisk_compact.py --viewer-url https://ycydb-s1:8765 --auth Login \
-  --mode defrag  --pool /Root/testdb:ssd --threads 16
+# 2. Полная компактификация
+./vdisk_compact.py --viewer-url ${YDB_URL} --auth Login --mode compact-full --pool ${YDB_POOL} --threads 8
 
-# Пауза 10 секунд
+# 3. Повторная дефрагментация
+./vdisk_compact.py --viewer-url ${YDB_URL} --auth Login --mode defrag  --pool ${YDB_POOL} --threads 16
+
+# 4. Пауза 10 секунд
 sleep 10
 
-# Дефрагментация, шаг 3
-./vdisk_compact.py --viewer-url https://ycydb-s1:8765 --auth Login \
-  --mode defrag  --pool /Root/testdb:ssd --threads 8
+# Повторная полная дефрагментация
+./vdisk_compact.py --viewer-url ${YDB_URL} --auth Login --mode compact-full --pool ${YDB_POOL} --threads 8
 ```
 
 Другие примеры вызовов:

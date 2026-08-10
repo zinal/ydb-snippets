@@ -83,7 +83,7 @@ YDB_POOL=/Root/testdb:ssd
 # 4. Пауза 10 секунд
 sleep 10
 
-# Повторная полная дефрагментация
+# 5. Повторная полная дефрагментация
 ./vdisk_compact.py --viewer-url ${YDB_URL} --auth Login --mode compact-full --pool ${YDB_POOL} --threads 8
 ```
 

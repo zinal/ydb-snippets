@@ -19,6 +19,23 @@ make build
 # binary: bin/repair-legacy-tables
 ```
 
+`make build` sets `CGO_ENABLED=0` so the binary is statically linked and does
+**not** depend on the host GLIBC version (avoids errors like
+`version GLIBC_2.34 not found` when copying the binary to older Linux hosts).
+
+If you call `go build` directly, pass the same flag:
+
+```bash
+CGO_ENABLED=0 go build -trimpath -ldflags='-s -w' \
+  -o bin/repair-legacy-tables ./cmd/repair-legacy-tables
+```
+
+```bash
+# verify: should print "statically linked" / "not a dynamic executable"
+file bin/repair-legacy-tables
+ldd bin/repair-legacy-tables || true
+```
+
 Requirements: Go 1.22+, `protoc` + `protoc-gen-go` + `protoc-gen-go-grpc` only if you regenerate stubs (`make generate`).
 
 ## Auth

@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package NKikimrClient;
+
+option go_package = "github.com/zinal/ydb-snippets/admin/repair-legacy-tables/pkg/kikimr/msgbus;msgbus";
+
+import "msgbus.proto";
+
+service TGRpcServer {
+    rpc SchemeOperation(TSchemeOperation) returns (TResponse);
+    rpc SchemeOperationStatus(TSchemeOperationStatus) returns (TResponse);
+    rpc SchemeDescribe(TSchemeDescribe) returns (TResponse);
+}

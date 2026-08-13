@@ -1,0 +1,82 @@
+// Minimal subset of YDB internal scheme protos for legacy table find/repair.
+// Field numbers and package names match YDB wire format.
+syntax = "proto2";
+
+package NKikimrSchemeOp;
+
+option go_package = "github.com/zinal/ydb-snippets/admin/repair-legacy-tables/pkg/kikimr/schemeop;schemeop";
+
+enum EOperationType {
+    ESchemeOpCreateTable = 2;
+    ESchemeOpDropTable = 4;
+    ESchemeOpMoveTable = 71;
+}
+
+enum EPathType {
+    EPathTypeDir = 1;
+    EPathTypeTable = 2;
+    EPathTypeSubDomain = 4;
+    EPathTypeColumnTable = 13;
+}
+
+message TStorageSettings {
+    optional string PreferredPoolKind = 1;
+}
+
+message TStorageConfig {
+    optional TStorageSettings SysLog = 1;
+    optional TStorageSettings Log = 2;
+    optional TStorageSettings Data = 3;
+    optional TStorageSettings External = 4;
+}
+
+message TFamilyDescription {
+    optional uint32 Id = 1;
+    optional string Name = 5;
+    optional TStorageConfig StorageConfig = 9;
+}
+
+message TPartitionConfig {
+    optional uint32 ChannelProfileId = 9;
+    repeated TFamilyDescription ColumnFamilies = 12;
+}
+
+message TTableDescription {
+    optional string Name = 1;
+    optional TPartitionConfig PartitionConfig = 7;
+    optional string CopyFromTable = 30;
+}
+
+message TDrop {
+    optional string Name = 1;
+}
+
+message TMove {
+    optional string SrcPath = 1;
+    optional string DstPath = 2;
+}
+
+message TModifyScheme {
+    optional string WorkingDir = 1;
+    optional EOperationType OperationType = 2;
+    optional TTableDescription CreateTable = 4;
+    optional TDrop Drop = 7;
+    optional TMove MoveTable = 48;
+}
+
+message TDescribeOptions {
+    optional bool ReturnPartitioningInfo = 1 [default = true];
+    optional bool ReturnPartitionConfig = 2 [default = true];
+    optional bool ReturnChildren = 5 [default = true];
+}
+
+message TDirEntry {
+    optional string Name = 1;
+    optional EPathType PathType = 4;
+}
+
+message TPathDescription {
+    optional TDirEntry Self = 1;
+    repeated TDirEntry Children = 2;
+    optional TTableDescription Table = 3;
+}

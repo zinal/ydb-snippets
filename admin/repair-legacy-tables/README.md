@@ -61,7 +61,8 @@ For each table:
    - unsafe / other error → **stop**
 2. `CreateTable` + `CopyFromTable` with default family `StorageConfig` (`PreferredPoolKind`)
 3. Move original → `<name>_bak`, temp copy → original
-4. Optionally `--drop-backup`
+4. With `--drop-backup`: after **all** tables in the batch succeed, drop every
+   `<name>_bak` created in this run (on mid-batch error backups are kept)
 
 ```bash
 export YDB_TOKEN="$(cat ydb-token)"
@@ -70,6 +71,13 @@ export YDB_TOKEN="$(cat ydb-token)"
   --endpoint grpcs://ydb-host:2135 --ca-file ca.crt \
   --pool-kind ssd \
   --tables-file legacy_tables.txt
+
+# same, then remove backups at the end
+./bin/repair-legacy-tables repair \
+  --endpoint grpcs://ydb-host:2135 --ca-file ca.crt \
+  --pool-kind ssd \
+  --tables-file legacy_tables.txt \
+  --drop-backup
 
 # plan only
 ./bin/repair-legacy-tables repair \
@@ -81,8 +89,9 @@ export YDB_TOKEN="$(cat ydb-token)"
 
 `--pool-kind` must match the database storage pool kind (often `ssd`).
 
-Successfully repaired paths are printed to stdout. The original table is kept as
-`<name>_bak` unless `--drop-backup` is set.
+Successfully repaired paths are printed to stdout. By default the original table
+is kept as `<name>_bak`; pass `--drop-backup` to remove those backups at the end
+of a fully successful run.
 
 ## Regenerate protos
 

@@ -100,7 +100,7 @@ func runFind(ctx context.Context, args []string) error {
 	path := fs.String("path", "", "Start directory (default: same as --database)")
 	output := fs.String("output", "", "Also write results to this file (path\\treason)")
 	includeSys := fs.Bool("include-sys", false, "Also walk directories whose names start with '.'")
-	if err := fs.Parse(args); err != nil {
+	if err := parseFlags(fs, args); err != nil {
 		return err
 	}
 	if *database == "" {
@@ -161,7 +161,7 @@ func runRepair(ctx context.Context, args []string) error {
 	backupSuffix := fs.String("backup-suffix", "_bak", "Suffix for renamed original table")
 	dropBackup := fs.Bool("drop-backup", false, "Drop <table>_bak after successful swap")
 	dryRun := fs.Bool("dry-run", false, "Check and print plan without modifying scheme")
-	if err := fs.Parse(args); err != nil {
+	if err := parseFlags(fs, args); err != nil {
 		return err
 	}
 	if *tablesFile == "" {

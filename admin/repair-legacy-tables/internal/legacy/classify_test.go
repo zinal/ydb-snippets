@@ -43,14 +43,17 @@ func TestClassifyUnsafeChannelProfile(t *testing.T) {
 	}
 }
 
-func TestClassifyUnsafeFamilyWithoutStorage(t *testing.T) {
+func TestClassifyNeedsRepairFamilyWithoutStorage(t *testing.T) {
 	pc := &schemeop.TPartitionConfig{
 		ColumnFamilies: []*schemeop.TFamilyDescription{
 			{Id: proto.Uint32(0), Name: proto.String("default")},
 		},
 	}
 	cl := ClassifyPartitionConfig(pc)
-	if cl.Status != Unsafe {
+	if cl.Status != NeedsRepair {
 		t.Fatalf("got %v (%s)", cl.Status, cl.Reason)
+	}
+	if cl.Reason != "family 0 has no StorageConfig" {
+		t.Fatalf("unexpected reason %q", cl.Reason)
 	}
 }

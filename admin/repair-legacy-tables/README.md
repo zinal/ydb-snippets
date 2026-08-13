@@ -30,11 +30,10 @@ Requirements: Go 1.22+, `protoc` + `protoc-gen-go` + `protoc-gen-go-grpc` only i
 
 Walks the scheme tree with `SchemeDescribe` (children + partition config).
 
-A table is listed when `PartitionConfig` has no `ColumnFamilies` / no family
-with `Id: 0` (same idea as `admin/viewer/find_legacy_tables.py`). Tables that
-already have family-0 `StorageConfig` are skipped; tables that are unsafe for
-the copy-based repair (e.g. `ChannelProfileId` set, or incomplete families)
-are not printed as repair candidates.
+A table is listed when there is no family with `Id: 0`, or family 0 has no
+usable `StorageConfig` (same idea as `admin/viewer/find_legacy_tables.py`).
+Tables that already have family-0 `StorageConfig` are skipped. Tables with
+`ChannelProfileId` set are treated as unsafe and are not listed for repair.
 
 ```bash
 ./bin/repair-legacy-tables find \

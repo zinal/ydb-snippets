@@ -10,7 +10,7 @@ import (
 type Status int
 
 const (
-	// NeedsRepair: no ColumnFamilies / empty families — safe to repair.
+	// NeedsRepair: missing usable family-0 StorageConfig — eligible for repair.
 	NeedsRepair Status = iota
 	// AlreadyRepaired: family 0 has StorageConfig — skip and continue.
 	AlreadyRepaired
@@ -39,9 +39,8 @@ type Classification struct {
 
 // ClassifyPartitionConfig decides whether a table needs / can be repaired.
 //
-// Aligns with find_legacy_tables.py (legacy = missing family 0 StorageConfig)
-// and the PDF safety rules (do not apply when ChannelProfileId is set or when
-// ColumnFamilies exist but are incomplete).
+// Aligns with find_legacy_tables.py: legacy when there is no family with Id: 0
+// or family 0 has no usable StorageConfig. ChannelProfileId still blocks repair.
 func ClassifyPartitionConfig(pc *schemeop.TPartitionConfig) Classification {
 	if pc == nil {
 		return Classification{Status: NeedsRepair, Reason: "no PartitionConfig"}
@@ -70,8 +69,8 @@ func ClassifyPartitionConfig(pc *schemeop.TPartitionConfig) Classification {
 	}
 	if family0 == nil {
 		return Classification{
-			Status: Unsafe,
-			Reason: "ColumnFamilies present but no entry with Id: 0",
+			Status: NeedsRepair,
+			Reason: "no ColumnFamilies entry with Id: 0",
 		}
 	}
 	if hasUsableStorageConfig(family0.GetStorageConfig()) {
@@ -81,7 +80,7 @@ func ClassifyPartitionConfig(pc *schemeop.TPartitionConfig) Classification {
 		}
 	}
 	return Classification{
-		Status: Unsafe,
+		Status: NeedsRepair,
 		Reason: "family 0 has no StorageConfig",
 	}
 }

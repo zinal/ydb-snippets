@@ -1,0 +1,11 @@
+syntax = "proto2";
+
+package NKikimrTxUserProxy;
+
+option go_package = "github.com/zinal/ydb-snippets/admin/repair-legacy-tables/pkg/kikimr/txproxy;txproxy";
+
+import "scheme_op.proto";
+
+message TTransaction {
+    optional NKikimrSchemeOp.TModifyScheme ModifyScheme = 10;
+}

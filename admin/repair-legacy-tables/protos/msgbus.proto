@@ -1,0 +1,47 @@
+syntax = "proto2";
+
+package NKikimrClient;
+
+option go_package = "github.com/zinal/ydb-snippets/admin/repair-legacy-tables/pkg/kikimr/msgbus;msgbus";
+
+import "scheme_op.proto";
+import "tx_proxy.proto";
+
+message TFlatTxId {
+    optional fixed64 TxId = 1;
+    optional fixed64 SchemeShardTabletId = 2;
+    optional uint64 PathId = 3;
+}
+
+message TFlatTxPollOptions {
+    optional uint32 Timeout = 1 [default = 1000]; // ms
+}
+
+message TSchemeOperation {
+    optional NKikimrTxUserProxy.TTransaction Transaction = 1;
+    optional string SecurityToken = 5;
+    optional TFlatTxPollOptions PollOptions = 10;
+}
+
+message TSchemeDescribe {
+    optional string Path = 1;
+    optional uint64 PathId = 2;
+    optional uint64 SchemeshardId = 3;
+    optional string SecurityToken = 5;
+    optional NKikimrSchemeOp.TDescribeOptions Options = 6;
+}
+
+message TSchemeOperationStatus {
+    optional TFlatTxId FlatTxId = 1;
+    optional string SecurityToken = 2;
+    optional TFlatTxPollOptions PollOptions = 10;
+}
+
+message TResponse {
+    optional uint32 Status = 1;
+    optional string ErrorReason = 400;
+    optional int32 SchemeStatus = 300;
+    optional NKikimrSchemeOp.TPathDescription PathDescription = 600;
+    optional string Path = 601;
+    optional TFlatTxId FlatTxId = 700;
+}

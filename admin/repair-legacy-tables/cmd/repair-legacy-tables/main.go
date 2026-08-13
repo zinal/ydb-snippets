@@ -64,7 +64,7 @@ Examples:
   repair-legacy-tables repair --endpoint grpc://host:2135 \
       --pool-kind ssd --tables-file legacy_tables.txt
 
-  # Drop <table>_bak copies at the end of a fully successful run
+  # Drop each <table>_bak right after that table is repaired
   repair-legacy-tables repair --endpoint grpc://host:2135 \
       --pool-kind ssd --tables-file legacy_tables.txt --drop-backup
 `)
@@ -163,7 +163,7 @@ func runRepair(ctx context.Context, args []string) error {
 	poolKind := fs.String("pool-kind", "", "PreferredPoolKind for default family (e.g. ssd)")
 	tempPrefix := fs.String("temp-prefix", "temp_", "Prefix for temporary copy name")
 	backupSuffix := fs.String("backup-suffix", "_bak", "Suffix for renamed original table")
-	dropBackup := fs.Bool("drop-backup", false, "After a fully successful run, drop all <table>_bak created in this batch")
+	dropBackup := fs.Bool("drop-backup", false, "Drop <table>_bak immediately after each successful rename")
 	dryRun := fs.Bool("dry-run", false, "Check and print plan without modifying scheme")
 	if err := parseFlags(fs, args); err != nil {
 		return err

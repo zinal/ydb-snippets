@@ -63,6 +63,10 @@ Examples:
 
   repair-legacy-tables repair --endpoint grpc://host:2135 \
       --pool-kind ssd --tables-file legacy_tables.txt
+
+  # Drop <table>_bak copies at the end of a fully successful run
+  repair-legacy-tables repair --endpoint grpc://host:2135 \
+      --pool-kind ssd --tables-file legacy_tables.txt --drop-backup
 `)
 }
 
@@ -159,7 +163,7 @@ func runRepair(ctx context.Context, args []string) error {
 	poolKind := fs.String("pool-kind", "", "PreferredPoolKind for default family (e.g. ssd)")
 	tempPrefix := fs.String("temp-prefix", "temp_", "Prefix for temporary copy name")
 	backupSuffix := fs.String("backup-suffix", "_bak", "Suffix for renamed original table")
-	dropBackup := fs.Bool("drop-backup", false, "Drop <table>_bak after successful swap")
+	dropBackup := fs.Bool("drop-backup", false, "After a fully successful run, drop all <table>_bak created in this batch")
 	dryRun := fs.Bool("dry-run", false, "Check and print plan without modifying scheme")
 	if err := parseFlags(fs, args); err != nil {
 		return err
@@ -182,8 +186,8 @@ func runRepair(ctx context.Context, args []string) error {
 		auth = "token"
 	}
 	logger := log.New(os.Stderr, "", log.LstdFlags)
-	logger.Printf("Starting repair: endpoint=%s tables-file=%s pool_kind=%q auth=%s dry_run=%v",
-		*endpoint, *tablesFile, *poolKind, auth, *dryRun)
+	logger.Printf("Starting repair: endpoint=%s tables-file=%s pool_kind=%q auth=%s dry_run=%v drop_backup=%v",
+		*endpoint, *tablesFile, *poolKind, auth, *dryRun, *dropBackup)
 
 	res, err := repair.Run(ctx, c, repair.Options{
 		TablesFile:   *tablesFile,
@@ -201,6 +205,7 @@ func runRepair(ctx context.Context, args []string) error {
 		}
 		return err
 	}
-	logger.Printf("Done: total=%d, repaired=%d, skipped_already_ok=%d", res.Total, res.Repaired, res.Skipped)
+	logger.Printf("Done: total=%d, repaired=%d, skipped_already_ok=%d, backups_dropped=%d",
+		res.Total, res.Repaired, res.Skipped, res.BackupsDropped)
 	return nil
 }

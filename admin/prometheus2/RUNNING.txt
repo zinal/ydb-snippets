@@ -14,7 +14,7 @@ mkdir -pv dashboards
 cd dashboards
 DASHES="actors cpu database-hive-balance database-hive-detailed datashard dboverview dbstatus distributed-storage-latencies-leveled distributed-storage-performance-metrics distributed-storage-self-heal grpc memory queryengine replication-factor single-pdisk topic-consumer topic txproxy ydb-essentials"
 for DASH in ${DASHES}; do
-  wget "https://raw.githubusercontent.com/ydb-platform/ydb/main/ydb/deploy/helm/ydb-prometheus/dashboards/${dash}.json"
+  wget "https://raw.githubusercontent.com/ydb-platform/ydb/main/ydb/deploy/helm/ydb-prometheus/dashboards/${DASH}.json"
 done
 
 GRAFANA_API="http://admin:admin@localhost:3000/api"

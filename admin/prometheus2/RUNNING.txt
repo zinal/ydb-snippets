@@ -12,7 +12,7 @@ Grafana:
 
 mkdir -pv dashboards
 cd dashboards
-DASHES="actors cpu datashard dboverview dbstatus grpc queryengine txproxy"
+DASHES="actors cpu database-hive-balance database-hive-detailed datashard dboverview dbstatus distributed-storage-latencies-leveled distributed-storage-performance-metrics distributed-storage-self-heal grpc memory queryengine replication-factor single-pdisk topic-consumer topic txproxy ydb-essentials"
 for DASH in ${DASHES}; do
   wget "https://raw.githubusercontent.com/ydb-platform/ydb/main/ydb/deploy/helm/ydb-prometheus/dashboards/${dash}.json"
 done

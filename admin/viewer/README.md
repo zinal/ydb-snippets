@@ -83,6 +83,24 @@ export YDB_PASSWORD='...'
 
 Другие значения `--type`: `TOPIC`, `PERS_QUEUE_GROUP`, `TABLE`, `COLUMN_TABLE`, `COLUMN_STORE`. Несколько видов перечисляются через запятую.
 
+## Путь и тип объекта по TabletID
+
+Скрипт `tablet_object.py` по идентификатору таблетки печатает полный путь схемного объекта и его тип. Hive хранит локальный path id объекта в поле `ObjectId`, а идентификатор SchemeShard — в `TabletOwner.Owner`. Скрипт читает эту запись через `/viewer/json/hiveinfo` и описывает объект по `path_id`.
+
+Тип — схемный: `TABLE`, `TOPIC`, `COLUMN_TABLE`, `COLUMN_STORE`, `CDC_STREAM` и другие. Группа PersQueue, в том числе служебный топик CDC `{таблица}/{changefeed}/streamImpl`, печатается как `TOPIC`. Таблетка без схемного объекта (например, сам Hive) завершается ошибкой с типом таблетки в тексте.
+
+Идентификатор Hive берётся из описания базы одним запросом, без повторов. Обрыв соединения при чтении Hive и описании объекта повторяется до `--retries` раз. Ошибка «доступ запрещён» не повторяется. Запрос describe по `path_id` требует права мониторинга.
+
+В stdout — по строке на таблетку: `tablet_id`, путь и тип через табуляцию. Код выхода `2`, если хотя бы одну таблетку не удалось разрешить.
+
+```bash
+./tablet_object.py --viewer-url https://ycydb-s1:8765 --auth Login \
+  /Root/database 72075186224123090
+
+./tablet_object.py --viewer-url https://ycydb-s1:8765 --auth Login \
+  /Root/database 72075186224123090 72075186224123091
+```
+
 ## Принудительная компактификация таблеток
 
 ```bash

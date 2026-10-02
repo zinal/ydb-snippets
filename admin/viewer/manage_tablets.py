@@ -18,7 +18,17 @@ Discovery uses the Embedded UI Web API:
   request inside that database; without it a nested object can come back
   as HTTP 400 while a describe of the database itself still succeeds
 * database describe — Hive id from DomainDescription.ProcessingParams.Hive,
-  or SharedHive when the database has no dedicated Hive
+  or SharedHive when the database has no dedicated Hive. The same reply
+  carries ProcessingParams.SchemeShard
+
+When describe reports that the path does not exist, the directory may still
+list the object. DROP TOPIC hides a topic from describe as soon as the drop
+is accepted, while SchemeShard keeps the shard records until DropParts
+finishes. Tablet ids are then read from the SchemeShard monitoring pages
+``Page=TxList``, ``Page=TxInfo`` and ``Page=PathInfo``. Partition numbers
+are left empty. Those pages need DevUI access. If the directory no longer
+lists the object, or the shards have already been deleted, the original
+describe error is kept.
 
 Both actions are Hive monitoring handlers in ydb/core/mind/hive/monitoring.cpp:
 
@@ -39,13 +49,16 @@ not retried.
 
 import json
 import os
+import re
 import sys
 import threading
 import time
 import requests
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
+from html import unescape
+from html.parser import HTMLParser
 from multiprocessing.pool import ThreadPool
-from urllib.parse import quote
+from urllib.parse import parse_qs, quote
 
 VIEWER_URL_BASE = ''
 VIEWER_HEADERS = {}
@@ -56,6 +69,9 @@ URL_TABLET_APP = '{url_base}/tablets/app'
 
 # Database path sent on every describe. Set in main() before the first request.
 DATABASE = ''
+# SchemeShard tablet of DATABASE. Filled from the Hive describe when that
+# request runs; otherwise resolved on the first hidden-path fallback.
+SCHEMESHARD_ID = None
 
 HTTP_TIMEOUT = 60
 MAX_ATTEMPTS = 5
@@ -159,7 +175,44 @@ CDC_DESCRIBE_QUERY = (
 SUCCESS_STATUSES = frozenset({'0', 'OK', '2', 'ALREADY'})
 ALREADY_STATUSES = frozenset({'2', 'ALREADY'})
 
+# TPathId is invalid when either component is Max<ui64>().
+INVALID_PATH_ID = (1 << 64) - 1
+TX_LIST_HEADERS = ('opid', 'type', 'state', 'shards in progress')
+SHARD_TYPE_HEADERS = ('shardid', 'tablettype', 'operation', 'rangeend')
+INPROGRESS_HEADERS = ('ownershardidx', 'localshardidx', 'tabletid')
+PATH_SHARD_HEADERS = ('shardidx', 'tableid', 'isactive')
+# Compacted describe text. DROP TOPIC makes describe return these while the
+# path element and its shards are still on SchemeShard.
+_HIDDEN_PATH_MARKERS = (
+    'pathnotfound',
+    'patherrorunknown',
+    'pathdoesnotexist',
+    'statuspathdoesnotexist',
+)
+_TX_PATH_LINK = re.compile(
+    r"""(TargetPathId|SourcePathId|CdcPathId):\s*<a\s+href=(['"])(.*?)\2""",
+    re.IGNORECASE,
+)
+_PATH_LINE = re.compile(r'(?m)(?:^|>)\s*Path: ([^\n]*)')
+_TABLET_TYPE_LINE = re.compile(r'TabletType:\s*(\S+)')
+_GONE_MARKERS = (
+    'Unknown Tx',
+    'No txState for operation',
+    'No operations for tx id',
+    'No suboperations for operation',
+)
+_TABLET_ROLE_BY_TYPE = {
+    'PERSQUEUE': 'partition',
+    'PERSQUEUEREADBALANCER': 'balancer',
+    'DATASHARD': 'datashard',
+    'COLUMNSHARD': 'columnshard',
+}
+
 _THREAD_LOCAL = threading.local()
+# One SchemeShard walk per process. None until the first hidden-path lookup.
+# After that, {'error': str or None, 'by_path': {path: tablets}}.
+_HIDDEN_LOCK = threading.Lock()
+_HIDDEN_CACHE = None
 
 
 def log(msg, file=sys.stderr):
@@ -296,6 +349,19 @@ def describe_is_success(payload):
         return 'PathDescription' in payload
     name = norm_status(status)
     return name in ('0', 'STATUSSUCCESS', 'SUCCESS', 'OK')
+
+
+def extract_schemeshard_id(describe):
+    """SchemeShard tablet of the database, or None."""
+    if not isinstance(describe, dict):
+        return None
+    domain = (describe.get('PathDescription') or {}).get('DomainDescription') or {}
+    processing = domain.get('ProcessingParams') or {}
+    for key in ('SchemeShard', 'schemeShard', 'schemeshard'):
+        found = as_int(processing.get(key))
+        if found:
+            return found
+    return None
 
 
 def extract_hive_id(describe):
@@ -973,6 +1039,453 @@ def discover_nested_for_table(item):
     return found, errors
 
 
+def is_hidden_path_error(value):
+    """True when describe says the path is gone.
+
+    DROP TOPIC publishes that answer before SchemeShard deletes the shards.
+    Connection failures and access denied do not match.
+    """
+    compact = re.sub(r'[^a-z0-9]', '', str(value).lower())
+    return any(marker in compact for marker in _HIDDEN_PATH_MARKERS)
+
+
+def schemeshard_url(schemeshard_id, **params):
+    parts = [f'TabletID={schemeshard_id}']
+    for key, value in params.items():
+        parts.append(f'{key}={quote(str(value), safe="")}')
+    return f'{URL_TABLET_APP.format(url_base=VIEWER_URL_BASE)}?{"&".join(parts)}'
+
+
+def load_text(url):
+    """HTML body of a tablet monitoring page. Redirects are errors."""
+    response = get_session().get(
+        url,
+        headers=VIEWER_HEADERS,
+        verify=False,
+        timeout=HTTP_TIMEOUT,
+        allow_redirects=False,
+    )
+    if response.status_code >= 300:
+        raise http_error(response)
+    content_type = response.headers.get('Content-Type', '')
+    if 'charset=' not in content_type.lower():
+        response.encoding = 'utf-8'
+    return response.text
+
+
+def cgi_params(href):
+    href = unescape(href or '')
+    query = href.split('?', 1)[-1]
+    parsed = parse_qs(query, keep_blank_values=False)
+    result = {}
+    for key, values in parsed.items():
+        if values:
+            result[key] = values[-1]
+    return result
+
+
+def is_valid_path_id(owner, local):
+    if owner is None or local is None:
+        return False
+    return owner != INVALID_PATH_ID and local != INVALID_PATH_ID
+
+
+def _tablet_id_from_href(href):
+    """Tablet id from a Hive ``../tablets?TabletID=`` link.
+
+    ``../tablets/app?TabletID=`` is the SchemeShard page, not a shard tablet.
+    """
+    if not href:
+        return None
+    text = unescape(href)
+    lowered = text.lower()
+    if 'tablets/app' in lowered or not re.search(r'(?:^|/)tablets\?', lowered):
+        return None
+    return as_int(cgi_params(text).get('TabletID'))
+
+
+def _shard_idx_text(text):
+    left, sep, right = (text or '').partition(':')
+    if not sep:
+        return None
+    owner = as_int(left.strip())
+    local = as_int(right.strip())
+    if owner is None or local is None:
+        return None
+    return owner, local
+
+
+def _shard_idx_from_href(href):
+    params = cgi_params(href)
+    owner = as_int(params.get('OwnerShardIdx'))
+    local = as_int(params.get('LocalShardIdx'))
+    if owner is None or local is None:
+        return _shard_idx_text(unescape(href or ''))
+    return owner, local
+
+
+def role_for_tablet_type(type_name):
+    text = re.sub(r'[^A-Za-z0-9]', '', str(type_name or '')).upper()
+    if text in _TABLET_ROLE_BY_TYPE:
+        return _TABLET_ROLE_BY_TYPE[text]
+    if not text:
+        return 'shard'
+    return text.lower()
+
+
+class _HtmlTables(HTMLParser):
+    """Collect rows of every HTML table, including tables nested in a layout."""
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.tables = []
+        self._stack = []
+        self._row = None
+        self._cell = None
+
+    def handle_starttag(self, tag, attrs):
+        tag = tag.lower()
+        attrs = {key.lower(): value for key, value in attrs}
+        if tag == 'table':
+            self._stack.append([])
+            self._row = None
+            self._cell = None
+            return
+        if not self._stack:
+            return
+        if tag == 'tr':
+            self._row = []
+            self._cell = None
+        elif tag in ('td', 'th') and self._row is not None:
+            self._cell = {'text': [], 'href': None, 'header': tag == 'th'}
+        elif tag == 'a' and self._cell is not None and not self._cell['href']:
+            self._cell['href'] = attrs.get('href')
+
+    def handle_endtag(self, tag):
+        tag = tag.lower()
+        if tag in ('td', 'th') and self._cell is not None and self._row is not None:
+            text = ' '.join(''.join(self._cell['text']).split())
+            self._row.append({
+                'text': text,
+                'href': self._cell['href'],
+                'header': self._cell['header'],
+            })
+            self._cell = None
+        elif tag == 'tr' and self._row is not None and self._stack:
+            if self._row:
+                self._stack[-1].append(self._row)
+            self._row = None
+        elif tag == 'table' and self._stack:
+            self.tables.append(self._stack.pop())
+            self._row = None
+            self._cell = None
+
+    def handle_data(self, data):
+        if self._cell is not None:
+            self._cell['text'].append(data)
+
+
+def _html_tables(html):
+    parser = _HtmlTables()
+    parser.feed(html or '')
+    parser.close()
+    return parser.tables
+
+
+def _table_header(table):
+    if not table:
+        return ()
+    return tuple(cell['text'].strip().lower() for cell in table[0])
+
+
+def _op_ids(href, text):
+    params = cgi_params(href)
+    tx_id = as_int(params.get('TxId'))
+    part_id = as_int(params.get('PartId'))
+    if tx_id is None or part_id is None:
+        left, sep, right = (text or '').partition(':')
+        if sep:
+            tx_id = as_int(left)
+            part_id = as_int(right)
+    return tx_id, part_id
+
+
+def parse_tx_list(html):
+    """Return in-flight sub-operations from a ``Page=TxList`` body.
+
+    Raises ``RuntimeError`` when the transaction table is absent.
+    """
+    for table in _html_tables(html):
+        if _table_header(table)[:len(TX_LIST_HEADERS)] != TX_LIST_HEADERS:
+            continue
+        operations = []
+        for row in table[1:]:
+            if len(row) < 4 or row[0]['header']:
+                continue
+            tx_id, part_id = _op_ids(row[0].get('href'), row[0]['text'])
+            if tx_id is None or part_id is None:
+                raise RuntimeError(
+                    f'in-flight row has no transaction id: {row[0]["text"]!r}'
+                )
+            operations.append({
+                'tx_id': tx_id,
+                'part_id': part_id,
+                'tx_type': row[1]['text'],
+                'state': row[2]['text'],
+            })
+        return operations
+    snippet = one_line(html or '')[:180]
+    raise RuntimeError(f'in-flight transaction table not found: {snippet}')
+
+
+def parse_tx_info(html):
+    """Return ``(refs, shard_types, in_progress, status)`` for ``Page=TxInfo``.
+
+    ``refs`` are valid path ids (``owner``, ``local``). ``shard_types`` maps
+    a shard idx to the tablet type printed in the Shards table. ``in_progress``
+    is the shards DropParts is still waiting on. ``status`` is ``ok``,
+    ``gone``, or ``unparsed``.
+    """
+    refs = []
+    seen = set()
+    found_label = False
+    for match in _TX_PATH_LINK.finditer(html or ''):
+        found_label = True
+        params = cgi_params(match.group(3))
+        owner = as_int(params.get('OwnerPathId'))
+        local = as_int(params.get('LocalPathId'))
+        if not is_valid_path_id(owner, local):
+            continue
+        key = (owner, local)
+        if key in seen:
+            continue
+        seen.add(key)
+        refs.append({'owner': owner, 'local': local})
+
+    shard_types = {}
+    in_progress = []
+    for table in _html_tables(html):
+        header = _table_header(table)
+        if header[:len(SHARD_TYPE_HEADERS)] == SHARD_TYPE_HEADERS:
+            for row in table[1:]:
+                if len(row) < 2 or row[0]['header']:
+                    continue
+                shard = _shard_idx_text(row[0]['text'])
+                type_name = row[1]['text'].strip()
+                if shard and type_name:
+                    shard_types[shard] = type_name
+        elif header[:len(INPROGRESS_HEADERS)] == INPROGRESS_HEADERS:
+            for row in table[1:]:
+                if len(row) < 2 or row[0]['header']:
+                    continue
+                shard = _shard_idx_from_href(row[0].get('href')) or _shard_idx_text(row[0]['text'])
+                tablet_id = _tablet_id_from_href(row[1].get('href')) or as_int(row[1]['text'])
+                if tablet_id:
+                    in_progress.append({'shard': shard, 'tablet_id': tablet_id})
+
+    if found_label:
+        return refs, shard_types, in_progress, 'ok'
+    text = unescape(html or '')
+    if any(marker in text for marker in _GONE_MARKERS):
+        return [], {}, [], 'gone'
+    return [], {}, [], 'unparsed'
+
+
+def parse_path_shards(html):
+    """Return ``(path, shards)`` from a ``Page=PathInfo`` body.
+
+    ``shards`` is a list of ``{shard, tablet_id}``. The path line is
+    ``<pre>Path: /full/path`` with no newline before ``Path``.
+    """
+    path = ''
+    for raw in _PATH_LINE.findall(html or ''):
+        candidate = unescape(raw).strip()
+        if candidate:
+            path = candidate
+            break
+    shards = []
+    for table in _html_tables(html):
+        if _table_header(table)[:len(PATH_SHARD_HEADERS)] != PATH_SHARD_HEADERS:
+            continue
+        for row in table[1:]:
+            if len(row) < 2 or row[0]['header']:
+                continue
+            shard = _shard_idx_from_href(row[0].get('href')) or _shard_idx_text(row[0]['text'])
+            tablet_id = _tablet_id_from_href(row[1].get('href')) or as_int(row[1]['text'])
+            if not tablet_id:
+                continue
+            shards.append({'shard': shard, 'tablet_id': tablet_id})
+        break
+    return path, shards
+
+
+def ensure_schemeshard_id():
+    """Return the SchemeShard tablet id, describing the database if needed."""
+    global SCHEMESHARD_ID
+    if SCHEMESHARD_ID:
+        return SCHEMESHARD_ID
+    if not DATABASE:
+        raise RuntimeError('database path is not set')
+    described = describe_path(DATABASE)
+    found = extract_schemeshard_id(described)
+    if not found:
+        raise RuntimeError(f'SchemeShard id not found in describe of {DATABASE}')
+    SCHEMESHARD_ID = found
+    return found
+
+
+def _role_for_shard(shard, shard_types, schemeshard_id, type_cache):
+    type_name = shard_types.get(shard) if shard else None
+    if not type_name and shard:
+        if shard not in type_cache:
+            owner, local = shard
+            url = schemeshard_url(
+                schemeshard_id,
+                Page='ShardInfoByShardIdx',
+                OwnerShardIdx=owner,
+                LocalShardIdx=local,
+            )
+            try:
+                html = call_with_connection_retries(
+                    lambda: load_text(url), f'shard {owner}:{local}',
+                )
+            except Exception as exc:
+                log(f'Shard {owner}:{local}: tablet type unavailable: {one_line(exc)}')
+                type_cache[shard] = ''
+            else:
+                match = _TABLET_TYPE_LINE.search(html or '')
+                type_cache[shard] = match.group(1) if match else ''
+        type_name = type_cache.get(shard)
+    return role_for_tablet_type(type_name)
+
+
+def _add_shard_tablets(tablets, shards, shard_types, schemeshard_id, type_cache):
+    for shard in shards:
+        role = _role_for_shard(
+            shard.get('shard'), shard_types, schemeshard_id, type_cache,
+        )
+        _add_tablet(tablets, shard['tablet_id'], role)
+
+
+def fetch_inflight_tablets():
+    """Map scheme path to tablets still registered on in-flight operations.
+
+    PathInfo lists every shard of the path. When that page has no shards,
+    tablets still listed as in progress are used, and only when that
+    transaction names a single path.
+    """
+    schemeshard_id = ensure_schemeshard_id()
+    log(f'Reading in-flight operations from SchemeShard {schemeshard_id}')
+    list_html = call_with_connection_retries(
+        lambda: load_text(schemeshard_url(schemeshard_id, Page='TxList')),
+        f'schemeshard {schemeshard_id} TxList',
+    )
+    operations = parse_tx_list(list_html)
+    log(f'SchemeShard {schemeshard_id}: {len(operations)} in-flight operation(s)')
+
+    pending = {}
+    for operation in operations:
+        label = f'{operation["tx_id"]}:{operation["part_id"]}'
+        tx_id = operation['tx_id']
+        part_id = operation['part_id']
+        html = call_with_connection_retries(
+            lambda tx_id=tx_id, part_id=part_id: load_text(schemeshard_url(
+                schemeshard_id,
+                Page='TxInfo',
+                TxId=tx_id,
+                PartId=part_id,
+            )),
+            f'transaction {label}',
+        )
+        refs, shard_types, in_progress, status = parse_tx_info(html)
+        if status == 'gone':
+            log(f'Transaction {label} left TxInFlight')
+            continue
+        if status != 'ok':
+            log(f'Transaction {label}: page has no affected paths')
+            continue
+        backup = in_progress if len(refs) == 1 else []
+        for ref in refs:
+            key = (ref['owner'], ref['local'])
+            slot = pending.setdefault(
+                key, {'types': {}, 'backups': [], 'tx_count': 0},
+            )
+            slot['types'].update(shard_types)
+            slot['tx_count'] += 1
+            if backup:
+                slot['backups'].append(backup)
+
+    type_cache = {}
+    by_path = {}
+    for (owner, local), slot in pending.items():
+        html = call_with_connection_retries(
+            lambda owner=owner, local=local: load_text(schemeshard_url(
+                schemeshard_id,
+                Page='PathInfo',
+                OwnerPathId=owner,
+                LocalPathId=local,
+            )),
+            f'path {owner}:{local}',
+        )
+        path, shards = parse_path_shards(html)
+        if not path:
+            log(f'Path {owner}:{local}: SchemeShard page has no path')
+            continue
+        path = normalize_path(path)
+        tablets = by_path.setdefault(path, {})
+        if shards:
+            _add_shard_tablets(
+                tablets, shards, slot['types'], schemeshard_id, type_cache,
+            )
+        elif slot['tx_count'] == 1 and len(slot['backups']) == 1:
+            _add_shard_tablets(
+                tablets, slot['backups'][0], slot['types'], schemeshard_id, type_cache,
+            )
+    filled = sum(1 for tablets in by_path.values() if tablets)
+    log(f'SchemeShard {schemeshard_id}: tablet ids for {filled} path(s)')
+    return by_path
+
+
+def hidden_tablets_by_path():
+    """Return ``{path: tablets}`` from one SchemeShard walk, cached for the process."""
+    global _HIDDEN_CACHE
+    with _HIDDEN_LOCK:
+        if _HIDDEN_CACHE is not None:
+            if _HIDDEN_CACHE.get('error'):
+                raise RuntimeError(_HIDDEN_CACHE['error'])
+            return _HIDDEN_CACHE['by_path']
+        try:
+            by_path = fetch_inflight_tablets()
+        except Exception as exc:
+            _HIDDEN_CACHE = {'error': one_line(exc), 'by_path': {}}
+            raise
+        _HIDDEN_CACHE = {'error': None, 'by_path': by_path}
+        return by_path
+
+
+def tablets_when_describe_hides_path(path, scheme_type, describe_error):
+    """Tablet ids for a path describe already refuses to show."""
+    reason = one_line(describe_error)
+    try:
+        by_path = hidden_tablets_by_path()
+    except Exception as exc:
+        return (
+            path, scheme_type, None,
+            f'ERROR: {reason}; SchemeShard fallback failed: {one_line(exc)}',
+        )
+    tablets = by_path.get(normalize_path(path))
+    if not tablets:
+        return (
+            path, scheme_type, None,
+            f'ERROR: {reason}; SchemeShard has no shards for this path',
+        )
+    log(
+        f'{path}: describe hid the path; '
+        f'using {len(tablets)} tablet(s) from SchemeShard'
+    )
+    return path, scheme_type, tablets, None
+
+
 def merge_objects(objects, extra):
     seen = {path for path, _scheme_type in objects}
     merged = list(objects)
@@ -990,10 +1503,15 @@ def collect_tablets_for_object(item):
     try:
         described = describe_path(path)
     except Exception as exc:
+        if is_hidden_path_error(exc):
+            return tablets_when_describe_hides_path(path, scheme_type, exc)
         return path, scheme_type, None, f'ERROR: {exc}'
     if not describe_is_success(described):
         status = described.get('Status') if isinstance(described, dict) else described
-        return path, scheme_type, None, f'ERROR: describe status {status}'
+        message = f'describe status {status}'
+        if is_hidden_path_error(status) or is_hidden_path_error(described):
+            return tablets_when_describe_hides_path(path, scheme_type, message)
+        return path, scheme_type, None, f'ERROR: {message}'
     try:
         tablets = tablets_from_describe(scheme_type, described)
     except Exception as exc:
@@ -1091,7 +1609,7 @@ def hive_action_with_retries(action, hive_id, tablet_id, wait, attempts):
 
 
 def main():
-    global VIEWER_URL_BASE, HTTP_TIMEOUT, SCHEME_ATTEMPTS, DATABASE
+    global VIEWER_URL_BASE, HTTP_TIMEOUT, SCHEME_ATTEMPTS, DATABASE, SCHEMESHARD_ID
 
     parser = ArgumentParser(
         formatter_class=RawDescriptionHelpFormatter,
@@ -1232,7 +1750,9 @@ Examples:
     if hive_id is None:
         log(f'Resolving Hive for {database}')
         try:
-            hive_id = extract_hive_id(describe_path(database, attempts=1))
+            described = describe_path(database, attempts=1)
+            hive_id = extract_hive_id(described)
+            SCHEMESHARD_ID = extract_schemeshard_id(described)
         except Exception as exc:
             print(f'Failed to describe {database}: {exc}', file=sys.stderr)
             sys.exit(1)

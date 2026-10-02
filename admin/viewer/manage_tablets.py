@@ -2,8 +2,9 @@
 """Stop or start Hive-managed tablets of schema objects of a given kind.
 
 Default kind is PQ: tablets of topic objects (scheme types TOPIC and
-PERS_QUEUE_GROUP). A path prefix limits which objects are included.
-Default action is stop; ``--action start`` resumes the same set.
+PERS_QUEUE_GROUP), including the hidden CDC changefeed topic
+``{table}/{stream}/streamImpl``. A path prefix limits which objects are
+included. Default action is stop; ``--action start`` resumes the same set.
 
 Discovery uses the Embedded UI Web API:
 
@@ -83,10 +84,31 @@ SCHEME_TYPE_BY_NUMBER = {
     2: 'TABLE',
     3: 'PERS_QUEUE_GROUP',
     4: 'DATABASE',
+    9: 'TABLE_INDEX',
     12: 'COLUMN_STORE',
     13: 'COLUMN_TABLE',
+    14: 'CDC_STREAM',
     17: 'TOPIC',
 }
+
+# Internal EPathType / EPathSubType names as returned by /viewer/json/describe.
+SCHEME_TYPE_ALIASES = {
+    'DIR': 'DIRECTORY',
+    'SUBDOMAIN': 'DATABASE',
+    'EXTSUBDOMAIN': 'DATABASE',
+    'PERSQUEUEGROUP': 'PERS_QUEUE_GROUP',
+    'CDCSTREAM': 'CDC_STREAM',
+    'TABLEINDEX': 'TABLE_INDEX',
+    'COLUMNSTORE': 'COLUMN_STORE',
+    'COLUMNTABLE': 'COLUMN_TABLE',
+    'STREAMIMPL': 'STREAM_IMPL',
+}
+
+# Child of a CDC stream created by schemeshard (ESchemeOpCreatePersQueueGroup).
+CDC_IMPL_NAME = 'streamImpl'
+CDC_DESCRIBE_QUERY = (
+    'children=true&partitioning_info=false&partition_config=false&backup=false'
+)
 
 SUCCESS_STATUSES = frozenset({'0', 'OK', '2', 'ALREADY'})
 ALREADY_STATUSES = frozenset({'2', 'ALREADY'})
@@ -115,6 +137,11 @@ def normalize_path(path):
 
 def join_path(parent, name):
     return f'{parent.rstrip("/")}/{name}'
+
+
+def paths_intersect(path, prefix):
+    """True when ``path`` is under ``prefix`` or ``prefix`` is under ``path``."""
+    return prefix is None or path_matches_prefix(path, prefix) or path_matches_prefix(prefix, path)
 
 
 def path_matches_prefix(path, prefix):
@@ -175,7 +202,12 @@ def scheme_type_name(value):
         return SCHEME_TYPE_BY_NUMBER.get(int(text), text)
     if '.' in text:
         text = text.rsplit('.', 1)[-1]
-    return text.upper()
+    text = text.upper()
+    for prefix in ('EPATHTYPE', 'EPATHSUBTYPE'):
+        if text.startswith(prefix):
+            text = text[len(prefix):]
+            break
+    return SCHEME_TYPE_ALIASES.get(text, text)
 
 
 def as_int(value):
@@ -338,6 +370,76 @@ def tablets_from_describe(scheme_type, describe):
     return extractor(describe)
 
 
+def _entry_name(entry):
+    if not isinstance(entry, dict):
+        return ''
+    name = entry.get('Name', entry.get('name'))
+    return '' if name is None else str(name)
+
+
+def _entry_type(entry):
+    if not isinstance(entry, dict):
+        return ''
+    if 'PathType' in entry or 'pathType' in entry:
+        return scheme_type_name(entry.get('PathType', entry.get('pathType')))
+    return scheme_type_name(entry.get('type', entry.get('Type')))
+
+
+def _entry_subtype(entry):
+    if not isinstance(entry, dict):
+        return ''
+    return scheme_type_name(entry.get('PathSubType', entry.get('pathSubType')))
+
+
+def cdc_stream_paths_from_table(table_path, describe, prefix):
+    """CDC changefeed paths declared on a table.
+
+    Schemeshard stores them as children of the table and puts the names in
+    ``PathDescription.Table.CdcStreams``. The PersQueue tablets live one level
+    deeper, in ``{stream}/streamImpl``.
+    """
+    table = ((describe or {}).get('PathDescription') or {}).get('Table') or {}
+    paths = []
+    for stream in table.get('CdcStreams') or []:
+        name = _entry_name(stream)
+        if not name:
+            continue
+        stream_path = join_path(table_path, name)
+        if paths_intersect(stream_path, prefix):
+            paths.append(stream_path)
+    return paths
+
+
+def pq_children_of_stream(stream_path, describe, prefix):
+    """PersQueue children of a CDC stream, usually ``streamImpl``.
+
+    When describe does not list children, fall back to the name schemeshard
+    uses when it creates the changefeed topic.
+    """
+    children = ((describe or {}).get('PathDescription') or {}).get('Children') or []
+    found = []
+    for child in children:
+        name = _entry_name(child)
+        if not name:
+            continue
+        child_type = _entry_type(child)
+        if (
+            child_type not in TOPIC_SCHEME_TYPES
+            and _entry_subtype(child) != 'STREAM_IMPL'
+            and name != CDC_IMPL_NAME
+        ):
+            continue
+        child_path = join_path(stream_path, name)
+        if path_matches_prefix(child_path, prefix):
+            found.append(child_path)
+    if children:
+        return found
+    fallback = join_path(stream_path, CDC_IMPL_NAME)
+    if path_matches_prefix(fallback, prefix):
+        return [fallback]
+    return []
+
+
 def format_detail(rec):
     parts = rec.get('parts') or []
     if not parts:
@@ -439,11 +541,13 @@ def list_directory(database, path):
     return load_json(url)
 
 
-def describe_path(path):
+def describe_path(path, extra_query=''):
     url = URL_DESCRIBE.format(
         url_base=VIEWER_URL_BASE,
         path=quote(path, safe='/'),
     )
+    if extra_query:
+        url = f'{url}&{extra_query}'
     return load_json(url)
 
 
@@ -491,11 +595,14 @@ def collect_objects(database, start_path, scheme_types, prefix, include_sys):
     ``objects`` is a sorted list of ``(path, scheme_type)``.
     ``listing_errors`` is a list of ``(path, message)`` for directories that
     could not be listed.
+    ``cdc_tables`` are table paths that may hide CDC changefeed topics.
     """
     objects = []
     listing_errors = []
+    cdc_tables = []
     queue = [start_path]
     seen_dirs = set()
+    want_cdc = bool(TOPIC_SCHEME_TYPES & set(scheme_types))
 
     while queue:
         path = queue.pop(0)
@@ -530,6 +637,9 @@ def collect_objects(database, start_path, scheme_types, prefix, include_sys):
             if child_type in scheme_types and path_matches_prefix(child_path, prefix):
                 objects.append((child_path, child_type))
 
+            if want_cdc and child_type == 'TABLE' and paths_intersect(child_path, prefix):
+                cdc_tables.append(child_path)
+
             if child_type in DIRECTORY_TYPES:
                 if not include_sys and str(name).startswith('.'):
                     continue
@@ -549,7 +659,52 @@ def collect_objects(database, start_path, scheme_types, prefix, include_sys):
             continue
         seen.add(path)
         unique.append((path, scheme_type))
-    return unique, listing_errors
+    cdc_tables = sorted(set(cdc_tables))
+    return unique, listing_errors, cdc_tables
+
+
+def discover_cdc_topics_for_table(item):
+    """Return ``(topics, errors)`` for one table.
+
+    ``topics`` is a list of ``(path, scheme_type)`` for changefeed PQ groups.
+    """
+    table_path, prefix = item
+    try:
+        described = describe_path(table_path, CDC_DESCRIBE_QUERY)
+    except Exception as exc:
+        return [], [(table_path, f'ERROR: {exc}')]
+    if not describe_is_success(described):
+        status = described.get('Status') if isinstance(described, dict) else described
+        return [], [(table_path, f'ERROR: describe status {status}')]
+
+    topics = []
+    errors = []
+    for stream_path in cdc_stream_paths_from_table(table_path, described, prefix):
+        try:
+            stream_described = describe_path(stream_path, CDC_DESCRIBE_QUERY)
+        except Exception as exc:
+            errors.append((stream_path, f'ERROR: {exc}'))
+            continue
+        if not describe_is_success(stream_described):
+            status = stream_described.get('Status') if isinstance(stream_described, dict) else stream_described
+            errors.append((stream_path, f'ERROR: describe status {status}'))
+            continue
+        for impl_path in pq_children_of_stream(stream_path, stream_described, prefix):
+            topics.append((impl_path, 'PERS_QUEUE_GROUP'))
+            log(f'CDC topic {impl_path}')
+    return topics, errors
+
+
+def merge_objects(objects, extra):
+    seen = {path for path, _scheme_type in objects}
+    merged = list(objects)
+    for path, scheme_type in extra:
+        if path in seen:
+            continue
+        seen.add(path)
+        merged.append((path, scheme_type))
+    merged.sort()
+    return merged
 
 
 def collect_tablets_for_object(item):
@@ -694,7 +849,7 @@ Examples:
         default='PQ',
         help=(
             'Schema object kind, comma-separated. '
-            'Default: PQ (TOPIC and PERS_QUEUE_GROUP). '
+            'Default: PQ (TOPIC, PERS_QUEUE_GROUP, and CDC streamImpl topics). '
             f'Known: {", ".join(sorted(KIND_SCHEME_TYPES))}'
         ),
     )
@@ -802,9 +957,30 @@ Examples:
     )
     start_path = resolve_start_path(database, prefix)
     log(f'Walking scheme from {start_path}')
-    objects, listing_errors = collect_objects(
+    objects, listing_errors, cdc_tables = collect_objects(
         database, start_path, scheme_types, prefix, include_sys=args.include_sys,
     )
+    if cdc_tables:
+        log(f'Checking {len(cdc_tables)} table(s) for CDC topics...')
+        cdc_topics = []
+        checked = 0
+        with ThreadPool(min(args.threads, len(cdc_tables))) as pool:
+            for topics, errors in pool.imap_unordered(
+                discover_cdc_topics_for_table,
+                [(table_path, prefix) for table_path in cdc_tables],
+            ):
+                checked += 1
+                cdc_topics.extend(topics)
+                for path, error in errors:
+                    listing_errors.append((path, error))
+                    log(f'{path}: {error}')
+                if checked == len(cdc_tables) or checked % 50 == 0:
+                    log(
+                        f'CDC scan {checked}/{len(cdc_tables)} table(s), '
+                        f'topics={len(cdc_topics)}'
+                    )
+        objects = merge_objects(objects, cdc_topics)
+        log(f'Found {len(cdc_topics)} CDC topic(s)')
     log(f'Found {len(objects)} object(s), reading tablets...')
 
     describe_errors = []

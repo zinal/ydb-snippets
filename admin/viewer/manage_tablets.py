@@ -13,7 +13,10 @@ resumes the same set.
 Discovery uses the Embedded UI Web API:
 
 * ``GET /scheme/directory`` — walk the schema tree (same as find_legacy_tables.py)
-* ``GET /viewer/json/describe`` — read tablet ids from PathDescription
+* ``GET /viewer/json/describe?database=<db>&path=<object>`` — read tablet ids
+  from PathDescription. ``database`` is required so the viewer runs the
+  request inside that database; without it a nested object can come back
+  as HTTP 400 while a describe of the database itself still succeeds
 * database describe — Hive id from DomainDescription.ProcessingParams.Hive,
   or SharedHive when the database has no dedicated Hive
 
@@ -48,8 +51,11 @@ VIEWER_URL_BASE = ''
 VIEWER_HEADERS = {}
 
 URL_SCHEME_DIRECTORY = '{url_base}/scheme/directory?database={database}&path={path}'
-URL_DESCRIBE = '{url_base}/viewer/json/describe?path={path}&enums=true'
+URL_DESCRIBE = '{url_base}/viewer/json/describe?{query}'
 URL_TABLET_APP = '{url_base}/tablets/app'
+
+# Database path sent on every describe. Set in main() before the first request.
+DATABASE = ''
 
 HTTP_TIMEOUT = 60
 MAX_ATTEMPTS = 5
@@ -712,11 +718,26 @@ def call_with_connection_retries(operation, what, attempts=None):
             time.sleep(delay)
 
 
+def http_error(response):
+    """HTTPError that keeps the viewer response body.
+
+    ``raise_for_status`` only says ``400 Bad Request`` and drops the text
+    SchemeShard or the viewer put in the body (``database is required``,
+    ``SchemeShard error: ...``).
+    """
+    body = one_line(response.text)[:400]
+    message = f'HTTP {response.status_code}'
+    if body:
+        message = f'{message}: {body}'
+    return requests.exceptions.HTTPError(message, response=response)
+
+
 def load_json(url):
     response = get_session().get(
         url, headers=VIEWER_HEADERS, verify=False, timeout=HTTP_TIMEOUT,
     )
-    response.raise_for_status()
+    if response.status_code >= 400:
+        raise http_error(response)
     return response.json()
 
 
@@ -729,13 +750,28 @@ def list_directory(database, path):
     return call_with_connection_retries(lambda: load_json(url), f'listing {path}')
 
 
-def describe_path(path, extra_query='', attempts=None):
-    url = URL_DESCRIBE.format(
-        url_base=VIEWER_URL_BASE,
-        path=quote(path, safe='/'),
-    )
+def describe_url(path, extra_query=''):
+    """Describe URL scoped to ``DATABASE``.
+
+    ``/viewer/describe`` is a database endpoint. A request that only has
+    ``path`` is handled on the node that received it. Describing the database
+    root can still succeed there, while an object inside the database comes
+    back as HTTP 400. Passing ``database`` makes the viewer forward the
+    request to a node of that database, which can read SchemeShard even when
+    the object's tablets are stopped.
+    """
+    parts = []
+    if DATABASE:
+        parts.append(f'database={quote(DATABASE, safe="/")}')
+    parts.append(f'path={quote(path, safe="/")}')
+    parts.append('enums=true')
     if extra_query:
-        url = f'{url}&{extra_query}'
+        parts.append(extra_query)
+    return URL_DESCRIBE.format(url_base=VIEWER_URL_BASE, query='&'.join(parts))
+
+
+def describe_path(path, extra_query='', attempts=None):
+    url = describe_url(path, extra_query)
     return call_with_connection_retries(
         lambda: load_json(url), f'describe {path}', attempts,
     )
@@ -1055,7 +1091,7 @@ def hive_action_with_retries(action, hive_id, tablet_id, wait, attempts):
 
 
 def main():
-    global VIEWER_URL_BASE, HTTP_TIMEOUT, SCHEME_ATTEMPTS
+    global VIEWER_URL_BASE, HTTP_TIMEOUT, SCHEME_ATTEMPTS, DATABASE
 
     parser = ArgumentParser(
         formatter_class=RawDescriptionHelpFormatter,
@@ -1187,6 +1223,7 @@ Examples:
     VIEWER_URL_BASE = args.viewer_url.rstrip('/')
     HTTP_TIMEOUT = args.timeout
     SCHEME_ATTEMPTS = args.retries
+    DATABASE = database
 
     hive_id = as_int(args.hive_id) if args.hive_id else None
     if args.hive_id and not hive_id:

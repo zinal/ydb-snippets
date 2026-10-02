@@ -34,28 +34,39 @@ export YDB_PASSWORD='...'
 
 В stdout печатаются только legacy-таблицы (`path` и причина через табуляцию). Прогресс и итог — в stderr.
 
-## Остановка таблеток по типу объекта
+## Остановка и запуск таблеток по типу объекта
 
-Скрипт `stop_tablets.py` останавливает таблетки схемных объектов выбранного вида. По умолчанию вид `PQ`: объекты типа topic (`TOPIC` и устаревший `PERS_QUEUE_GROUP`). Для каждого топика останавливаются таблетки партиций (тип PersQueue) и таблетка read balancer. Партиции в статусе `Deleted` пропускаются.
+Скрипт `stop_tablets.py` останавливает или запускает таблетки схемных объектов выбранного вида. По умолчанию вид `PQ`: объекты типа topic (`TOPIC` и устаревший `PERS_QUEUE_GROUP`). Для каждого топика в операцию попадают таблетки партиций (тип PersQueue) и таблетка read balancer. Партиции в статусе `Deleted` пропускаются.
 
-Состав можно сузить префиксом пути. Префикс сравнивается по границе каталога: `/Root/database/orders` попадает в `/Root/database/orders` и в `/Root/database/orders/topic`, но не в `/Root/database/orders_old`. Относительный префикс дополняется путём базы.
+Состав можно сузить префиксом пути. Префикс сравнивается по границе каталога: `/Root/database/orders` попадает в `/Root/database/orders` и в `/Root/database/orders/topic`, но не в `/Root/database/orders_old`. Относительный префикс дополняется путём базы. Фильтр по типу и префиксу один и тот же для остановки и запуска.
 
-Остановка выполняется через мониторинг Hive (`POST /tablets/app`, `page=StopTablet`). Hive сам не поднимает такую таблетку, пока её не вернут через `ResumeTablet`. Идентификатор Hive читается из описания базы (`ProcessingParams.Hive`, иначе `SharedHive`); его можно задать явно через `--hive-id`.
+Операция задаётся `--action`:
+
+| `--action` | Запрос Hive | Результат |
+| --- | --- | --- |
+| `stop` (по умолчанию) | `page=StopTablet` | Таблетка остаётся остановленной |
+| `start` (синоним `resume`) | `page=ResumeTablet` | Hive снова загружает таблетку |
+
+Оба запроса — `POST /tablets/app`. Идентификатор Hive читается из описания базы (`ProcessingParams.Hive`, иначе `SharedHive`); его можно задать явно через `--hive-id`.
 
 Аутентификация такая же, как у остальных скриптов: `--auth Login` и токен в `~/.ydb/token`.
 
-В stdout — по строке на таблетку: путь, id, роль, номера партиций, результат. Прогресс и итог — в stderr. Код выхода `2`, если каталог не удалось обойти, describe завершился с ошибкой или таблетку не удалось остановить.
+В stdout — по строке на таблетку: путь, id, роль, номера партиций, результат (`stopped`, `started`, `already-stopped`, `already-running`). Прогресс и итог — в stderr. Код выхода `2`, если каталог не удалось обойти, describe завершился с ошибкой или операцию над таблеткой не удалось выполнить.
 
 ```bash
-# Все топики базы
+# Остановить все топики базы
 ./stop_tablets.py --viewer-url https://ycydb-s1:8765 --auth Login \
   /Root/database
 
-# Только объекты под префиксом пути
+# Остановить только объекты под префиксом пути
 ./stop_tablets.py --viewer-url https://ycydb-s1:8765 --auth Login \
   --path-prefix /Root/database/orders /Root/database
 
-# Показать цели, не останавливая
+# Запустить те же топики
+./stop_tablets.py --action start --viewer-url https://ycydb-s1:8765 --auth Login \
+  --path-prefix /Root/database/orders /Root/database
+
+# Показать цели, не выполняя операцию
 ./stop_tablets.py --viewer-url https://ycydb-s1:8765 --auth Login \
   --path-prefix /Root/database/orders --dry-run /Root/database
 

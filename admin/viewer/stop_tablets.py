@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Stop Hive-managed tablets of schema objects of a given kind.
+"""Stop or start Hive-managed tablets of schema objects of a given kind.
 
 Default kind is PQ: tablets of topic objects (scheme types TOPIC and
 PERS_QUEUE_GROUP). A path prefix limits which objects are included.
+Default action is stop; ``--action start`` resumes the same set.
 
 Discovery uses the Embedded UI Web API:
 
@@ -11,13 +12,13 @@ Discovery uses the Embedded UI Web API:
 * database describe — Hive id from DomainDescription.ProcessingParams.Hive,
   or SharedHive when the database has no dedicated Hive
 
-Stop uses the Hive monitoring handler ``TTxMonEvent_StopTablet``
-(ydb/core/mind/hive/monitoring.cpp):
+Both actions are Hive monitoring handlers in ydb/core/mind/hive/monitoring.cpp:
 
     POST /tablets/app?TabletID=<hive>&page=StopTablet&tablet=<id>&wait=true
+    POST /tablets/app?TabletID=<hive>&page=ResumeTablet&tablet=<id>&wait=true
 
-The tablet stays stopped until Hive ResumeTablet. Already-stopped tablets
-(reply status ALREADY) are counted as success.
+A stopped tablet stays down until ResumeTablet. Reply status ALREADY means
+the tablet is already stopped or already running and is counted as success.
 
 Auth: ``--auth Login`` (or OAuth) and a token in ``~/.ydb/token``.
 """
@@ -37,11 +38,29 @@ VIEWER_HEADERS = {}
 
 URL_SCHEME_DIRECTORY = '{url_base}/scheme/directory?database={database}&path={path}'
 URL_DESCRIBE = '{url_base}/viewer/json/describe?path={path}&enums=true'
-URL_STOP_TABLET = '{url_base}/tablets/app'
+URL_TABLET_APP = '{url_base}/tablets/app'
 
 HTTP_TIMEOUT = 60
-STOP_MAX_ATTEMPTS = 5
-STOP_RETRY_DELAY_SEC = 1.0
+MAX_ATTEMPTS = 5
+RETRY_DELAY_SEC = 1.0
+
+# Hive monitoring page and stdout labels for each --action.
+# start is Hive ResumeTablet: it boots a tablet that was previously stopped.
+ACTIONS = {
+    'stop': {
+        'page': 'StopTablet',
+        'done': 'stopped',
+        'already': 'already-stopped',
+    },
+    'start': {
+        'page': 'ResumeTablet',
+        'done': 'started',
+        'already': 'already-running',
+    },
+}
+ACTION_ALIASES = {
+    'resume': 'start',
+}
 
 DIRECTORY_TYPES = frozenset({'DIRECTORY', 'DATABASE', 'COLUMN_STORE'})
 TOPIC_SCHEME_TYPES = frozenset({'TOPIC', 'PERS_QUEUE_GROUP'})
@@ -69,8 +88,8 @@ SCHEME_TYPE_BY_NUMBER = {
     17: 'TOPIC',
 }
 
-SUCCESS_STOP_STATUSES = frozenset({'0', 'OK', '2', 'ALREADY'})
-ALREADY_STOP_STATUSES = frozenset({'2', 'ALREADY'})
+SUCCESS_STATUSES = frozenset({'0', 'OK', '2', 'ALREADY'})
+ALREADY_STATUSES = frozenset({'2', 'ALREADY'})
 
 _THREAD_LOCAL = threading.local()
 
@@ -326,12 +345,23 @@ def format_detail(rec):
     return ','.join(str(part) for part in sorted(parts))
 
 
-def parse_stop_response(status_code, text):
-    """Classify a Hive StopTablet HTTP response.
+def normalize_action(name):
+    """Return ``stop`` or ``start``. ``resume`` is an alias of ``start``."""
+    action = str(name).strip().lower()
+    action = ACTION_ALIASES.get(action, action)
+    if action not in ACTIONS:
+        known = ', '.join(sorted(ACTIONS) + sorted(ACTION_ALIASES))
+        raise ValueError(f'unknown action {name!r}; known actions: {known}')
+    return action
 
-    Returns ``(ok, result)`` where result is ``stopped``, ``already-stopped``,
-    ``accepted`` (``--no-wait``), or an error string.
+
+def parse_hive_response(status_code, text, action):
+    """Classify a Hive StopTablet or ResumeTablet HTTP response.
+
+    Returns ``(ok, result)``. Result is the action's done label, its already
+    label, ``accepted`` (``--no-wait``), or an error string.
     """
+    spec = ACTIONS[action]
     body = text or ''
     if status_code >= 400:
         return False, one_line(f'HTTP {status_code}: {body[:400]}')
@@ -349,10 +379,10 @@ def parse_stop_response(status_code, text):
     status = norm_status(payload.get('Status'))
     if status is None and payload == {}:
         return True, 'accepted'
-    if status in ALREADY_STOP_STATUSES:
-        return True, 'already-stopped'
-    if status in SUCCESS_STOP_STATUSES:
-        return True, 'stopped'
+    if status in ALREADY_STATUSES:
+        return True, spec['already']
+    if status in SUCCESS_STATUSES:
+        return True, spec['done']
     return False, one_line(f'status={payload.get("Status")} body={stripped[:400]}')
 
 
@@ -563,7 +593,7 @@ def targets_from_object(path, scheme_type, tablets):
 
 
 def dedupe_targets(targets):
-    """Keep one stop per tablet id. Later paths are logged and skipped."""
+    """Keep one operation per tablet id. Later paths are logged and skipped."""
     unique = []
     seen = {}
     for target in targets:
@@ -579,14 +609,15 @@ def dedupe_targets(targets):
     return unique
 
 
-def stop_tablet(hive_id, tablet_id, wait):
+def hive_tablet_action(action, hive_id, tablet_id, wait):
+    """POST StopTablet or ResumeTablet to the Hive monitoring page."""
     params = {
         'TabletID': str(hive_id),
-        'page': 'StopTablet',
+        'page': ACTIONS[action]['page'],
         'tablet': str(tablet_id),
         'wait': 'true' if wait else 'false',
     }
-    url = URL_STOP_TABLET.format(url_base=VIEWER_URL_BASE)
+    url = URL_TABLET_APP.format(url_base=VIEWER_URL_BASE)
     response = get_session().post(
         url,
         params=params,
@@ -596,14 +627,14 @@ def stop_tablet(hive_id, tablet_id, wait):
         timeout=HTTP_TIMEOUT,
         allow_redirects=False,
     )
-    return parse_stop_response(response.status_code, response.text)
+    return parse_hive_response(response.status_code, response.text, action)
 
 
-def stop_with_retries(hive_id, tablet_id, wait, attempts):
+def hive_action_with_retries(action, hive_id, tablet_id, wait, attempts):
     last = (False, 'not attempted')
     for attempt in range(1, attempts + 1):
         try:
-            ok, result = stop_tablet(hive_id, tablet_id, wait)
+            ok, result = hive_tablet_action(action, hive_id, tablet_id, wait)
         except Exception as exc:
             ok, result = False, one_line(f'request failed: {exc}')
         last = (ok, result)
@@ -613,9 +644,9 @@ def stop_with_retries(hive_id, tablet_id, wait, attempts):
             return last
         if attempt >= attempts:
             return last
-        delay = STOP_RETRY_DELAY_SEC * attempt
+        delay = RETRY_DELAY_SEC * attempt
         log(
-            f'Retry stop tablet {tablet_id} '
+            f'Retry {action} tablet {tablet_id} '
             f'({attempt}/{attempts}): {result}; sleeping {delay:.1f}s'
         )
         time.sleep(delay)
@@ -635,6 +666,9 @@ Examples:
   %(prog)s --viewer-url https://host:8765 --auth Login \\
       --path-prefix /Root/database/orders /Root/database
 
+  %(prog)s --action start --viewer-url https://host:8765 --auth Login \\
+      --path-prefix /Root/database/orders /Root/database
+
   %(prog)s --viewer-url https://host:8765 --auth Login \\
       --type TABLE --path-prefix /Root/database/schema1 --dry-run \\
       /Root/database
@@ -647,10 +681,19 @@ Examples:
         help='Database path used for /scheme/directory and Hive lookup (e.g. /Root/database)',
     )
     parser.add_argument(
+        '--action',
+        default='stop',
+        help=(
+            'Hive operation: stop (default) or start. '
+            'start sends ResumeTablet and boots tablets that were stopped. '
+            'resume is an alias of start'
+        ),
+    )
+    parser.add_argument(
         '--type',
         default='PQ',
         help=(
-            'Schema object kind to stop, comma-separated. '
+            'Schema object kind, comma-separated. '
             'Default: PQ (TOPIC and PERS_QUEUE_GROUP). '
             f'Known: {", ".join(sorted(KIND_SCHEME_TYPES))}'
         ),
@@ -673,13 +716,13 @@ Examples:
         '--threads',
         type=int,
         default=4,
-        help='Parallel describe/stop requests (default: 4)',
+        help='Parallel describe and stop/start requests (default: 4)',
     )
     parser.add_argument(
         '--retries',
         type=int,
-        default=STOP_MAX_ATTEMPTS,
-        help=f'Stop attempts per tablet after a transient error (default: {STOP_MAX_ATTEMPTS})',
+        default=MAX_ATTEMPTS,
+        help=f'Attempts per tablet after a transient error (default: {MAX_ATTEMPTS})',
     )
     parser.add_argument(
         '--timeout',
@@ -697,12 +740,12 @@ Examples:
         dest='wait',
         action='store_false',
         default=True,
-        help='POST StopTablet with wait=false and do not wait for Hive status',
+        help='POST the Hive page with wait=false and do not wait for status',
     )
     parser.add_argument(
         '--dry-run',
         action='store_true',
-        help='Print selected tablets without stopping them',
+        help='Print selected tablets without stopping or starting them',
     )
     args = parser.parse_args()
 
@@ -712,6 +755,11 @@ Examples:
         parser.error('--retries must be >= 1')
     if args.timeout <= 0:
         parser.error('--timeout must be > 0')
+
+    try:
+        action = normalize_action(args.action)
+    except ValueError as exc:
+        parser.error(str(exc))
 
     try:
         scheme_types, kind_names = parse_kinds(args.type)
@@ -749,7 +797,7 @@ Examples:
             sys.exit(1)
 
     log(
-        f'Scanning database={database} type={",".join(kind_names)} '
+        f'Scanning database={database} action={action} type={",".join(kind_names)} '
         f'path_prefix={prefix or database} hive={hive_id or "unknown"}'
     )
     start_path = resolve_start_path(database, prefix)
@@ -793,15 +841,15 @@ Examples:
         return
 
     if not hive_id:
-        print('Hive id is required to stop tablets', file=sys.stderr)
+        print(f'Hive id is required to {action} tablets', file=sys.stderr)
         sys.exit(1)
 
     progress_lock = threading.Lock()
     progress = {'done': 0, 'errors': 0}
 
-    def process_stop(target):
-        ok, result = stop_with_retries(
-            hive_id, target.tablet_id, args.wait, args.retries,
+    def process_target(target):
+        ok, result = hive_action_with_retries(
+            action, hive_id, target.tablet_id, args.wait, args.retries,
         )
         with progress_lock:
             progress['done'] += 1
@@ -816,18 +864,19 @@ Examples:
         print(target.line(result if ok else f'error: {result}'), flush=True)
         return ok
 
-    stop_errors = 0
+    action_errors = 0
     with ThreadPool(min(args.threads, len(targets) or 1)) as pool:
-        for ok in pool.imap_unordered(process_stop, targets):
+        for ok in pool.imap_unordered(process_target, targets):
             if not ok:
-                stop_errors += 1
+                action_errors += 1
 
     log(
-        f'Done: tablets={len(targets)}, stop_errors={stop_errors}, '
+        f'Done: action={action}, tablets={len(targets)}, '
+        f'errors={action_errors}, '
         f'listing_errors={len(listing_errors)}, '
         f'describe_errors={len(describe_errors)}'
     )
-    if listing_errors or describe_errors or stop_errors:
+    if listing_errors or describe_errors or action_errors:
         sys.exit(2)
 
 

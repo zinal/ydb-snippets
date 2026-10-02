@@ -26,6 +26,12 @@ A stopped tablet stays down until ResumeTablet. Reply status ALREADY means
 the tablet is already stopped or already running and is counted as success.
 
 Auth: ``--auth Login`` (or OAuth) and a token in ``~/.ydb/token``.
+
+A dropped or failed connection while walking the schema or reading tablet
+ids is retried (``--retries``, default 5) with a short pause. The first
+database describe, which resolves the Hive id, is a single attempt: a
+failure there usually means ``--viewer-url`` is wrong. Access denied is
+not retried.
 """
 
 import json
@@ -48,6 +54,8 @@ URL_TABLET_APP = '{url_base}/tablets/app'
 HTTP_TIMEOUT = 60
 MAX_ATTEMPTS = 5
 RETRY_DELAY_SEC = 1.0
+# Scheme listing and tablet describe. The Hive id lookup passes attempts=1.
+SCHEME_ATTEMPTS = 1
 
 # Hive monitoring page and stdout labels for each --action.
 # start is Hive ResumeTablet: it boots a tablet that was previously stopped.
@@ -628,6 +636,82 @@ def get_session():
     return session
 
 
+def is_access_denied(value):
+    """True for an authorization failure, which must not be retried."""
+    text = str(value).lower().replace('ё', 'е')
+    markers = (
+        'access denied',
+        'доступ запрещ',
+        'unauthorized',
+        'forbidden',
+        'permission denied',
+        'http 401',
+        'http 403',
+        '401 client error',
+        '403 client error',
+    )
+    return any(marker in text for marker in markers)
+
+
+def is_connection_error(exc):
+    """True when the TCP connection failed or was dropped mid-response.
+
+    HTTP status errors, including access denied, are not connection errors.
+    """
+    if is_access_denied(exc) or isinstance(exc, requests.exceptions.HTTPError):
+        return False
+    if isinstance(exc, (
+        requests.exceptions.ConnectionError,
+        requests.exceptions.ChunkedEncodingError,
+        ConnectionError,
+        ConnectionResetError,
+        ConnectionAbortedError,
+        BrokenPipeError,
+    )):
+        return True
+    text = str(exc).lower()
+    return any(marker in text for marker in (
+        'connection aborted',
+        'connection reset',
+        'connection broken',
+        'connection refused',
+        'connection error',
+        'remote end closed',
+        'remote disconnected',
+        'broken pipe',
+        'разрыв соединения',
+        'ошибка соединения',
+    ))
+
+
+def call_with_connection_retries(operation, what, attempts=None):
+    """Run ``operation`` again after a dropped or failed connection.
+
+    ``attempts`` is the total number of tries. ``None`` uses
+    ``SCHEME_ATTEMPTS``. Access denied and any other error are raised at
+    once.
+    """
+    total = SCHEME_ATTEMPTS if attempts is None else attempts
+    if total < 1:
+        total = 1
+    for attempt in range(1, total + 1):
+        try:
+            return operation()
+        except Exception as exc:
+            if (
+                attempt >= total
+                or not is_connection_error(exc)
+                or is_access_denied(exc)
+            ):
+                raise
+            delay = RETRY_DELAY_SEC * attempt
+            log(
+                f'Retry {what} ({attempt}/{total}): {one_line(exc)}; '
+                f'sleeping {delay:.1f}s'
+            )
+            time.sleep(delay)
+
+
 def load_json(url):
     response = get_session().get(
         url, headers=VIEWER_HEADERS, verify=False, timeout=HTTP_TIMEOUT,
@@ -642,17 +726,19 @@ def list_directory(database, path):
         database=quote(database, safe='/'),
         path=quote(path, safe='/'),
     )
-    return load_json(url)
+    return call_with_connection_retries(lambda: load_json(url), f'listing {path}')
 
 
-def describe_path(path, extra_query=''):
+def describe_path(path, extra_query='', attempts=None):
     url = URL_DESCRIBE.format(
         url_base=VIEWER_URL_BASE,
         path=quote(path, safe='/'),
     )
     if extra_query:
         url = f'{url}&{extra_query}'
-    return load_json(url)
+    return call_with_connection_retries(
+        lambda: load_json(url), f'describe {path}', attempts,
+    )
 
 
 def directory_self_type(data):
@@ -951,7 +1037,11 @@ def hive_action_with_retries(action, hive_id, tablet_id, wait, attempts):
         last = (ok, result)
         if ok:
             return last
-        if 'Tablet not found' in result or 'Must use POST' in result:
+        if (
+            'Tablet not found' in result
+            or 'Must use POST' in result
+            or is_access_denied(result)
+        ):
             return last
         if attempt >= attempts:
             return last
@@ -965,7 +1055,7 @@ def hive_action_with_retries(action, hive_id, tablet_id, wait, attempts):
 
 
 def main():
-    global VIEWER_URL_BASE, HTTP_TIMEOUT
+    global VIEWER_URL_BASE, HTTP_TIMEOUT, SCHEME_ATTEMPTS
 
     parser = ArgumentParser(
         formatter_class=RawDescriptionHelpFormatter,
@@ -1036,7 +1126,13 @@ Examples:
         '--retries',
         type=int,
         default=MAX_ATTEMPTS,
-        help=f'Attempts per tablet after a transient error (default: {MAX_ATTEMPTS})',
+        help=(
+            'Attempts after a dropped or failed connection while listing '
+            'the scheme or reading tablet ids, and after a transient error '
+            f'of a stop/start request (default: {MAX_ATTEMPTS}). '
+            'The initial Hive lookup is a single attempt. '
+            'Access denied is not retried.'
+        ),
     )
     parser.add_argument(
         '--timeout',
@@ -1090,6 +1186,7 @@ Examples:
 
     VIEWER_URL_BASE = args.viewer_url.rstrip('/')
     HTTP_TIMEOUT = args.timeout
+    SCHEME_ATTEMPTS = args.retries
 
     hive_id = as_int(args.hive_id) if args.hive_id else None
     if args.hive_id and not hive_id:
@@ -1098,7 +1195,7 @@ Examples:
     if hive_id is None:
         log(f'Resolving Hive for {database}')
         try:
-            hive_id = extract_hive_id(describe_path(database))
+            hive_id = extract_hive_id(describe_path(database, attempts=1))
         except Exception as exc:
             print(f'Failed to describe {database}: {exc}', file=sys.stderr)
             sys.exit(1)

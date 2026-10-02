@@ -40,6 +40,8 @@ export YDB_PASSWORD='...'
 
 Топик CDC не лежит в каталоге рядом с таблицами. Schemeshard создаёт его как `{таблица}/{changefeed}/streamImpl`. При `--type PQ` скрипт описывает таблицы под префиксом, читает `PathDescription.Table.CdcStreams` и берёт PersQueue-детей этого потока (обычно `streamImpl`).
 
+Вторичный индекс тоже не виден в каталоге. Его даташарды принадлежат таблице реализации, обычно `{таблица}/{индекс}/indexImplTable` (у векторного или полнотекстового индекса таких таблиц несколько, их имена берутся из describe индекса). При `--type TABLE` эти таблетки обрабатываются вместе с таблетками самой таблицы. Поток изменений на индексе лежит ещё глубже: `{таблица}/{индекс}/indexImplTable/{changefeed}/streamImpl`. При `--type PQ` он попадает в обработку по тому же префиксу пути, что и обычный CDC. Локальные индексы (bloom, min/max) отдельных таблеток не имеют.
+
 Состав можно сузить префиксом пути. Префикс сравнивается по границе каталога: `/Root/database/orders` попадает в `/Root/database/orders` и в `/Root/database/orders/topic`, но не в `/Root/database/orders_old`. Относительный префикс дополняется путём базы. Фильтр по типу и префиксу один и тот же для остановки и запуска.
 
 Операция задаётся `--action`:
@@ -72,7 +74,7 @@ export YDB_PASSWORD='...'
 ./manage_tablets.py --viewer-url https://ycydb-s1:8765 --auth Login \
   --path-prefix /Root/database/orders --dry-run /Root/database
 
-# Другой вид объекта: даташарды таблиц
+# Даташарды таблиц и таблиц реализации вторичных индексов
 ./manage_tablets.py --viewer-url https://ycydb-s1:8765 --auth Login \
   --type TABLE --path-prefix schema1 --dry-run /Root/database
 ```

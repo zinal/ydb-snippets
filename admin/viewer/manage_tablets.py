@@ -2,9 +2,13 @@
 """Stop or start Hive-managed tablets of schema objects of a given kind.
 
 Default kind is PQ: tablets of topic objects (scheme types TOPIC and
-PERS_QUEUE_GROUP), including the hidden CDC changefeed topic
-``{table}/{stream}/streamImpl``. A path prefix limits which objects are
-included. Default action is stop; ``--action start`` resumes the same set.
+PERS_QUEUE_GROUP), including hidden CDC changefeed topics
+``{table}/{stream}/streamImpl`` and the same topics under a secondary
+index, ``{table}/{index}/{impl}/{stream}/streamImpl``. ``--type TABLE``
+includes DataShard tablets of the table and of its secondary-index
+implementation tables (usually ``indexImplTable``). A path prefix limits
+which objects are included. Default action is stop; ``--action start``
+resumes the same set.
 
 Discovery uses the Embedded UI Web API:
 
@@ -102,6 +106,34 @@ SCHEME_TYPE_ALIASES = {
     'COLUMNSTORE': 'COLUMN_STORE',
     'COLUMNTABLE': 'COLUMN_TABLE',
     'STREAMIMPL': 'STREAM_IMPL',
+}
+
+# Child of a secondary index that holds its DataShard tablets.
+# Vector and fulltext indexes can have several such children; their names
+# come from a describe of the index. This name is the global-index fallback.
+INDEX_IMPL_NAME = 'indexImplTable'
+LOCAL_INDEX_TYPES = frozenset({
+    'LOCALBLOOMFILTER',
+    'LOCALBLOOMNGRAMFILTER',
+    'LOCALMINMAX',
+    'LOCALCOUNTMINSKETCH',
+})
+INDEX_TYPE_BY_NUMBER = {
+    0: 'INVALID',
+    1: 'GLOBAL',
+    2: 'GLOBALASYNC',
+    3: 'GLOBALUNIQUE',
+    4: 'GLOBALVECTORKMEANSTREE',
+    5: 'GLOBALFULLTEXTPLAIN',
+    6: 'GLOBALFULLTEXTRELEVANCE',
+    7: 'GLOBALJSON',
+    8: 'LOCALBLOOMFILTER',
+    9: 'LOCALBLOOMNGRAMFILTER',
+    10: 'LOCALMINMAX',
+    11: 'GLOBALFULLTEXTCOMPACT',
+    12: 'GLOBALFULLTEXTCOMPACTRELEVANCE',
+    13: 'GLOBALJSONCOMPACT',
+    14: 'LOCALCOUNTMINSKETCH',
 }
 
 # Child of a CDC stream created by schemeshard (ESchemeOpCreatePersQueueGroup).
@@ -391,6 +423,78 @@ def _entry_subtype(entry):
     return scheme_type_name(entry.get('PathSubType', entry.get('pathSubType')))
 
 
+def _path_description(describe):
+    if not isinstance(describe, dict):
+        return {}
+    return describe.get('PathDescription') or {}
+
+
+def _table_description(describe):
+    return _path_description(describe).get('Table') or {}
+
+
+def index_type_name(index):
+    """Normalize ``TIndexDescription.Type`` to ``GLOBAL``, ``LOCALMINMAX``, ..."""
+    if not isinstance(index, dict):
+        return ''
+    value = index.get('Type', index.get('type'))
+    if isinstance(value, bool) or value is None:
+        return ''
+    if isinstance(value, int) or (isinstance(value, str) and str(value).strip().isdigit()):
+        return INDEX_TYPE_BY_NUMBER.get(int(value), '')
+    text = str(value).strip()
+    if '.' in text:
+        text = text.rsplit('.', 1)[-1]
+    text = text.upper()
+    if text.startswith('EINDEXTYPE'):
+        text = text[len('EINDEXTYPE'):]
+    return text
+
+
+def index_may_have_impl_table(index):
+    """Local indexes live inside the main table and have no tablets of their own."""
+    kind = index_type_name(index)
+    if not kind:
+        return True
+    return kind not in LOCAL_INDEX_TYPES and kind != 'INVALID'
+
+
+def is_index_impl_child(child):
+    child_type = _entry_type(child)
+    subtype = _entry_subtype(child)
+    return child_type == 'TABLE' or 'INDEXIMPLTABLE' in subtype
+
+
+def index_impl_paths(index_path, index, index_describe):
+    """Implementation-table paths of one secondary index.
+
+    Describe of the index lists them in ``PathDescription.Children``.
+    When that listing is absent, use names from ``IndexImplTableDescriptions``
+    or the global-index name ``indexImplTable``.
+    """
+    path_description = _path_description(index_describe)
+    if 'Children' in path_description or 'children' in path_description:
+        children = path_description.get('Children')
+        if children is None:
+            children = path_description.get('children') or []
+        found = []
+        for child in children:
+            name = _entry_name(child)
+            if not name or not is_index_impl_child(child):
+                continue
+            found.append(join_path(index_path, name))
+        return found
+
+    named = []
+    for desc in (index or {}).get('IndexImplTableDescriptions') or []:
+        name = _entry_name(desc)
+        if name:
+            named.append(join_path(index_path, name))
+    if named:
+        return named
+    return [join_path(index_path, INDEX_IMPL_NAME)]
+
+
 def cdc_stream_paths_from_table(table_path, describe, prefix):
     """CDC changefeed paths declared on a table.
 
@@ -590,19 +694,22 @@ def iter_children(data):
 
 
 def collect_objects(database, start_path, scheme_types, prefix, include_sys):
-    """BFS scheme directories; return ``(objects, listing_errors)``.
+    """BFS scheme directories; return ``(objects, listing_errors, nested_tables)``.
 
     ``objects`` is a sorted list of ``(path, scheme_type)``.
     ``listing_errors`` is a list of ``(path, message)`` for directories that
     could not be listed.
-    ``cdc_tables`` are table paths that may hide CDC changefeed topics.
+    ``nested_tables`` are user tables that may hide secondary-index impl
+    tables and CDC changefeed topics.
     """
     objects = []
     listing_errors = []
-    cdc_tables = []
+    nested_tables = []
     queue = [start_path]
     seen_dirs = set()
     want_cdc = bool(TOPIC_SCHEME_TYPES & set(scheme_types))
+    want_index_tablets = 'TABLE' in scheme_types
+    want_nested = want_cdc or want_index_tablets
 
     while queue:
         path = queue.pop(0)
@@ -637,8 +744,8 @@ def collect_objects(database, start_path, scheme_types, prefix, include_sys):
             if child_type in scheme_types and path_matches_prefix(child_path, prefix):
                 objects.append((child_path, child_type))
 
-            if want_cdc and child_type == 'TABLE' and paths_intersect(child_path, prefix):
-                cdc_tables.append(child_path)
+            if want_nested and child_type == 'TABLE' and paths_intersect(child_path, prefix):
+                nested_tables.append(child_path)
 
             if child_type in DIRECTORY_TYPES:
                 if not include_sys and str(name).startswith('.'):
@@ -659,27 +766,15 @@ def collect_objects(database, start_path, scheme_types, prefix, include_sys):
             continue
         seen.add(path)
         unique.append((path, scheme_type))
-    cdc_tables = sorted(set(cdc_tables))
-    return unique, listing_errors, cdc_tables
+    nested_tables = sorted(set(nested_tables))
+    return unique, listing_errors, nested_tables
 
 
-def discover_cdc_topics_for_table(item):
-    """Return ``(topics, errors)`` for one table.
-
-    ``topics`` is a list of ``(path, scheme_type)`` for changefeed PQ groups.
-    """
-    table_path, prefix = item
-    try:
-        described = describe_path(table_path, CDC_DESCRIBE_QUERY)
-    except Exception as exc:
-        return [], [(table_path, f'ERROR: {exc}')]
-    if not describe_is_success(described):
-        status = described.get('Status') if isinstance(described, dict) else described
-        return [], [(table_path, f'ERROR: describe status {status}')]
-
+def cdc_topics_under(owner_path, described, prefix):
+    """Return ``(topics, errors)`` for CDC streams declared on ``owner_path``."""
     topics = []
     errors = []
-    for stream_path in cdc_stream_paths_from_table(table_path, described, prefix):
+    for stream_path in cdc_stream_paths_from_table(owner_path, described, prefix):
         try:
             stream_described = describe_path(stream_path, CDC_DESCRIBE_QUERY)
         except Exception as exc:
@@ -693,6 +788,67 @@ def discover_cdc_topics_for_table(item):
             topics.append((impl_path, 'PERS_QUEUE_GROUP'))
             log(f'CDC topic {impl_path}')
     return topics, errors
+
+
+def discover_nested_for_table(item):
+    """Return ``(objects, errors)`` hidden under one user table.
+
+    ``objects`` contains index implementation tables (scheme type ``TABLE``)
+    and changefeed PQ groups (scheme type ``PERS_QUEUE_GROUP``).
+    """
+    table_path, prefix, want_cdc, want_index_tablets = item
+    try:
+        described = describe_path(table_path, CDC_DESCRIBE_QUERY)
+    except Exception as exc:
+        return [], [(table_path, f'ERROR: {exc}')]
+    if not describe_is_success(described):
+        status = described.get('Status') if isinstance(described, dict) else described
+        return [], [(table_path, f'ERROR: describe status {status}')]
+
+    found = []
+    errors = []
+    if want_cdc:
+        topics, topic_errors = cdc_topics_under(table_path, described, prefix)
+        found.extend(topics)
+        errors.extend(topic_errors)
+
+    for index in _table_description(described).get('TableIndexes') or []:
+        if not isinstance(index, dict) or not index_may_have_impl_table(index):
+            continue
+        name = _entry_name(index)
+        if not name:
+            continue
+        index_path = join_path(table_path, name)
+        if not paths_intersect(index_path, prefix):
+            continue
+        try:
+            index_described = describe_path(index_path, CDC_DESCRIBE_QUERY)
+        except Exception as exc:
+            errors.append((index_path, f'ERROR: {exc}'))
+            continue
+        if not describe_is_success(index_described):
+            status = index_described.get('Status') if isinstance(index_described, dict) else index_described
+            errors.append((index_path, f'ERROR: describe status {status}'))
+            continue
+        for impl_path in index_impl_paths(index_path, index, index_described):
+            if want_index_tablets and path_matches_prefix(impl_path, prefix):
+                found.append((impl_path, 'TABLE'))
+                log(f'Index table {impl_path}')
+            if not want_cdc or not paths_intersect(impl_path, prefix):
+                continue
+            try:
+                impl_described = describe_path(impl_path, CDC_DESCRIBE_QUERY)
+            except Exception as exc:
+                errors.append((impl_path, f'ERROR: {exc}'))
+                continue
+            if not describe_is_success(impl_described):
+                status = impl_described.get('Status') if isinstance(impl_described, dict) else impl_described
+                errors.append((impl_path, f'ERROR: describe status {status}'))
+                continue
+            topics, topic_errors = cdc_topics_under(impl_path, impl_described, prefix)
+            found.extend(topics)
+            errors.extend(topic_errors)
+    return found, errors
 
 
 def merge_objects(objects, extra):
@@ -849,7 +1005,10 @@ Examples:
         default='PQ',
         help=(
             'Schema object kind, comma-separated. '
-            'Default: PQ (TOPIC, PERS_QUEUE_GROUP, and CDC streamImpl topics). '
+            'Default: PQ (TOPIC, PERS_QUEUE_GROUP, and CDC streamImpl topics, '
+            'including changefeeds of secondary indexes). '
+            'TABLE also includes DataShard tablets of secondary-index '
+            'implementation tables. '
             f'Known: {", ".join(sorted(KIND_SCHEME_TYPES))}'
         ),
     )
@@ -957,30 +1116,42 @@ Examples:
     )
     start_path = resolve_start_path(database, prefix)
     log(f'Walking scheme from {start_path}')
-    objects, listing_errors, cdc_tables = collect_objects(
+    want_cdc = bool(TOPIC_SCHEME_TYPES & set(scheme_types))
+    want_index_tablets = 'TABLE' in scheme_types
+    objects, listing_errors, nested_tables = collect_objects(
         database, start_path, scheme_types, prefix, include_sys=args.include_sys,
     )
-    if cdc_tables:
-        log(f'Checking {len(cdc_tables)} table(s) for CDC topics...')
-        cdc_topics = []
+    if nested_tables:
+        log(
+            f'Checking {len(nested_tables)} table(s) for secondary indexes'
+            f'{" and CDC topics" if want_cdc else ""}...'
+        )
+        nested_objects = []
         checked = 0
-        with ThreadPool(min(args.threads, len(cdc_tables))) as pool:
-            for topics, errors in pool.imap_unordered(
-                discover_cdc_topics_for_table,
-                [(table_path, prefix) for table_path in cdc_tables],
+        with ThreadPool(min(args.threads, len(nested_tables))) as pool:
+            for extra, errors in pool.imap_unordered(
+                discover_nested_for_table,
+                [
+                    (table_path, prefix, want_cdc, want_index_tablets)
+                    for table_path in nested_tables
+                ],
             ):
                 checked += 1
-                cdc_topics.extend(topics)
+                nested_objects.extend(extra)
                 for path, error in errors:
                     listing_errors.append((path, error))
                     log(f'{path}: {error}')
-                if checked == len(cdc_tables) or checked % 50 == 0:
+                if checked == len(nested_tables) or checked % 50 == 0:
                     log(
-                        f'CDC scan {checked}/{len(cdc_tables)} table(s), '
-                        f'topics={len(cdc_topics)}'
+                        f'Nested scan {checked}/{len(nested_tables)} table(s), '
+                        f'objects={len(nested_objects)}'
                     )
-        objects = merge_objects(objects, cdc_topics)
-        log(f'Found {len(cdc_topics)} CDC topic(s)')
+        objects = merge_objects(objects, nested_objects)
+        index_count = sum(1 for _path, kind in nested_objects if kind == 'TABLE')
+        log(
+            f'Found {index_count} index table(s), '
+            f'{len(nested_objects) - index_count} CDC topic(s)'
+        )
     log(f'Found {len(objects)} object(s), reading tablets...')
 
     describe_errors = []

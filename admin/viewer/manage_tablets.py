@@ -25,10 +25,11 @@ When describe reports that the path does not exist, the directory may still
 list the object. DROP TOPIC hides a topic from describe as soon as the drop
 is accepted, while SchemeShard keeps the shard records until DropParts
 finishes. Tablet ids are then read from the SchemeShard monitoring pages
-``Page=TxList``, ``Page=TxInfo`` and ``Page=PathInfo``. Partition numbers
-are left empty. Those pages need DevUI access. If the directory no longer
-lists the object, or the shards have already been deleted, the original
-describe error is kept.
+``Page=TxList``, ``Page=TxInfo`` and ``Page=PathInfo``. One page lists
+every shard of the operation; there is no further request per shard.
+Partition numbers are left empty. Those pages need DevUI access. If the
+directory no longer lists the object, or the shards have already been
+deleted, the original describe error is kept.
 
 Both actions are Hive monitoring handlers in ydb/core/mind/hive/monitoring.cpp:
 
@@ -194,7 +195,6 @@ _TX_PATH_LINK = re.compile(
     re.IGNORECASE,
 )
 _PATH_LINE = re.compile(r'(?m)(?:^|>)\s*Path: ([^\n]*)')
-_TABLET_TYPE_LINE = re.compile(r'TabletType:\s*(\S+)')
 _GONE_MARKERS = (
     'Unknown Tx',
     'No txState for operation',
@@ -1133,6 +1133,33 @@ def role_for_tablet_type(type_name):
     return text.lower()
 
 
+def _default_role(shard_types):
+    """Role for shards whose type the transaction page did not print.
+
+    SchemeShard caps that table at 100 rows. When every printed type is the
+    same, the remaining shards of the operation get that role too.
+    """
+    roles = []
+    for type_name in shard_types.values():
+        role = role_for_tablet_type(type_name)
+        if role == 'shard' or role in roles:
+            continue
+        roles.append(role)
+    if len(roles) == 1:
+        return roles[0]
+    return 'shard'
+
+
+# Used when the transaction page printed no tablet type at all.
+_SCHEME_ROLE = {
+    'TOPIC': 'partition',
+    'PERS_QUEUE_GROUP': 'partition',
+    'TABLE': 'datashard',
+    'COLUMN_TABLE': 'columnshard',
+    'COLUMN_STORE': 'columnshard',
+}
+
+
 class _HtmlTables(HTMLParser):
     """Collect rows of every HTML table, including tables nested in a layout."""
 
@@ -1232,6 +1259,7 @@ def parse_tx_list(html):
                 'part_id': part_id,
                 'tx_type': row[1]['text'],
                 'state': row[2]['text'],
+                'shards': row[3]['text'],
             })
         return operations
     snippet = one_line(html or '')[:180]
@@ -1334,36 +1362,17 @@ def ensure_schemeshard_id():
     return found
 
 
-def _role_for_shard(shard, shard_types, schemeshard_id, type_cache):
+def _role_for_shard(shard, shard_types, default_role):
     type_name = shard_types.get(shard) if shard else None
-    if not type_name and shard:
-        if shard not in type_cache:
-            owner, local = shard
-            url = schemeshard_url(
-                schemeshard_id,
-                Page='ShardInfoByShardIdx',
-                OwnerShardIdx=owner,
-                LocalShardIdx=local,
-            )
-            try:
-                html = call_with_connection_retries(
-                    lambda: load_text(url), f'shard {owner}:{local}',
-                )
-            except Exception as exc:
-                log(f'Shard {owner}:{local}: tablet type unavailable: {one_line(exc)}')
-                type_cache[shard] = ''
-            else:
-                match = _TABLET_TYPE_LINE.search(html or '')
-                type_cache[shard] = match.group(1) if match else ''
-        type_name = type_cache.get(shard)
-    return role_for_tablet_type(type_name)
+    if type_name:
+        return role_for_tablet_type(type_name)
+    return default_role
 
 
-def _add_shard_tablets(tablets, shards, shard_types, schemeshard_id, type_cache):
+def _add_shard_tablets(tablets, shards, shard_types):
+    default_role = _default_role(shard_types)
     for shard in shards:
-        role = _role_for_shard(
-            shard.get('shard'), shard_types, schemeshard_id, type_cache,
-        )
+        role = _role_for_shard(shard.get('shard'), shard_types, default_role)
         _add_tablet(tablets, shard['tablet_id'], role)
 
 
@@ -1372,7 +1381,10 @@ def fetch_inflight_tablets():
 
     PathInfo lists every shard of the path. When that page has no shards,
     tablets still listed as in progress are used, and only when that
-    transaction names a single path.
+    transaction names a single path. Tablet ids come from those two pages.
+    A shard page is not requested: SchemeShard prints at most 100 shard
+    types on the transaction, and one request per remaining shard stalls
+    a drop that still has thousands of partitions.
     """
     schemeshard_id = ensure_schemeshard_id()
     log(f'Reading in-flight operations from SchemeShard {schemeshard_id}')
@@ -1384,10 +1396,15 @@ def fetch_inflight_tablets():
     log(f'SchemeShard {schemeshard_id}: {len(operations)} in-flight operation(s)')
 
     pending = {}
-    for operation in operations:
+    total = len(operations)
+    for index, operation in enumerate(operations, 1):
         label = f'{operation["tx_id"]}:{operation["part_id"]}'
         tx_id = operation['tx_id']
         part_id = operation['part_id']
+        log(
+            f'Transaction {index}/{total} {label} {operation["tx_type"]} '
+            f'{operation["state"]}, shards in progress {operation["shards"]}'
+        )
         html = call_with_connection_retries(
             lambda tx_id=tx_id, part_id=part_id: load_text(schemeshard_url(
                 schemeshard_id,
@@ -1404,6 +1421,10 @@ def fetch_inflight_tablets():
         if status != 'ok':
             log(f'Transaction {label}: page has no affected paths')
             continue
+        log(
+            f'Transaction {label}: {len(in_progress)} in-progress tablet(s), '
+            f'{len(refs)} path id(s)'
+        )
         backup = in_progress if len(refs) == 1 else []
         for ref in refs:
             key = (ref['owner'], ref['local'])
@@ -1415,9 +1436,9 @@ def fetch_inflight_tablets():
             if backup:
                 slot['backups'].append(backup)
 
-    type_cache = {}
     by_path = {}
     for (owner, local), slot in pending.items():
+        log(f'Path {owner}:{local}: reading shards')
         html = call_with_connection_retries(
             lambda owner=owner, local=local: load_text(schemeshard_url(
                 schemeshard_id,
@@ -1434,13 +1455,10 @@ def fetch_inflight_tablets():
         path = normalize_path(path)
         tablets = by_path.setdefault(path, {})
         if shards:
-            _add_shard_tablets(
-                tablets, shards, slot['types'], schemeshard_id, type_cache,
-            )
+            _add_shard_tablets(tablets, shards, slot['types'])
         elif slot['tx_count'] == 1 and len(slot['backups']) == 1:
-            _add_shard_tablets(
-                tablets, slot['backups'][0], slot['types'], schemeshard_id, type_cache,
-            )
+            _add_shard_tablets(tablets, slot['backups'][0], slot['types'])
+        log(f'{path}: {len(tablets)} tablet(s) on SchemeShard')
     filled = sum(1 for tablets in by_path.values() if tablets)
     log(f'SchemeShard {schemeshard_id}: tablet ids for {filled} path(s)')
     return by_path
@@ -1479,11 +1497,24 @@ def tablets_when_describe_hides_path(path, scheme_type, describe_error):
             path, scheme_type, None,
             f'ERROR: {reason}; SchemeShard has no shards for this path',
         )
+    tablets = _tablets_for_scheme(tablets, scheme_type)
     log(
         f'{path}: describe hid the path; '
         f'using {len(tablets)} tablet(s) from SchemeShard'
     )
     return path, scheme_type, tablets, None
+
+
+def _tablets_for_scheme(tablets, scheme_type):
+    """Fill roles the transaction page left blank."""
+    default = _SCHEME_ROLE.get(scheme_type)
+    if not default:
+        return tablets
+    adjusted = {}
+    for tablet_id, rec in tablets.items():
+        role = default if rec['role'] == 'shard' else rec['role']
+        adjusted[tablet_id] = {'role': role, 'parts': list(rec['parts'])}
+    return adjusted
 
 
 def merge_objects(objects, extra):

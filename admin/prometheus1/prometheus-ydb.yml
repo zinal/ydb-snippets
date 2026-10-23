@@ -7,7 +7,7 @@ scrape_configs:
 - job_name: ydb/ydb
   scheme: https
   tls_config:
-    ca_file: '/home/demo/prometheus/config/ydb-ca.cer'
+    insecure_skip_verify: true
   metric_relabel_configs:
   - regex: (.*)
     replacement: ydb_$1
@@ -27,13 +27,13 @@ scrape_configs:
     replacement: ydb
   file_sd_configs:
   - files:
-    - "/home/demo/prometheus/config/ydbd-storage.yml"
-    - "/home/demo/prometheus/config/ydbd-database-*.yml"
+    - "ydbd-storage.yml"
+    - "ydbd-database-*.yml"
 
 - job_name: ydb/auth
   scheme: https
   tls_config:
-    ca_file: '/home/demo/prometheus/config/ydb-ca.cer'
+    insecure_skip_verify: true
   metric_relabel_configs:
   - regex: (.*)
     replacement: auth_$1
@@ -53,13 +53,13 @@ scrape_configs:
     replacement: auth
   file_sd_configs:
   - files:
-    - "/home/demo/prometheus/config/ydbd-storage.yml"
-    - "/home/demo/prometheus/config/ydbd-database-*.yml"
+    - "ydbd-storage.yml"
+    - "ydbd-database-*.yml"
 
 - job_name: ydb/coordinator
   scheme: https
   tls_config:
-    ca_file: '/home/demo/prometheus/config/ydb-ca.cer'
+    insecure_skip_verify: true
   metric_relabel_configs:
   - regex: (.*)
     replacement: coordinator_$1
@@ -79,13 +79,13 @@ scrape_configs:
     replacement: coordinator
   file_sd_configs:
   - files:
-    - "/home/demo/prometheus/config/ydbd-storage.yml"
-    - "/home/demo/prometheus/config/ydbd-database-*.yml"
+    - "ydbd-storage.yml"
+    - "ydbd-database-*.yml"
 
 - job_name: ydb/dsproxy_queue
   scheme: https
   tls_config:
-    ca_file: '/home/demo/prometheus/config/ydb-ca.cer'
+    insecure_skip_verify: true
   metric_relabel_configs:
   - regex: (.*)
     replacement: dsproxy_queue_$1
@@ -105,13 +105,13 @@ scrape_configs:
     replacement: dsproxy_queue
   file_sd_configs:
   - files:
-    - "/home/demo/prometheus/config/ydbd-storage.yml"
-    - "/home/demo/prometheus/config/ydbd-database-*.yml"
+    - "ydbd-storage.yml"
+    - "ydbd-database-*.yml"
 
 - job_name: ydb/dsproxy
   scheme: https
   tls_config:
-    ca_file: '/home/demo/prometheus/config/ydb-ca.cer'
+    insecure_skip_verify: true
   metric_relabel_configs:
   - regex: (.*)
     replacement: dsproxy_$1
@@ -131,13 +131,13 @@ scrape_configs:
     replacement: dsproxy
   file_sd_configs:
   - files:
-    - "/home/demo/prometheus/config/ydbd-storage.yml"
-    - "/home/demo/prometheus/config/ydbd-database-*.yml"
+    - "ydbd-storage.yml"
+    - "ydbd-database-*.yml"
 
 - job_name: ydb/dsproxy_percentile
   scheme: https
   tls_config:
-    ca_file: '/home/demo/prometheus/config/ydb-ca.cer'
+    insecure_skip_verify: true
   metric_relabel_configs:
   - regex: (.*)
     replacement: dsproxy_percentile_$1
@@ -157,13 +157,13 @@ scrape_configs:
     replacement: dsproxy_percentile
   file_sd_configs:
   - files:
-    - "/home/demo/prometheus/config/ydbd-storage.yml"
-    - "/home/demo/prometheus/config/ydbd-database-*.yml"
+    - "ydbd-storage.yml"
+    - "ydbd-database-*.yml"
 
 - job_name: ydb/grpc
   scheme: https
   tls_config:
-    ca_file: '/home/demo/prometheus/config/ydb-ca.cer'
+    insecure_skip_verify: true
   metric_relabel_configs:
   - regex: (.*)
     replacement: grpc_$1
@@ -183,13 +183,13 @@ scrape_configs:
     replacement: grpc
   file_sd_configs:
   - files:
-    - "/home/demo/prometheus/config/ydbd-storage.yml"
-    - "/home/demo/prometheus/config/ydbd-database-*.yml"
+    - "ydbd-storage.yml"
+    - "ydbd-database-*.yml"
 
 - job_name: ydb/kqp
   scheme: https
   tls_config:
-    ca_file: '/home/demo/prometheus/config/ydb-ca.cer'
+    insecure_skip_verify: true
   metric_relabel_configs:
   - regex: (.*)
     replacement: kqp_$1
@@ -209,12 +209,12 @@ scrape_configs:
     replacement: kqp
   file_sd_configs:
   - files:
-    - "/home/demo/prometheus/config/ydbd-database-*.yml"
+    - "ydbd-database-*.yml"
 
 - job_name: ydb/processing
   scheme: https
   tls_config:
-    ca_file: '/home/demo/prometheus/config/ydb-ca.cer'
+    insecure_skip_verify: true
   metric_relabel_configs:
   - regex: (.*)
     replacement: processing_$1
@@ -234,13 +234,13 @@ scrape_configs:
     replacement: processing
   file_sd_configs:
   - files:
-    - "/home/demo/prometheus/config/ydbd-storage.yml"
-    - "/home/demo/prometheus/config/ydbd-database-*.yml"
+    - "ydbd-storage.yml"
+    - "ydbd-database-*.yml"
 
 - job_name: ydb/proxy
   scheme: https
   tls_config:
-    ca_file: '/home/demo/prometheus/config/ydb-ca.cer'
+    insecure_skip_verify: true
   metric_relabel_configs:
   - regex: (.*)
     replacement: proxy_$1
@@ -260,13 +260,13 @@ scrape_configs:
     replacement: proxy
   file_sd_configs:
   - files:
-    - "/home/demo/prometheus/config/ydbd-storage.yml"
-    - "/home/demo/prometheus/config/ydbd-database-*.yml"
+    - "ydbd-storage.yml"
+    - "ydbd-database-*.yml"
 
 - job_name: ydb/followers
   scheme: https
   tls_config:
-    ca_file: '/home/demo/prometheus/config/ydb-ca.cer'
+    insecure_skip_verify: true
   metric_relabel_configs:
   - regex: (.*)
     replacement: followers_$1
@@ -286,13 +286,13 @@ scrape_configs:
     replacement: followers
   file_sd_configs:
   - files:
-    - "/home/demo/prometheus/config/ydbd-storage.yml"
-    - "/home/demo/prometheus/config/ydbd-database-*.yml"
+    - "ydbd-storage.yml"
+    - "ydbd-database-*.yml"
 
 - job_name: ydb/storage_pool_stat
   scheme: https
   tls_config:
-    ca_file: '/home/demo/prometheus/config/ydb-ca.cer'
+    insecure_skip_verify: true
   metric_relabel_configs:
   - regex: (.*)
     replacement: storage_pool_stat_$1
@@ -312,13 +312,13 @@ scrape_configs:
     replacement: storage_pool_stat
   file_sd_configs:
   - files:
-    - "/home/demo/prometheus/config/ydbd-storage.yml"
-    - "/home/demo/prometheus/config/ydbd-database-*.yml"
+    - "ydbd-storage.yml"
+    - "ydbd-database-*.yml"
 
 - job_name: ydb/tablets
   scheme: https
   tls_config:
-    ca_file: '/home/demo/prometheus/config/ydb-ca.cer'
+    insecure_skip_verify: true
   metric_relabel_configs:
   - regex: (.*)
     replacement: tablets_$1
@@ -338,13 +338,13 @@ scrape_configs:
     replacement: tablets
   file_sd_configs:
   - files:
-    - "/home/demo/prometheus/config/ydbd-storage.yml"
-    - "/home/demo/prometheus/config/ydbd-database-*.yml"
+    - "ydbd-storage.yml"
+    - "ydbd-database-*.yml"
 
 - job_name: ydb/utils
   scheme: https
   tls_config:
-    ca_file: '/home/demo/prometheus/config/ydb-ca.cer'
+    insecure_skip_verify: true
   metric_relabel_configs:
   - regex: (.*)
     replacement: utils_$1
@@ -364,13 +364,13 @@ scrape_configs:
     replacement: utils
   file_sd_configs:
   - files:
-    - "/home/demo/prometheus/config/ydbd-storage.yml"
-    - "/home/demo/prometheus/config/ydbd-database-*.yml"
+    - "ydbd-storage.yml"
+    - "ydbd-database-*.yml"
 
 - job_name: ydb/dsproxynode
   scheme: https
   tls_config:
-    ca_file: '/home/demo/prometheus/config/ydb-ca.cer'
+    insecure_skip_verify: true
   metric_relabel_configs:
   - regex: (.*)
     replacement: dsproxynode_$1
@@ -390,13 +390,13 @@ scrape_configs:
     replacement: dsproxynode
   file_sd_configs:
   - files:
-    - "/home/demo/prometheus/config/ydbd-storage.yml"
-    - "/home/demo/prometheus/config/ydbd-database-*.yml"
+    - "ydbd-storage.yml"
+    - "ydbd-database-*.yml"
 
 - job_name: ydb/interconnect
   scheme: https
   tls_config:
-    ca_file: '/home/demo/prometheus/config/ydb-ca.cer'
+    insecure_skip_verify: true
   metric_relabel_configs:
   - regex: (.*)
     replacement: interconnect_$1
@@ -416,13 +416,13 @@ scrape_configs:
     replacement: interconnect
   file_sd_configs:
   - files:
-    - "/home/demo/prometheus/config/ydbd-storage.yml"
-    - "/home/demo/prometheus/config/ydbd-database-*.yml"
+    - "ydbd-storage.yml"
+    - "ydbd-database-*.yml"
 
 - job_name: ydb/pdisks
   scheme: https
   tls_config:
-    ca_file: '/home/demo/prometheus/config/ydb-ca.cer'
+    insecure_skip_verify: true
   metric_relabel_configs:
   - regex: (.*)
     replacement: pdisks_$1
@@ -442,12 +442,12 @@ scrape_configs:
     replacement: pdisks
   file_sd_configs:
   - files:
-    - "/home/demo/prometheus/config/ydbd-storage.yml"
+    - "ydbd-storage.yml"
 
 - job_name: ydb/vdisks
   scheme: https
   tls_config:
-    ca_file: '/home/demo/prometheus/config/ydb-ca.cer'
+    insecure_skip_verify: true
   metric_relabel_configs:
   - regex: (.*)
     replacement: vdisks_$1
@@ -467,12 +467,12 @@ scrape_configs:
     replacement: vdisks
   file_sd_configs:
   - files:
-    - "/home/demo/prometheus/config/ydbd-storage.yml"
+    - "ydbd-storage.yml"
 
 - job_name: ydb/healthcheck
   scheme: https
   tls_config:
-    ca_file: '/home/demo/prometheus/config/ydb-ca.cer'
+    insecure_skip_verify: true
   metrics_path: /healthcheck
   params:
     format:
@@ -489,5 +489,5 @@ scrape_configs:
     replacement: healthcheck
   file_sd_configs:
   - files:
-    - "/home/demo/prometheus/config/ydbd-storage.yml"
-    - "/home/demo/prometheus/config/ydbd-database-*.yml"
+    - "ydbd-storage.yml"
+    - "ydbd-database-*.yml"

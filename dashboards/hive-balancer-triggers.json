@@ -1,0 +1,740 @@
+{
+  "description": "Какой порог Hive открыл проход балансировщика: emergency, scatter или drain/fill.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "type": "text",
+      "title": "",
+      "transparent": true,
+      "options": {
+        "mode": "markdown",
+        "content": "## Какой порог выстрелил\n\nСчётчики Hive общие на базу, фильтра по `host` у них нет. Значения `BalanceUsage*` и `BalanceScatter` уже умножены на 100: 90 на графике — это порог 0.9.\n\n`BalancerExecuted` — один запуск прохода, не одна таблетка. `TabletsMoved` считают и балансировщик, и drain, и fill. Если растут только `DrainExecuted` или `FillExecuted`, а проходов нет, пороги ни при чём.\n\nКогда проход есть, на 25.2, 25.3 и 25.4 берётся первое подходящее условие:\n\n1. **Emergency.** `max usage` ≥ 90 и `min usage` < 70. В этом проходе scatter уже не проверяется. Нужен ещё узел, который Hive считает перегруженным; отдельного счётчика этой проверки нет.\n2. **Развоз соседей одного объекта.** Порог `ObjectImbalanceToBalance` 0.02. Сама величина в Prometheus не пишется: `BalanceObjectImbalance` нигде не выставляется. На DEBUG в логе Hive есть `Max imbalance ... starting balancer for object`.\n3. **Scatter.** `BalanceScatter` — максимум по ресурсам, не имя ресурса. Выше 50 пробит порог CPU, памяти или сети (по умолчанию 0.5). Между 2 и 50 выше своего порога может быть только Counter (0.02). Hive проверяет Counter, затем CPU, память и сеть и берёт первый, кто перешагнул свой порог. Имя ресурса есть только на TRACE: `Scatter ... over limit ... starting balancer CPU` (или `Counter`, `Memory`, `Network`).\n\nСумма точек в легенде завышает число событий: соседние `increase` за `$__rate_interval` перекрываются. Высота пика и карточки за `$__range` ближе к числу событий.\n\nЖивое разделение по ресурсам и типам проходов — таблица Triggers и таблица Balancer на главной странице Hive. В историю Prometheus оно не попадает.\n"
+      },
+      "id": 1,
+      "gridPos": {
+        "h": 14,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Проходы",
+      "description": "BalancerExecuted за выбранный интервал. Один проход, не одна таблетка.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${ds}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "purple",
+            "mode": "fixed"
+          },
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "purple"
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds}"
+          },
+          "editorMode": "code",
+          "expr": "max(increase(tablets_Hive_BalancerExecuted{database=\"$database\"}[$__range])) or vector(0)",
+          "instant": true,
+          "legendFormat": "",
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "id": 2,
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 14
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Переезды",
+      "description": "TabletsMoved за выбранный интервал: балансировщик, drain и fill вместе.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${ds}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "blue",
+            "mode": "fixed"
+          },
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue"
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds}"
+          },
+          "editorMode": "code",
+          "expr": "max(increase(tablets_Hive_TabletsMoved{database=\"$database\"}[$__range])) or vector(0)",
+          "instant": true,
+          "legendFormat": "",
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "id": 3,
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 14
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Drain",
+      "description": "DrainExecuted за выбранный интервал, по таблеткам.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${ds}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "orange",
+            "mode": "fixed"
+          },
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "orange"
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds}"
+          },
+          "editorMode": "code",
+          "expr": "max(increase(tablets_Hive_DrainExecuted{database=\"$database\"}[$__range])) or vector(0)",
+          "instant": true,
+          "legendFormat": "",
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "id": 4,
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 14
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Fill",
+      "description": "FillExecuted за выбранный интервал, по таблеткам.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${ds}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "fixedColor": "green",
+            "mode": "fixed"
+          },
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds}"
+          },
+          "editorMode": "code",
+          "expr": "max(increase(tablets_Hive_FillExecuted{database=\"$database\"}[$__range])) or vector(0)",
+          "instant": true,
+          "legendFormat": "",
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "id": 5,
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 14
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Пороги и факт запуска",
+      "description": "Слева usage и scatter в процентах и горизонтали порогов. Справа проходы и переезды за интервал точки. Emergency — max на 90 или выше при min ниже 70. Scatter CPU, памяти и сети — синяя линия выше 50. Между 2 и 50 открыт только порог Counter.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${ds}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "проценты",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 8,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 2,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "проходы|переезды|drain|fill|неудачи"
+            },
+            "properties": [
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              },
+              {
+                "id": "custom.axisLabel",
+                "value": "события за интервал"
+              },
+              {
+                "id": "unit",
+                "value": "short"
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 2
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "^порог"
+            },
+            "properties": [
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "fill": "dash",
+                  "dash": [
+                    8,
+                    8
+                  ]
+                }
+              },
+              {
+                "id": "custom.fillOpacity",
+                "value": 0
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 1
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "calcs": [
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds}"
+          },
+          "editorMode": "code",
+          "expr": "max(tablets_MAX_Hive_BalanceUsageMax_{database=\"$database\"})",
+          "instant": false,
+          "legendFormat": "max usage",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds}"
+          },
+          "editorMode": "code",
+          "expr": "max(tablets_MAX_Hive_BalanceUsageMin_{database=\"$database\"})",
+          "instant": false,
+          "legendFormat": "min usage",
+          "range": true,
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds}"
+          },
+          "editorMode": "code",
+          "expr": "max(tablets_MAX_Hive_BalanceScatter_{database=\"$database\"})",
+          "instant": false,
+          "legendFormat": "scatter",
+          "range": true,
+          "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds}"
+          },
+          "editorMode": "code",
+          "expr": "vector(90)",
+          "instant": false,
+          "legendFormat": "порог emergency 90",
+          "range": true,
+          "refId": "D"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds}"
+          },
+          "editorMode": "code",
+          "expr": "vector(70)",
+          "instant": false,
+          "legendFormat": "порог свободного узла 70",
+          "range": true,
+          "refId": "E"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds}"
+          },
+          "editorMode": "code",
+          "expr": "vector(50)",
+          "instant": false,
+          "legendFormat": "порог scatter CPU/память/сеть 50",
+          "range": true,
+          "refId": "F"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds}"
+          },
+          "editorMode": "code",
+          "expr": "vector(2)",
+          "instant": false,
+          "legendFormat": "порог Counter 2",
+          "range": true,
+          "refId": "G"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds}"
+          },
+          "editorMode": "code",
+          "expr": "max(increase(tablets_Hive_BalancerExecuted{database=\"$database\"}[$__rate_interval]))",
+          "instant": false,
+          "legendFormat": "проходы",
+          "range": true,
+          "refId": "H"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds}"
+          },
+          "editorMode": "code",
+          "expr": "max(increase(tablets_Hive_TabletsMoved{database=\"$database\"}[$__rate_interval]))",
+          "instant": false,
+          "legendFormat": "переезды",
+          "range": true,
+          "refId": "I"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds}"
+          },
+          "editorMode": "code",
+          "expr": "max(increase(tablets_Hive_DrainExecuted{database=\"$database\"}[$__rate_interval]))",
+          "instant": false,
+          "legendFormat": "drain",
+          "range": true,
+          "refId": "J"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds}"
+          },
+          "editorMode": "code",
+          "expr": "max(increase(tablets_Hive_FillExecuted{database=\"$database\"}[$__rate_interval]))",
+          "instant": false,
+          "legendFormat": "fill",
+          "range": true,
+          "refId": "K"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds}"
+          },
+          "editorMode": "code",
+          "expr": "max(increase(tablets_Hive_BalancerFailed{database=\"$database\"}[$__rate_interval]))",
+          "instant": false,
+          "legendFormat": "неудачи прохода",
+          "range": true,
+          "refId": "L"
+        }
+      ],
+      "id": 6,
+      "gridPos": {
+        "h": 12,
+        "w": 24,
+        "x": 0,
+        "y": 18
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Какое условие было открыто",
+      "description": "1 — условие по опубликованным датчикам выполнено. Если emergency равен 1, этот проход — emergency, даже когда scatter тоже 1. Объектный дисбаланс здесь не виден. Scatter выше 50 не называет ресурс: Counter проверяется раньше CPU, памяти и сети.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${ds}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "axisSoftMax": 1,
+            "axisSoftMin": 0,
+            "drawStyle": "line",
+            "fillOpacity": 25,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "stepAfter",
+            "lineWidth": 2,
+            "pointSize": 2,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 0,
+          "max": 1,
+          "min": 0,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "calcs": [
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds}"
+          },
+          "editorMode": "code",
+          "expr": "((max(tablets_MAX_Hive_BalanceUsageMax_{database=\"$database\"}) >= bool 90) * (max(tablets_MAX_Hive_BalanceUsageMin_{database=\"$database\"}) < bool 70)) or on() vector(0)",
+          "instant": false,
+          "legendFormat": "emergency: max≥90 и min<70",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds}"
+          },
+          "editorMode": "code",
+          "expr": "(max(tablets_MAX_Hive_BalanceScatter_{database=\"$database\"}) > bool 50) or on() vector(0)",
+          "instant": false,
+          "legendFormat": "scatter CPU/память/сеть: >50",
+          "range": true,
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds}"
+          },
+          "editorMode": "code",
+          "expr": "((max(tablets_MAX_Hive_BalanceScatter_{database=\"$database\"}) > bool 2) * (max(tablets_MAX_Hive_BalanceScatter_{database=\"$database\"}) <= bool 50)) or on() vector(0)",
+          "instant": false,
+          "legendFormat": "только Counter возможен: 2<scatter≤50",
+          "range": true,
+          "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${ds}"
+          },
+          "editorMode": "code",
+          "expr": "(max(increase(tablets_Hive_BalancerExecuted{database=\"$database\"}[$__rate_interval])) > bool 0) or on() vector(0)",
+          "instant": false,
+          "legendFormat": "был проход",
+          "range": true,
+          "refId": "D"
+        }
+      ],
+      "id": 7,
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 30
+      }
+    }
+  ],
+  "refresh": "",
+  "schemaVersion": 41,
+  "tags": [
+    "ydb"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {},
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${ds}"
+        },
+        "definition": "label_values(database)",
+        "includeAll": false,
+        "name": "database",
+        "options": [],
+        "query": {
+          "query": "label_values(database)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "current": {},
+        "includeAll": false,
+        "name": "ds",
+        "options": [],
+        "query": "prometheus",
+        "refresh": 1,
+        "regex": "",
+        "type": "datasource"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Hive balancer triggers",
+  "uid": "ydb-hive-balancer-triggers",
+  "weekStart": ""
+}
+

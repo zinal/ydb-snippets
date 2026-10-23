@@ -1,0 +1,569 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "datasource",
+          "uid": "grafana"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Estimated async replication CDC flow for one database, before changefeeds exist. Every flow is bytes or rows per minute. The aggregation interval only sets the rate() window.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "gridPos": {
+        "h": 5,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "content": "Estimate of the CDC stream async replication would produce for every row table in the selected database. Changefeeds are not required.\n\nCounters are leader DataShard engine metrics. `EngineHostRowUpdateBytes` is the size of the key and of the cells the engine wrote. `EngineHostRowEraseBytes` is the key size plus 8 bytes per delete; those 8 bytes are subtracted below. Reads, compaction, and follower series are not included.\n\n**Unit.** Each series is `rate(counter[$agg]) * 60`. `$agg` only smooths the rate. A longer interval does not turn the value into bytes per that interval: it stays bytes, or rows, per minute.\n\n**Write and read.** In `UPDATES` mode the topic record is those same cells. For `BINARY` the topic write and the consumer read of that payload are this value (zstd and the 8-byte header stay inside the uncertainty). The read line adds 70 bytes of Topic API metadata per record. For `JSON` the payload line is a lower bound: column names are not in the counters.",
+        "mode": "markdown"
+      },
+      "title": "What is counted",
+      "type": "text"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "$ds"
+      },
+      "description": "Mean, over the dashboard time range, of cell bytes per minute. This is the BINARY topic payload and the lower bound for JSON.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 1,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "unit": "decbytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 0,
+        "y": 5
+      },
+      "id": 2,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "mean"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "$ds"
+          },
+          "editorMode": "code",
+          "expr": "clamp_min(\n  (sum(rate(tablets_DataShard_EngineHostRowUpdateBytes{database=\"$database\"}[$agg])) or vector(0))\n  + (sum(rate(tablets_DataShard_EngineHostRowEraseBytes{database=\"$database\"}[$agg])) or vector(0))\n  - 8 * (sum(rate(tablets_DataShard_EngineHostRowErases{database=\"$database\"}[$agg])) or vector(0)),\n  0\n) * 60",
+          "legendFormat": "payload",
+          "refId": "A"
+        }
+      ],
+      "title": "Payload, bytes per minute",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "$ds"
+      },
+      "description": "Mean, over the dashboard time range, of row changes per minute. One CDC record per update or delete.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 1,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 8,
+        "y": 5
+      },
+      "id": 3,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "mean"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "$ds"
+          },
+          "editorMode": "code",
+          "expr": "(\n  (sum(rate(tablets_DataShard_EngineHostRowUpdates{database=\"$database\"}[$agg])) or vector(0))\n  + (sum(rate(tablets_DataShard_EngineHostRowErases{database=\"$database\"}[$agg])) or vector(0))\n) * 60",
+          "legendFormat": "records",
+          "refId": "A"
+        }
+      ],
+      "title": "Records per minute",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "$ds"
+      },
+      "description": "Payload bytes divided by records. Independent of the aggregation interval. Large values mean a JSON record is close to this size. Small values mean column names dominate JSON.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 0,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "unit": "decbytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 8,
+        "x": 16,
+        "y": 5
+      },
+      "id": 4,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "mean"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "$ds"
+          },
+          "editorMode": "code",
+          "expr": "(\n  clamp_min(\n    (sum(rate(tablets_DataShard_EngineHostRowUpdateBytes{database=\"$database\"}[$agg])) or vector(0))\n    + (sum(rate(tablets_DataShard_EngineHostRowEraseBytes{database=\"$database\"}[$agg])) or vector(0))\n    - 8 * (sum(rate(tablets_DataShard_EngineHostRowErases{database=\"$database\"}[$agg])) or vector(0)),\n    0\n  )\n  / clamp_min(\n    (sum(rate(tablets_DataShard_EngineHostRowUpdates{database=\"$database\"}[$agg])) or vector(0))\n    + (sum(rate(tablets_DataShard_EngineHostRowErases{database=\"$database\"}[$agg])) or vector(0)),\n    1e-12\n  )\n) and (\n  (sum(rate(tablets_DataShard_EngineHostRowUpdates{database=\"$database\"}[$agg])) or vector(0))\n  + (sum(rate(tablets_DataShard_EngineHostRowErases{database=\"$database\"}[$agg])) or vector(0))\n  > 0\n)",
+          "legendFormat": "bytes per record",
+          "refId": "A"
+        }
+      ],
+      "title": "Cell bytes per record",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "$ds"
+      },
+      "description": "Cell bytes per minute, split into updates and deletes. The stack is the CDC payload.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "bytes per minute",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            }
+          },
+          "decimals": 1,
+          "min": 0,
+          "unit": "decbytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 10
+      },
+      "id": 5,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "$ds"
+          },
+          "editorMode": "code",
+          "expr": "(sum(rate(tablets_DataShard_EngineHostRowUpdateBytes{database=\"$database\"}[$agg])) or vector(0)) * 60",
+          "legendFormat": "Updates",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "$ds"
+          },
+          "editorMode": "code",
+          "expr": "clamp_min(\n  (sum(rate(tablets_DataShard_EngineHostRowEraseBytes{database=\"$database\"}[$agg])) or vector(0))\n  - 8 * (sum(rate(tablets_DataShard_EngineHostRowErases{database=\"$database\"}[$agg])) or vector(0)),\n  0\n) * 60",
+          "legendFormat": "Deletes",
+          "refId": "B"
+        }
+      ],
+      "title": "Payload by operation, bytes per minute",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "$ds"
+      },
+      "description": "Topic write is the payload. Topic read is the same payload plus 70 bytes of Topic API metadata per record. Both are per minute.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "bytes per minute",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            }
+          },
+          "decimals": 1,
+          "min": 0,
+          "unit": "decbytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 18
+      },
+      "id": 6,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "$ds"
+          },
+          "editorMode": "code",
+          "expr": "clamp_min(\n  (sum(rate(tablets_DataShard_EngineHostRowUpdateBytes{database=\"$database\"}[$agg])) or vector(0))\n  + (sum(rate(tablets_DataShard_EngineHostRowEraseBytes{database=\"$database\"}[$agg])) or vector(0))\n  - 8 * (sum(rate(tablets_DataShard_EngineHostRowErases{database=\"$database\"}[$agg])) or vector(0)),\n  0\n) * 60",
+          "legendFormat": "Topic write",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "$ds"
+          },
+          "editorMode": "code",
+          "expr": "(\n  clamp_min(\n    (sum(rate(tablets_DataShard_EngineHostRowUpdateBytes{database=\"$database\"}[$agg])) or vector(0))\n    + (sum(rate(tablets_DataShard_EngineHostRowEraseBytes{database=\"$database\"}[$agg])) or vector(0))\n    - 8 * (sum(rate(tablets_DataShard_EngineHostRowErases{database=\"$database\"}[$agg])) or vector(0)),\n    0\n  )\n  + 70 * (\n    (sum(rate(tablets_DataShard_EngineHostRowUpdates{database=\"$database\"}[$agg])) or vector(0))\n    + (sum(rate(tablets_DataShard_EngineHostRowErases{database=\"$database\"}[$agg])) or vector(0))\n  )\n) * 60",
+          "legendFormat": "Topic read",
+          "refId": "B"
+        }
+      ],
+      "title": "CDC topic write and read, bytes per minute",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "$ds"
+      },
+      "description": "Row changes per minute. The stack is the CDC record rate.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "rows per minute",
+            "axisPlacement": "auto",
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            }
+          },
+          "decimals": 1,
+          "min": 0,
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 26
+      },
+      "id": 7,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "$ds"
+          },
+          "editorMode": "code",
+          "expr": "(sum(rate(tablets_DataShard_EngineHostRowUpdates{database=\"$database\"}[$agg])) or vector(0)) * 60",
+          "legendFormat": "Updates",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "$ds"
+          },
+          "editorMode": "code",
+          "expr": "(sum(rate(tablets_DataShard_EngineHostRowErases{database=\"$database\"}[$agg])) or vector(0)) * 60",
+          "legendFormat": "Deletes",
+          "refId": "B"
+        }
+      ],
+      "title": "Records by operation, rows per minute",
+      "type": "timeseries"
+    }
+  ],
+  "schemaVersion": 36,
+  "style": "dark",
+  "tags": [
+    "ydb",
+    "replication"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {},
+        "datasource": {
+          "type": "prometheus",
+          "uid": "$ds"
+        },
+        "definition": "label_values(database)",
+        "hide": 0,
+        "includeAll": false,
+        "label": "Database",
+        "multi": false,
+        "name": "database",
+        "options": [],
+        "query": {
+          "query": "label_values(database)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "auto": false,
+        "auto_count": 30,
+        "auto_min": "1m",
+        "current": {
+          "selected": true,
+          "text": "5m",
+          "value": "5m"
+        },
+        "hide": 0,
+        "label": "Aggregation interval",
+        "name": "agg",
+        "options": [
+          {
+            "selected": false,
+            "text": "1m",
+            "value": "1m"
+          },
+          {
+            "selected": true,
+            "text": "5m",
+            "value": "5m"
+          },
+          {
+            "selected": false,
+            "text": "15m",
+            "value": "15m"
+          },
+          {
+            "selected": false,
+            "text": "30m",
+            "value": "30m"
+          },
+          {
+            "selected": false,
+            "text": "1h",
+            "value": "1h"
+          },
+          {
+            "selected": false,
+            "text": "6h",
+            "value": "6h"
+          }
+        ],
+        "query": "1m,5m,15m,30m,1h,6h",
+        "skipUrlSync": false,
+        "type": "interval"
+      },
+      {
+        "current": {},
+        "hide": 0,
+        "includeAll": false,
+        "label": "Prometheus",
+        "multi": false,
+        "name": "ds",
+        "options": [],
+        "query": "prometheus",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "type": "datasource"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Async replication data flow",
+  "uid": "ydb-async-replication-flow",
+  "version": 1,
+  "weekStart": ""
+}

@@ -1,0 +1,62 @@
+metadata:
+  kind: MainConfig
+  cluster: ""
+  version: 0
+config:
+  erasure: none
+  fail_domain_type: disk
+  self_management_config:
+    enabled: true
+  default_disk_type: SSD
+  host_configs:
+  - host_config_id: 1
+    drive:
+    - path: data/ydb-data-1
+      type: SSD
+  hosts:
+  - host: localhost
+    host_config_id: 1
+    location:
+      body: 1
+      data_center: 'zone-a'
+      rack: '1'
+  actor_system_config:
+    use_auto_config: true
+    cpu_count: 4
+  interconnect_config:
+    start_tcp: true
+    encryption_mode: DISABLED
+  grpc_config:
+    cert: "certs/node.crt"
+    key: "certs/node.key"
+    ca: "certs/ca.crt"
+    services_enabled:
+    - legacy
+  security_config:
+    enforce_user_token_requirement: true
+    monitoring_allowed_sids:
+    - "root"
+    - "ADMINS"
+    - "DATABASE-ADMINS"
+    administration_allowed_sids:
+    - "root"
+    - "ADMINS"
+    - "DATABASE-ADMINS"
+    viewer_allowed_sids:
+    - "root"
+    - "ADMINS"
+    - "DATABASE-ADMINS"
+    register_dynamic_node_allowed_sids:
+    - databaseNodes@cert
+    - root@builtin
+    bootstrap_allowed_sids:
+    - "root"
+    - "ADMINS"
+    - "DATABASE-ADMINS"
+  client_certificate_authorization:
+    request_client_certificate: true
+    client_certificate_definitions:
+        - member_groups: ["ADMINS", "databaseNodes@cert"]
+          subject_terms:
+          - short_name: "O"
+            values: ["YDB"]

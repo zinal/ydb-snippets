@@ -1,0 +1,220 @@
+apiVersion: ydb.tech/v1alpha1
+kind: Storage
+metadata:
+  name: storage-demo1
+spec:
+  dataStore:
+  - accessModes:
+    - ReadWriteOnce
+    hostPath:
+      path: /datum/
+  image:
+    name: cr.yandex/crptqonuodf51kdj7a7d/ydb:25.2.1.10-rc
+  nodes: 8
+  erasure: block-4-2
+  configuration: |-
+    static_erasure: block-4-2
+    host_configs:
+    - drive:
+      - path: /data/storage-demo1-00/host1-disk1
+        type: SSD
+      host_config_id: 1
+    - drive:
+      - path: /data/storage-demo1-00/host2-disk1
+        type: SSD
+      host_config_id: 2
+    - drive:
+      - path: /data/storage-demo1-00/host3-disk1
+        type: SSD
+      host_config_id: 3
+    - drive:
+      - path: /data/storage-demo1-00/host4-disk1
+        type: SSD
+      host_config_id: 4
+    - drive:
+      - path: /data/storage-demo1-00/host5-disk1
+        type: SSD
+      host_config_id: 5
+    - drive:
+      - path: /data/storage-demo1-00/host6-disk1
+        type: SSD
+      host_config_id: 6
+    - drive:
+      - path: /data/storage-demo1-00/host7-disk1
+        type: SSD
+      host_config_id: 7
+    - drive:
+      - path: /data/storage-demo1-00/host8-disk1
+        type: SSD
+      host_config_id: 8
+    hosts:
+    - host: storage-demo1-0
+      host_config_id: 1
+      node_id: 1
+      port: 19001
+      location:
+        body: 12340
+        data_center: az-1
+        rack: 0
+    - host: storage-demo1-1
+      host_config_id: 2
+      node_id: 2
+      port: 19001
+      location:
+        body: 12341
+        data_center: az-1
+        rack: 1
+    - host: storage-demo1-2
+      host_config_id: 3
+      node_id: 3
+      port: 19001
+      location:
+        body: 12342
+        data_center: az-1
+        rack: 2
+    - host: storage-demo1-3
+      host_config_id: 4
+      node_id: 4
+      port: 19001
+      location:
+        body: 12343
+        data_center: az-1
+        rack: 3
+    - host: storage-demo1-4
+      host_config_id: 5
+      node_id: 5
+      port: 19001
+      location:
+        body: 12344
+        data_center: az-1
+        rack: 4
+    - host: storage-demo1-5
+      host_config_id: 6
+      node_id: 6
+      port: 19001
+      location:
+        body: 12345
+        data_center: az-1
+        rack: 5
+    - host: storage-demo1-6
+      host_config_id: 7
+      node_id: 7
+      port: 19001
+      location:
+        body: 12346
+        data_center: az-1
+        rack: 6
+    - host: storage-demo1-7
+      host_config_id: 8
+      node_id: 8
+      port: 19001
+      location:
+        body: 12347
+        data_center: az-1
+        rack: 7
+    grpc_config:
+      port: 2135
+    domains_config:
+      domain:
+        - name: Root
+          storage_pool_types:
+            - kind: ssd
+              pool_config:
+                box_id: 1
+                erasure_species: block-4-2
+                kind: ssd
+                pdisk_filter:
+                  - property:
+                      - type: SSD
+                vdisk_kind: Default
+      state_storage:
+        - ring:
+            node: [ 1, 2, 3, 4, 5, 6, 7, 8 ]
+            nto_select: 5
+          ssid: 1
+    actor_system_config:
+      batch_executor: 2
+      io_executor: 3
+      executor:
+        - name: System
+          spin_threshold: 0
+          threads: 2
+          type: BASIC
+        - name: User
+          spin_threshold: 0
+          threads: 3
+          type: BASIC
+        - name: Batch
+          spin_threshold: 0
+          threads: 2
+          type: BASIC
+        - name: IO
+          threads: 1
+          time_per_mailbox_micro_secs: 100
+          type: IO
+        - name: IC
+          spin_threshold: 10
+          threads: 1
+          time_per_mailbox_micro_secs: 100
+          type: BASIC
+      scheduler:
+        progress_threshold: 10000
+        resolution: 256
+        spin_threshold: 0
+      service_executor:
+        - executor_id: 4
+          service_name: Interconnect
+    blob_storage_config:
+      service_set:
+        availability_domains: 1
+        groups:
+          - erasure_species: block-4-2
+            group_id: 0
+            group_generation: 1
+            rings:
+              - fail_domains:
+                - vdisk_locations:
+                  - node_id: 1
+                    pdisk_category: SSD
+                    path: /data/storage-demo1-00/host1-disk1
+                - vdisk_locations:
+                  - node_id: 2
+                    pdisk_category: SSD
+                    path: /data/storage-demo1-00/host2-disk1
+                - vdisk_locations:
+                  - node_id: 3
+                    pdisk_category: SSD
+                    path: /data/storage-demo1-00/host3-disk1
+                - vdisk_locations:
+                  - node_id: 4
+                    pdisk_category: SSD
+                    path: /data/storage-demo1-00/host4-disk1
+                - vdisk_locations:
+                  - node_id: 5
+                    pdisk_category: SSD
+                    path: /data/storage-demo1-00/host5-disk1
+                - vdisk_locations:
+                  - node_id: 6
+                    pdisk_category: SSD
+                    path: /data/storage-demo1-00/host6-disk1
+                - vdisk_locations:
+                  - node_id: 7
+                    pdisk_category: SSD
+                    path: /data/storage-demo1-00/host7-disk1
+                - vdisk_locations:
+                  - node_id: 8
+                    pdisk_category: SSD
+                    path: /data/storage-demo1-00/host8-disk1
+    channel_profile_config:
+      profile:
+        - channel:
+            - erasure_species: block-4-2
+              pdisk_category: 1
+              storage_pool_kind: ssd
+            - erasure_species: block-4-2
+              pdisk_category: 1
+              storage_pool_kind: ssd
+            - erasure_species: block-4-2
+              pdisk_category: 1
+              storage_pool_kind: ssd
+          profile_id: 0

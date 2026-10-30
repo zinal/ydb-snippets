@@ -23,8 +23,9 @@
 Лишние записи с этими префиксами удаляются. Записи вне этих имён не изменяются.
 При ``--filter`` удаляются только записи серверов из этой выборки.
 
-Нужны права читать серверы BareMetal в каталоге и ``dns.editor`` на зону.
-Аутентификация: ключ сервисного аккаунта, IAM-токен или metadata-сервис.
+К API скрипт подключается только авторизованным ключом сервисного аккаунта.
+Этому аккаунту достаточно ``baremetal.viewer`` на каталог серверов и ``dns.editor``
+на саму DNS-зону. Команды выдачи прав — в ``service-account-setup.txt``.
 """
 
 from __future__ import annotations
@@ -541,21 +542,38 @@ def apply_changes(sdk, client, zone_id: str, changes: list[RecordChange], timeou
             raise RegistrationError(str(exc)) from exc
 
 
-def build_sdk(iam_token: str, sa_key_file: str, endpoint: str):
+def load_service_account_key(path: str) -> dict:
+    if not path:
+        raise RegistrationError("укажите --sa-key-file или переменную YC_SERVICE_ACCOUNT_KEY_FILE")
+    try:
+        with open(path, encoding="utf-8") as key_file:
+            key = json.load(key_file)
+    except FileNotFoundError as exc:
+        raise RegistrationError(f"файл ключа сервисного аккаунта не найден: {path}") from exc
+    except json.JSONDecodeError as exc:
+        raise RegistrationError(f"файл ключа {path} не является JSON") from exc
+    if not isinstance(key, dict):
+        raise RegistrationError(f"файл ключа {path} должен содержать JSON-объект")
+    missing = [field for field in ("id", "service_account_id", "private_key") if not key.get(field)]
+    if missing:
+        raise RegistrationError(
+            f"в {path} нет полей авторизованного ключа: {', '.join(missing)}. "
+            "Создайте ключ командой yc iam key create, см. service-account-setup.txt"
+        )
+    private_key = key["private_key"]
+    if not isinstance(private_key, str) or "-----BEGIN PRIVATE KEY-----" not in private_key:
+        raise RegistrationError(f"в {path} поле private_key не похоже на ключ из yc iam key create")
+    return key
+
+
+def build_sdk(sa_key_file: str, endpoint: str):
     import yandexcloud
 
     if endpoint:
         yandexcloud.set_up_yc_api_endpoint(endpoint)
-    sdk_kwargs = {"endpoint": endpoint} if endpoint else {}
-    if sa_key_file and iam_token:
-        raise RegistrationError("укажите либо ключ сервисного аккаунта, либо IAM-токен")
-    if sa_key_file:
-        with open(sa_key_file, encoding="utf-8") as key_file:
-            sdk_kwargs["service_account_key"] = json.load(key_file)
-        return yandexcloud.SDK(**sdk_kwargs)
-    if iam_token:
-        sdk_kwargs["iam_token"] = iam_token
-        return yandexcloud.SDK(**sdk_kwargs)
+    sdk_kwargs = {"service_account_key": load_service_account_key(sa_key_file)}
+    if endpoint:
+        sdk_kwargs["endpoint"] = endpoint
     return yandexcloud.SDK(**sdk_kwargs)
 
 
@@ -567,7 +585,7 @@ def run(args: argparse.Namespace) -> list[RecordChange]:
     if args.ttl < 0 or args.ttl > 2147483647:
         raise RegistrationError("--ttl должен быть от 0 до 2147483647")
     prefixes = parse_prefixes(args.prefixes)
-    sdk = build_sdk(args.iam_token, args.sa_key_file, args.endpoint)
+    sdk = build_sdk(args.sa_key_file, args.endpoint)
     ensure_baremetal_endpoint()
     baremetal = sdk.client(ServerServiceStub)
     dns = sdk.client(DnsZoneServiceStub)
@@ -615,8 +633,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""пример:
   python register_private_dns.py \\
+    --sa-key-file ~/.config/yc/baremetal-dns-key.json \\
     --folder-id b1g123456789******** \\
-    --zone zonne \\
+    --zone-id dns123456789******** \\
     --prefix one --prefix two
 
 Сервер server1 с двумя приватными интерфейсами получит имена
@@ -624,10 +643,9 @@ server1.one.zonne и server1.two.zonne. Повторите запуск по р�
 скрипт обновит адрес, если платформа выдала другой, и снимет запись
 удалённого сервера.
 
-Ключ или токен:
-  --sa-key-file sa.json     или YC_SERVICE_ACCOUNT_KEY_FILE
-  --iam-token <t1....>      или YC_IAM_TOKEN, иначе YC_TOKEN
-Без них SDK запрашивает токен у metadata-сервиса вычислительного узла.
+Ключ сервисного аккаунта обязателен: --sa-key-file или
+YC_SERVICE_ACCOUNT_KEY_FILE. Как создать аккаунт, выдать роли и ключ,
+написано в service-account-setup.txt.
 """,
     )
     parser.add_argument("--folder-id", default=os.environ.get("YC_FOLDER_ID", ""), help="каталог с серверами BareMetal")
@@ -653,8 +671,11 @@ server1.one.zonne и server1.two.zonne. Повторите запуск по р�
         action="store_true",
         help="не удалять устаревшие A-записи; адреса существующих имён всё равно обновляются",
     )
-    parser.add_argument("--iam-token", default=os.environ.get("YC_IAM_TOKEN") or os.environ.get("YC_TOKEN") or "")
-    parser.add_argument("--sa-key-file", default=os.environ.get("YC_SERVICE_ACCOUNT_KEY_FILE") or "")
+    parser.add_argument(
+        "--sa-key-file",
+        default=os.environ.get("YC_SERVICE_ACCOUNT_KEY_FILE") or "",
+        help="JSON авторизованного ключа сервисного аккаунта (или YC_SERVICE_ACCOUNT_KEY_FILE)",
+    )
     parser.add_argument("--endpoint", default=os.environ.get("YC_API_ENDPOINT") or "", help="корень API, если это не api.cloud.yandex.net")
     parser.add_argument("--timeout", type=float, default=180, help="ожидание операции DNS, секунды")
     return parser.parse_args(argv)

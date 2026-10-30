@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+import json
+import tempfile
 import unittest
 
 from yandex.cloud.baremetal.v2.server_pb2 import (
@@ -23,6 +25,8 @@ from register_private_dns import (
     format_change,
     index_a_records,
     list_servers,
+    load_service_account_key,
+    main,
     managed_label,
     parse_prefixes,
     plan_changes,
@@ -265,6 +269,45 @@ class PaginationTests(unittest.TestCase):
         client = Client()
         self.assertEqual(list_servers(client, "folder", ""), ["first", "second"])
         self.assertEqual(client.tokens, ["", "next"])
+
+
+class ServiceAccountKeyTests(unittest.TestCase):
+    def test_missing_path_is_rejected(self):
+        with self.assertRaises(RegistrationError):
+            load_service_account_key("")
+
+    def test_key_must_be_an_authorized_key(self):
+        with tempfile.NamedTemporaryFile("w", encoding="utf-8") as key_file:
+            json.dump({"id": "key-id"}, key_file)
+            key_file.flush()
+            with self.assertRaises(RegistrationError):
+                load_service_account_key(key_file.name)
+
+    def test_authorized_key_is_loaded(self):
+        payload = {
+            "id": "key-id",
+            "service_account_id": "sa-id",
+            "private_key": "-----BEGIN PRIVATE KEY-----\nMIIB\n-----END PRIVATE KEY-----\n",
+        }
+        with tempfile.NamedTemporaryFile("w", encoding="utf-8") as key_file:
+            json.dump(payload, key_file)
+            key_file.flush()
+            self.assertEqual(load_service_account_key(key_file.name)["service_account_id"], "sa-id")
+
+    def test_cli_requires_the_key_before_calling_the_api(self):
+        code = main(
+            [
+                "--folder-id",
+                "b1gfolder",
+                "--zone-id",
+                "dnszone",
+                "--prefix",
+                "one",
+                "--sa-key-file",
+                "",
+            ]
+        )
+        self.assertEqual(code, 1)
 
 
 class SdkMappingTests(unittest.TestCase):

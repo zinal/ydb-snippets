@@ -1,0 +1,168 @@
+[KStatus: SCHEME_ERROR
+Issues: 
+<main>: Error: Executing ESchemeOpAlterReplication, code: 2003
+    <main>: Error: Check failed: path: '/terttu1/db2/source_repl', error: path hasn't been resolved, nearest resolved path: '/terttu1/db2' (id: [OwnerId: 72075186224038898, LocalPathId: 1]), code: 2003
+<main>: Error: Query invalidated on scheme/internal error during Scheme execution, code: 2019
+[KStatus: SCHEME_ERROR
+Issues: 
+<main>: Error: Executing ESchemeOpDropReplicationCascade, code: 2003
+    <main>: Error: Path `/terttu1/db2/source_repl` does not exist, code: 2003
+<main>: Error: Query invalidated on scheme/internal error during Scheme execution, code: 2019
+  3% 1 / 29
+100% 29 / 29
+Status: SCHEME_ERROR
+Issues: 
+<main>: Error: Path not found
+2026-11-11T10:44:39Z ожидание операции ydb://import/8?id=562949958968516&kind=s3 (профиль db1)
+2026-11-11T10:44:39Z операция выполняется: progress=PROGRESS_PREPARING status=SUCCESS
+2026-11-11T10:44:44Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=0/8296
+2026-11-11T10:44:49Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=0/8296
+2026-11-11T10:44:54Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=0/8296
+2026-11-11T10:45:00Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=1/8296
+2026-11-11T10:45:05Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=1/8296
+2026-11-11T10:45:10Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=2/8296
+2026-11-11T10:45:15Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=5/8296
+2026-11-11T10:45:21Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=8/8296
+2026-11-11T10:45:26Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=10/8296
+2026-11-11T10:45:31Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=12/8296
+2026-11-11T10:45:36Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=13/8296
+2026-11-11T10:45:42Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=14/8296
+2026-11-11T10:45:47Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=17/8296
+2026-11-11T10:45:52Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=22/8296
+2026-11-11T10:45:57Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=24/8291
+2026-11-11T10:46:03Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=26/8291
+2026-11-11T10:46:08Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=28/8287
+2026-11-11T10:46:13Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=31/8287
+2026-11-11T10:46:18Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=36/8287
+2026-11-11T10:46:23Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=38/8281
+2026-11-11T10:46:29Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=39/8281
+2026-11-11T10:46:34Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=40/8281
+2026-11-11T10:46:39Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=41/8281
+2026-11-11T10:46:45Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=42/8281
+2026-11-11T10:46:50Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=45/8277
+2026-11-11T10:46:55Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=46/8277
+2026-11-11T10:47:00Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=46/8277
+2026-11-11T10:47:05Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=49/8272
+2026-11-11T10:47:11Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=50/8272
+2026-11-11T10:47:16Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=51/8272
+2026-11-11T10:47:21Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=56/8272
+2026-11-11T10:47:26Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=59/8272
+2026-11-11T10:47:32Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=61/8272
+2026-11-11T10:47:37Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=61/8272
+2026-11-11T10:47:42Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=63/8272
+2026-11-11T10:47:47Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=65/8272
+2026-11-11T10:47:53Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=66/8272
+2026-11-11T10:47:58Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=66/8272
+2026-11-11T10:48:03Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=70/8272
+2026-11-11T10:48:08Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=70/8272
+2026-11-11T10:48:14Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=72/8272
+2026-11-11T10:48:19Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=72/8272
+2026-11-11T10:48:24Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=76/8272
+2026-11-11T10:48:29Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=79/8272
+2026-11-11T10:48:35Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=81/8272
+2026-11-11T10:48:40Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=81/8272
+2026-11-11T10:48:45Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=82/8272
+2026-11-11T10:48:50Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=83/8272
+2026-11-11T10:48:56Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=88/8272
+2026-11-11T10:49:01Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=90/8272
+2026-11-11T10:49:06Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=92/8272
+2026-11-11T10:49:11Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=93/8272
+2026-11-11T10:49:17Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=93/8272
+2026-11-11T10:49:22Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=94/8272
+2026-11-11T10:49:27Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=95/8272
+2026-11-11T10:49:32Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=97/8268
+2026-11-11T10:49:38Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=98/8268
+2026-11-11T10:49:43Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=98/8268
+2026-11-11T10:49:48Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=100/8260
+2026-11-11T10:49:53Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=101/8260
+2026-11-11T10:49:59Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=102/8260
+2026-11-11T10:50:04Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=102/8260
+2026-11-11T10:50:09Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=102/8260
+2026-11-11T10:50:14Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=103/8260
+2026-11-11T10:50:20Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=103/8260
+2026-11-11T10:50:25Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=106/7260
+2026-11-11T10:50:30Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=108/6260
+2026-11-11T10:50:35Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=108/6260
+2026-11-11T10:50:41Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=108/6260
+2026-11-11T10:50:46Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=109/6260
+2026-11-11T10:50:51Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=111/5260
+2026-11-11T10:50:56Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=111/5260
+2026-11-11T10:51:02Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=112/5260
+2026-11-11T10:51:07Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=112/5260
+2026-11-11T10:51:12Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=112/5260
+2026-11-11T10:51:17Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=113/5252
+2026-11-11T10:51:23Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=113/5252
+2026-11-11T10:51:28Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=113/5252
+2026-11-11T10:51:33Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=115/5237
+2026-11-11T10:51:38Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=116/5237
+2026-11-11T10:51:44Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=116/5237
+2026-11-11T10:51:49Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=117/5237
+2026-11-11T10:51:54Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=117/5237
+2026-11-11T10:51:59Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=117/5237
+2026-11-11T10:52:05Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=117/5237
+2026-11-11T10:52:10Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=118/5233
+2026-11-11T10:52:15Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=118/5233
+2026-11-11T10:52:20Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=119/5223
+2026-11-11T10:52:26Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=121/5223
+2026-11-11T10:52:31Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=121/5223
+2026-11-11T10:52:36Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=121/5223
+2026-11-11T10:52:41Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=122/5223
+2026-11-11T10:52:47Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=123/5223
+2026-11-11T10:52:52Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=123/5223
+2026-11-11T10:52:57Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=123/5223
+2026-11-11T10:53:02Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=123/5223
+2026-11-11T10:53:07Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=123/5223
+2026-11-11T10:53:13Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=123/5223
+2026-11-11T10:53:18Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=125/4215
+2026-11-11T10:53:23Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=127/4209
+2026-11-11T10:53:29Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=128/4209
+2026-11-11T10:53:34Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=128/4209
+2026-11-11T10:53:39Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=128/4209
+2026-11-11T10:53:44Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=129/4202
+2026-11-11T10:53:50Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=129/4202
+2026-11-11T10:53:55Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=131/4202
+2026-11-11T10:54:00Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=132/3202
+2026-11-11T10:54:05Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=132/3202
+2026-11-11T10:54:10Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=133/3195
+2026-11-11T10:54:16Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=135/3183
+2026-11-11T10:54:21Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=135/3183
+2026-11-11T10:54:26Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=136/3183
+2026-11-11T10:54:31Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=137/3177
+2026-11-11T10:54:37Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=137/3177
+2026-11-11T10:54:42Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=138/3177
+2026-11-11T10:54:47Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=139/3169
+2026-11-11T10:54:52Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=140/3169
+2026-11-11T10:54:58Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=141/3169
+2026-11-11T10:55:03Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=142/3169
+2026-11-11T10:55:08Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=142/3169
+2026-11-11T10:55:13Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=142/3169
+2026-11-11T10:55:19Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=142/3169
+2026-11-11T10:55:24Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=143/3169
+2026-11-11T10:55:29Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=144/3169
+2026-11-11T10:55:34Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=144/3169
+2026-11-11T10:55:40Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=146/3163
+2026-11-11T10:55:45Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=147/3163
+2026-11-11T10:55:50Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=147/3163
+2026-11-11T10:55:55Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=147/3163
+2026-11-11T10:56:01Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=147/3163
+2026-11-11T10:56:06Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=148/3163
+2026-11-11T10:56:11Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=149/3163
+2026-11-11T10:56:16Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=150/3163
+2026-11-11T10:56:22Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=150/3163
+2026-11-11T10:56:27Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=151/3155
+2026-11-11T10:56:32Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=151/3155
+2026-11-11T10:56:37Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=152/3155
+2026-11-11T10:56:43Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=152/3155
+2026-11-11T10:56:48Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=152/3155
+2026-11-11T10:56:53Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=152/3155
+2026-11-11T10:56:58Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=153/2155
+2026-11-11T10:57:04Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=153/2155
+2026-11-11T10:57:09Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=153/2155
+2026-11-11T10:57:14Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=154/1155
+2026-11-11T10:57:19Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=154/1155
+2026-11-11T10:57:25Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=154/1155
+2026-11-11T10:57:30Z операция выполняется: progress=PROGRESS_TRANSFER_DATA status=SUCCESS parts=154/1155
+2026-11-11T10:57:35Z операция завершена: status=SUCCESS progress=PROGRESS_DONE parts=155/155
+[KПропускаем создания репликации - не требуется
+Запуск теста: Wed Nov 11 01:58:17 PM MSK 2026
+Завершение теста: Wed Nov 11 02:29:33 PM MSK 2026

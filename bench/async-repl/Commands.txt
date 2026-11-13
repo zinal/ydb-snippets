@@ -1,0 +1,3 @@
+ydb export s3 --s3-endpoint ${S3_ENDPOINT} \
+  --bucket onprem-dp-demos-1  --item src=replication/,dst=backup-replication-5m/ \
+  --include-index-data true --compression zstd

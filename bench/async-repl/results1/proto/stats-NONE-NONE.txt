@@ -1,0 +1,301 @@
+┌─────────┐
+│ column0 │
+├─────────┤
+│ 5000000 │
+├─────────┤
+│ 5000000 │
+├─────────┤
+│ 5000000 │
+├─────────┤
+│ 5000000 │
+├─────────┤
+│ 5000000 │
+├─────────┤
+│ 5000000 │
+├─────────┤
+│ 5000000 │
+├─────────┤
+│ 5000000 │
+├─────────┤
+│ 5000000 │
+├─────────┤
+│ 5000000 │
+├─────────┤
+│ 5000000 │
+├─────────┤
+│ 5000000 │
+├─────────┤
+│ 5000000 │
+├─────────┤
+│ 5000000 │
+├─────────┤
+│ 5000000 │
+├─────────┤
+│ 5000000 │
+├─────────┤
+│ 5000000 │
+├─────────┤
+│ 5000000 │
+├─────────┤
+│ 5000000 │
+├─────────┤
+│ 5000000 │
+├─────────┤
+│ 5000000 │
+├─────────┤
+│ 5000000 │
+├─────────┤
+│ 5000000 │
+├─────────┤
+│ 5000000 │
+├─────────┤
+│ 5000000 │
+├─────────┤
+│ 5000000 │
+├─────────┤
+│ 5000000 │
+├─────────┤
+│ 5000000 │
+└─────────┘
+
+Statistics:
+query_phases {
+  duration_us: 40594770
+  table_access {
+    name: "/terttu1/db1/replication/pk_bool"
+    reads {
+      rows: 5000000
+      bytes: 40000000
+    }
+    partitions_count: 4
+  }
+  table_access {
+    name: "/terttu1/db1/replication/pk_date"
+    reads {
+      rows: 5000000
+      bytes: 40000000
+    }
+    partitions_count: 4
+  }
+  table_access {
+    name: "/terttu1/db1/replication/pk_date32"
+    reads {
+      rows: 5000000
+      bytes: 40000000
+    }
+    partitions_count: 1
+  }
+  table_access {
+    name: "/terttu1/db1/replication/pk_datetime"
+    reads {
+      rows: 5000000
+      bytes: 40000000
+    }
+    partitions_count: 1
+  }
+  table_access {
+    name: "/terttu1/db1/replication/pk_datetime64"
+    reads {
+      rows: 5000000
+      bytes: 40000000
+    }
+    partitions_count: 1
+  }
+  table_access {
+    name: "/terttu1/db1/replication/pk_decimal"
+    reads {
+      rows: 5000000
+      bytes: 40000000
+    }
+    partitions_count: 1
+  }
+  table_access {
+    name: "/terttu1/db1/replication/pk_decimal_narrow"
+    reads {
+      rows: 5000000
+      bytes: 40000000
+    }
+    partitions_count: 6
+  }
+  table_access {
+    name: "/terttu1/db1/replication/pk_decimal_wide"
+    reads {
+      rows: 5000000
+      bytes: 40000000
+    }
+    partitions_count: 4
+  }
+  table_access {
+    name: "/terttu1/db1/replication/pk_int16"
+    reads {
+      rows: 5000000
+      bytes: 40000000
+    }
+    partitions_count: 3
+  }
+  table_access {
+    name: "/terttu1/db1/replication/pk_int32"
+    reads {
+      rows: 5000000
+      bytes: 40000000
+    }
+    partitions_count: 5
+  }
+  table_access {
+    name: "/terttu1/db1/replication/pk_int64"
+    reads {
+      rows: 5000000
+      bytes: 40000000
+    }
+    partitions_count: 4
+  }
+  table_access {
+    name: "/terttu1/db1/replication/pk_int8"
+    reads {
+      rows: 5000000
+      bytes: 40000000
+    }
+    partitions_count: 5
+  }
+  table_access {
+    name: "/terttu1/db1/replication/pk_interval"
+    reads {
+      rows: 5000000
+      bytes: 40000000
+    }
+    partitions_count: 1
+  }
+  table_access {
+    name: "/terttu1/db1/replication/pk_interval64"
+    reads {
+      rows: 5000000
+      bytes: 40000000
+    }
+    partitions_count: 1
+  }
+  table_access {
+    name: "/terttu1/db1/replication/pk_string"
+    reads {
+      rows: 5000000
+      bytes: 40000000
+    }
+    partitions_count: 4
+  }
+  table_access {
+    name: "/terttu1/db1/replication/pk_timestamp"
+    reads {
+      rows: 5000000
+      bytes: 40000000
+    }
+    partitions_count: 1
+  }
+  table_access {
+    name: "/terttu1/db1/replication/pk_timestamp64"
+    reads {
+      rows: 5000000
+      bytes: 40000000
+    }
+    partitions_count: 1
+  }
+  table_access {
+    name: "/terttu1/db1/replication/pk_uint16"
+    reads {
+      rows: 5000000
+      bytes: 40000000
+    }
+    partitions_count: 3
+  }
+  table_access {
+    name: "/terttu1/db1/replication/pk_uint32"
+    reads {
+      rows: 5000000
+      bytes: 40000000
+    }
+    partitions_count: 6
+  }
+  table_access {
+    name: "/terttu1/db1/replication/pk_uint64"
+    reads {
+      rows: 5000000
+      bytes: 40000000
+    }
+    partitions_count: 5
+  }
+  table_access {
+    name: "/terttu1/db1/replication/pk_uint8"
+    reads {
+      rows: 5000000
+      bytes: 40000000
+    }
+    partitions_count: 4
+  }
+  table_access {
+    name: "/terttu1/db1/replication/pk_utf8"
+    reads {
+      rows: 5000000
+      bytes: 40000000
+    }
+    partitions_count: 6
+  }
+  table_access {
+    name: "/terttu1/db1/replication/pk_uuid"
+    reads {
+      rows: 5000000
+      bytes: 40000000
+    }
+    partitions_count: 4
+  }
+  table_access {
+    name: "/terttu1/db1/replication/wide_json"
+    reads {
+      rows: 5000000
+      bytes: 40000000
+    }
+    partitions_count: 7
+  }
+  table_access {
+    name: "/terttu1/db1/replication/wide_json_doc"
+    reads {
+      rows: 5000000
+      bytes: 40000000
+    }
+    partitions_count: 8
+  }
+  table_access {
+    name: "/terttu1/db1/replication/wide_string"
+    reads {
+      rows: 5000000
+      bytes: 40000000
+    }
+    partitions_count: 15
+  }
+  table_access {
+    name: "/terttu1/db1/replication/wide_utf8"
+    reads {
+      rows: 5000000
+      bytes: 40000000
+    }
+    partitions_count: 7
+  }
+  table_access {
+    name: "/terttu1/db1/replication/wide_yson"
+    reads {
+      rows: 5000000
+      bytes: 40000000
+    }
+    partitions_count: 8
+  }
+  cpu_time_us: 9512393
+  affected_shards: 120
+}
+query_phases {
+  duration_us: 1779
+  cpu_time_us: 1044
+}
+compilation {
+  duration_us: 633377
+  cpu_time_us: 586496
+}
+process_cpu_time_us: 536
+total_duration_us: 41234706
+total_cpu_time_us: 10100469

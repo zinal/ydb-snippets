@@ -1,0 +1,10 @@
+format,compression,phase,window_start,window_end,duration_s,source_database,target_database,cpu_source_s,cpu_target_s,transactions_source,transactions_target,topic_write_source_mb,topic_read_source_mb,topic_write_target_mb,topic_read_target_mb,client_transactions,client_errors
+NONE,NONE,workload,2026-11-11T10:59:31Z,2026-11-11T11:29:33Z,1802,/terttu1/db1,/terttu1/db2,31886.94,1346.37,863919.41,0.00,0.00,0.00,0.00,0.00,862914,0
+JSON,NONE,initial_sync,2026-11-11T11:44:06Z,2026-11-11T13:31:02Z,6416,/terttu1/db1,/terttu1/db2,100251.65,36888.79,751.49,0.00,197484.30,220452.38,0.00,0.00,,
+JSON,NONE,workload,2026-11-11T13:32:13Z,2026-11-11T14:02:17Z,1804,/terttu1/db1,/terttu1/db2,44316.86,6035.13,832867.44,0.00,1505.81,1948.72,0.00,0.00,830310,0
+JSON,ZSTD,initial_sync,2026-11-11T14:17:46Z,2026-11-11T16:10:47Z,6781,/terttu1/db1,/terttu1/db2,96345.62,35396.81,697.50,0.00,138763.21,161661.99,0.00,0.00,,
+JSON,ZSTD,workload,2026-11-11T16:11:58Z,2026-11-11T16:42:02Z,1804,/terttu1/db1,/terttu1/db2,44105.41,5945.03,831416.66,0.00,1136.50,1579.70,0.00,0.00,828717,0
+BINARY,NONE,initial_sync,2026-11-11T16:55:54Z,2026-11-11T18:34:47Z,5933,/terttu1/db1,/terttu1/db2,81760.19,28380.39,420.98,0.00,142528.54,155234.28,0.00,0.00,,
+BINARY,NONE,workload,2026-11-11T18:35:57Z,2026-11-11T19:06:03Z,1806,/terttu1/db1,/terttu1/db2,43065.92,6160.12,875488.19,0.00,1159.37,1460.96,0.00,0.00,872019,0
+BINARY,ZSTD,initial_sync,2026-11-11T19:20:23Z,2026-11-11T20:48:36Z,5293,/terttu1/db1,/terttu1/db2,74883.82,26018.86,339.02,0.00,99224.86,111965.63,0.00,0.00,,
+BINARY,ZSTD,workload,2026-11-11T20:49:46Z,2026-11-11T21:19:49Z,1803,/terttu1/db1,/terttu1/db2,40998.49,6297.77,795906.89,0.00,790.18,1063.60,0.00,0.00,794150,0

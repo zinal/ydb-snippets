@@ -169,6 +169,103 @@ curl --proxy https://proxy.example.com:3129 \
 
 Не все браузеры и системные настройки прокси поддерживают TLS до самого прокси.
 В таком случае используйте SSH-туннель, VPN либо клиент с поддержкой HTTPS-прокси.
+Настройка Firefox для Android описана в следующем разделе.
+
+## Firefox для Android
+
+Для HTTPS-прокси с собственным центром сертификации на Android подходит Firefox
+с официального сайта или из магазина приложений. Настройка хранится в браузере
+и действует и в Wi-Fi, и в мобильной сети.
+
+Поле прокси в настройках Wi-Fi задаёт обычный HTTP-прокси. TLS до Squid
+включается PAC-файлом со схемой `HTTPS`.
+
+### Центр сертификации
+
+На телефон устанавливается сертификат центра сертификации, а не сертификат
+самого прокси. Android принимает в это хранилище сертификат с расширением
+`CA:TRUE`. Самоподписанный сертификат сервера из предыдущего раздела для этого
+не подходит: выпустите отдельный CA и подпишите им сертификат прокси.
+
+```bash
+PROXY_HOST=proxy.example.com
+sudo install -d -o root -g proxy -m 0750 /etc/squid/tls
+
+sudo openssl req -x509 -newkey rsa:3072 -sha256 -nodes \
+  -days 3650 \
+  -keyout /etc/squid/tls/ca.key \
+  -out /etc/squid/tls/ca.crt \
+  -subj "/CN=Private proxy CA" \
+  -addext "basicConstraints=critical,CA:TRUE,pathlen:0" \
+  -addext "keyUsage=critical,keyCertSign,cRLSign"
+
+sudo openssl req -newkey rsa:3072 -sha256 -nodes \
+  -keyout /etc/squid/tls/proxy.key \
+  -out /etc/squid/tls/proxy.csr \
+  -subj "/CN=${PROXY_HOST}" \
+  -addext "subjectAltName=DNS:${PROXY_HOST}" \
+  -addext "extendedKeyUsage=serverAuth" \
+  -addext "basicConstraints=CA:FALSE"
+
+sudo openssl x509 -req -sha256 \
+  -in /etc/squid/tls/proxy.csr \
+  -CA /etc/squid/tls/ca.crt \
+  -CAkey /etc/squid/tls/ca.key \
+  -CAcreateserial \
+  -out /etc/squid/tls/proxy.crt \
+  -days 365 \
+  -copy_extensions copy
+
+sudo chown root:proxy /etc/squid/tls/ca.key /etc/squid/tls/ca.crt \
+  /etc/squid/tls/proxy.key /etc/squid/tls/proxy.crt
+sudo chmod 0640 /etc/squid/tls/ca.key /etc/squid/tls/ca.crt \
+  /etc/squid/tls/proxy.key /etc/squid/tls/proxy.crt
+sudo rm -f /etc/squid/tls/proxy.csr /etc/squid/tls/ca.srl
+sudo systemctl restart squid
+```
+
+`proxy.crt` и `proxy.key` остаются в путях из `squid-https.conf`. На телефон
+переносится только `ca.crt`, по уже доверенному каналу. Если сертификат прокси
+выпускает корпоративный CA, на телефон устанавливается его корневой сертификат,
+а команды выше не нужны.
+
+### Доверие в Firefox
+
+1. Откройте `ca.crt` на телефоне и установите его как центр сертификации.
+   Android оставит уведомление о том, что сеть может проверяться.
+2. В Firefox откройте **Настройки → О Firefox**, семь раз нажмите логотип и в
+   **Secret Settings** включите **Use third party CA certificates**. Полностью
+   закройте Firefox и откройте его снова.
+3. Пока прокси в Firefox выключен, откройте `https://proxy.example.com:3129/`.
+   Имя в адресе должно совпадать с сертификатом. Предупреждения о сертификате
+   быть не должно: Squid может ответить ошибкой, но само TLS-соединение уже
+   доверено.
+
+### PAC-файл
+
+Опубликуйте файл по HTTPS-адресу, который Firefox открывает напрямую. Для этого
+адреса нужен сертификат, который Firefox уже доверяет. Загрузка PAC не идёт
+через Squid.
+
+```javascript
+function FindProxyForURL(url, host) {
+  return "HTTPS proxy.example.com:3129";
+}
+```
+
+В стабильном Firefox откройте `chrome://geckoview/content/config.xhtml`. В Beta
+и Nightly достаточно `about:config`. Установите:
+
+| Параметр | Значение |
+| --- | --- |
+| `network.proxy.type` | `2` |
+| `network.proxy.autoconfig_url` | HTTPS-адрес PAC-файла |
+| `network.proxy.proxy_over_tls` | `true` |
+| `network.proxy.use_direct_on_fail` | `false` |
+
+При первом запросе Firefox спросит имя и пароль прокси. Пароль передаётся
+внутри TLS-соединения с Squid. Значение `network.proxy.use_direct_on_fail`
+оставляет трафик на прокси, если соединение с ним не установилось.
 
 ## Проверка настроек
 
